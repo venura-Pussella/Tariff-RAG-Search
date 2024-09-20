@@ -1,0 +1,605 @@
+,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+0,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+1,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+2,,,,,,,,,,,,,,,,,,,,,,,,,
+3,,,,I.- CHEMICAL ELEMENTS,,,,,,,,,,,,,,,,,,,,,
+4,,,,,,,,,,,,,,,,,,,,,,,,,
+5,28.01,,,"Flourine, chlorine, bromine and iodine",,,,,,,,,,,,,,,,,,,,,
+6,,,,,,,,,,,,,,,,,,,,,,,,,
+7,,2801.10,-,Chlorine,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+8,,2801.20,-,Iodine,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+9,,2801.30,-,Fluorine; bromine,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+10,,,,,,,,,,,,,,,,,,,,,,,,,
+11,28.02,,,"Sulphur, sublimed or precipitated;
+colloidal sulphur.",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+12,,,,,,,,,,,,,,,,,,,,,,,,,
+13,28.03,,,"Carbon (carbon blacks and other forms
+of carbon not elsewhere specified or
+included.)",kg,,Free,,,,Free,Free,,Free,,Free,Free,18%,10%,6%,,,,2.5%,
+14,,,,,,,,,,,,,,,,,,,,,,,,,
+15,28.04,,,"Hydrogen, rare gases and other non-
+metals.",,,,,,,,,,,,,,,,,,,,,
+16,,,,,,,,,,,,,,,,,,,,,,,,,
+17,,2804.10,-,Hydrogen,m3,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+18,,,-,Rare gases :,,,,,,,,,,,,,,,,,,,,,
+19,,2804.21,--,Argon,m3,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+20,,2804.29,--,Other,m3,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+21,,2804.30,-,Nitrogen,m3,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+22,,2804.40,-,Oxygen,m3,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+23,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+24,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+25,,,,,,,,,,,,,,,,,,,,,,,,,
+26,,2804.50,-,Boron; tellurium :,,,,,,,,,,,,,,,,,,,,,
+27,,2804.50.10,---,Tellurium waste and scrap,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+28,,2804.50.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+29,,,-,Silicon :,,,,,,,,,,,,,,,,,,,,,
+30,,2804.61,--,"Containing by weight not less than 99.99% of
+silicon",kg,,Free,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+31,,2804.69,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+32,,2804.70,-,Phosphorus,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+33,,2804.80,-,Arsenic,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+34,,,-,Selenium :,,,,,,,,,,,,,,,,,,,,,
+35,,2804.90.10,---,Waste and scrap,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+36,,2804.90.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+37,,,,,,,,,,,,,,,,,,,,,,,,,
+38,28.05,,,"Alkali or alkaline-earth metals; rare-
+earth metals, scandium and yttrium,
+whether or not intermixed or
+interalloyed; mercury.",,,,,,,,,,,,,,,,,,,,,
+39,,,,,,,,,,,,,,,,,,,,,,,,,
+40,,,-,Alkali or alkaline-earth metals :,,,,,,,,,,,,,,,,,,,,,
+41,,2805.11,--,Sodium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+42,,2805.12,--,Calcium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+43,,2805.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+44,,,-,"Rare-earth metals, scandium and yttrium,
+whether or not intermixed or interalloyed :",,,,,,,,,,,,,,,,,,,,,
+45,,2805.30.10,---,Waste and scrap of rare-earth metals,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+46,,2805.30.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+47,,2805.40,-,Mercury,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+48,,,,,,,,,,,,,,,,,,,,,,,,,
+49,,,,"II.- INORGANIC ACIDS AND INORGANIC
+OXYGEN COMPOUNDS OF NON-METALS",,,,,,,,,,,,,,,,,,,,,
+50,,,,,,,,,,,,,,,,,,,,,,,,,
+51,28.06,,,"Hydrogen chloride (hydrochloric acid);
+chlorosulphuric acid.",,,,,,,,,,,,,,,,,,,,,
+52,,,,,,,,,,,,,,,,,,,,,,,,,
+53,,2806.10,-,Hydrogen chloride (hydrochloric acid),kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+54,,2806.20,-,Chlorosulphuric acid,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+55,,,,,,,,,,,,,,,,,,,,,,,,,
+56,28.07,,,Sulphuric acid; oleum.,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+57,,,,,,,,,,,,,,,,,,,,,,,,,
+58,28.08,,,Nitric acid; sulphonitric acids.,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+59,,,,,,,,,,,,,,,,,,,,,,,,,
+60,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+61,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+62,,,,,,,,,,,,,,,,,,,,,,,,,
+63,28.09,,,"Diphosphorus pentaoxide; phosphoric
+acid; polyphosphoric acids, whether or
+not chemically defined.",,,,,,,,,,,,,,,,,,,,,
+64,,,,,,,,,,,,,,,,,,,,,,,,,
+65,,2809.10,-,Diphosphorus pentaoxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+66,,2809.20,-,Phosphoric acid and polyphosphoric acids,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+67,,,,,,,,,,,,,,,,,,,,,,,,,
+68,28.10,,,Oxides of boron; boric acids.,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+69,,,,,,,,,,,,,,,,,,,,,,,,,
+70,28.11,,,"Other inorganic acids and other
+inorganic oxygen compounds of non-
+metals.",,,,,,,,,,,,,,,,,,,,,
+71,,,,,,,,,,,,,,,,,,,,,,,,,
+72,,,-,Other inorganic acids :,,,,,,,,,,,,,,,,,,,,,
+73,,2811.11,--,Hydrogen fluoride (hydrofluoric acid),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+74,,2811.12,--,Hydrogen cyanide (hydrocyanic acid),kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+75,,2811.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+76,,,-,"Other inorganic oxygen compounds of non-
+metals :",,,,,,,,,,,,,,,,,,,,,
+77,,2811.21,--,Carbon dioxide,kg,,,,,,Free,Free,,5%,4.5%,10.0%,15%,18%,10%,6%,5%,Free,,2.5%,
+78,,2811.22,--,Silicon dioxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+79,,2811.29,--,Other :,,,,,,,,,,,,,,,,,,,,,
+80,,2811.29.10,---,Nitrous oxide,kg,,,,,,Free,Free,,5%,4.5%,10.0%,Free,18%,10%,6%,,,,2.5%,
+81,,2811.29.20,---,Sulphur dioxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+82,,2811.29.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+83,,,,,,,,,,,,,,,,,,,,,,,,,
+84,,,,"III.- HALOGEN OR SULPHUR
+COMPOUNDS OF NON-METALS",,,,,,,,,,,,,,,,,,,,,
+85,,,,,,,,,,,,,,,,,,,,,,,,,
+86,28.12,,,Halides and halide oxides of non-metals.,,,,,,,,,,,,,,,,,,,,,
+87,,,,,,,,,,,,,,,,,,,,,,,,,
+88,,,-,Chlorides and chloride oxides :,,,,,,,,,,,,,,,,,,,,,
+89,,2812.11,--,Carbonyl dichloride (Phosgene),kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+90,,2812.12,--,Phosphorus oxychloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+91,,2812.13,--,Phosphorus trichloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+92,,2812.14,--,Phosphorus pentachloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+93,,2812.15,--,Sulphur monochloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+94,,2812.16,--,Sulphur dichloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+95,,2812.17,--,Thionyl chloride,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+96,,2812.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+97,,2812.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+98,,,,,,,,,,,,,,,,,,,,,,,,,
+99,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+100,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+101,,,,,,,,,,,,,,,,,,,,,,,,,
+102,28.13,,,"Sulphides of non-metals; commercial
+phosphorus trisulphide.",,,,,,,,,,,,,,,,,,,,,
+103,,,,,,,,,,,,,,,,,,,,,,,,,
+104,,2813.10,-,Carbon disulphide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+105,,2813.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+106,,,,,,,,,,,,,,,,,,,,,,,,,
+107,,,,"IV.- INORGANIC BASES AND OXIDES,
+HYDROXIDES AND PEROXIDES OF
+METALS",,,,,,,,,,,,,,,,,,,,,
+108,,,,,,,,,,,,,,,,,,,,,,,,,
+109,28.14,,,"Ammonia, anhydrous or in aqueous
+soluton.",,,,,,,,,,,,,,,,,,,,,
+110,,,,,,,,,,,,,,,,,,,,,,,,,
+111,,2814.10,-,Anhydrous ammonia,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+112,,2814.20,-,Ammonia in aqueous solution,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+113,,,,,,,,,,,,,,,,,,,,,,,,,
+114,28.15,,,"Sodium hydroxide (caustic soda);
+potassium hydroxide (caustic potash);
+peroxides of sodium or potassium.",,,,,,,,,,,,,,,,,,,,,
+115,,,,,,,,,,,,,,,,,,,,,,,,,
+116,,,-,Sodium hydroxide (caustic soda) :,,,,,,,,,,,,,,,,,,,,,
+117,,2815.11,--,Solid,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+118,,2815.12,--,In aqueous solution (soda lye or liquid soda),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+119,,2815.20,-,Potassium hydroxide (caustic potash),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+120,,2815.30,-,Peroxides of sodium or potassium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+121,,,,,,,,,,,,,,,,,,,,,,,,,
+122,28.16,,,"Hydroxide and peroxide of magnesium;
+oxides, hydroxides and peroxides, of
+strontium or barium.",,,,,,,,,,,,,,,,,,,,,
+123,,,,,,,,,,,,,,,,,,,,,,,,,
+124,,2816.10,-,Hydroxide and peroxide of magnesium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+125,,2816.40,-,"Oxides, hydroxides and peroxides, of
+strontium or barium",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+126,,,,,,,,,,,,,,,,,,,,,,,,,
+127,28.17,,,Zinc oxide; zinc peroxide.,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+128,,,,,,,,,,,,,,,,,,,,,,,,,
+129,28.18,,,"Artificial corundum, whether or not
+chemically defined; aluminium oxide;
+aluminium hydroxide.",,,,,,,,,,,,,,,,,,,,,
+130,,,,,,,,,,,,,,,,,,,,,,,,,
+131,,2818.10,-,"Artificial corundum, whether or not chemically
+defined",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+132,,2818.20,-,"Aluminium oxide, other than artificial
+corundum",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+133,,2818.30,-,Aluminium hydroxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+134,,,,,,,,,,,,,,,,,,,,,,,,,
+135,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+136,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+137,,,,,,,,,,,,,,,,,,,,,,,,,
+138,28.19,,,Chromium oxides and hydroxides.,,,,,,,,,,,,,,,,,,,,,
+139,,,,,,,,,,,,,,,,,,,,,,,,,
+140,,2819.10,-,Chromium trioxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+141,,2819.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+142,,,,,,,,,,,,,,,,,,,,,,,,,
+143,28.20,,,Manganese oxides.,,,,,,,,,,,,,,,,,,,,,
+144,,,,,,,,,,,,,,,,,,,,,,,,,
+145,,2820.10,-,Manganese dioxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+146,,2820.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+147,,,,,,,,,,,,,,,,,,,,,,,,,
+148,28.21,,,"Iron oxides and hydroxides; earth
+colours containing 70% or more by
+weight of combined iron evaluated as
+Fe O.
+2 3",,,,,,,,,,,,,,,,,,,,,
+149,,,,,,,,,,,,,,,,,,,,,,,,,
+150,,2821.10,-,Iron oxides and hydroxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+151,,2821.20,-,Earth colours,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+152,,,,,,,,,,,,,,,,,,,,,,,,,
+153,28.22,,,"Cobalt oxides and hydroxides;
+commercial cobalt oxides.",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+154,,,,,,,,,,,,,,,,,,,,,,,,,
+155,28.23,,,Titanium oxides.,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+156,,,,,,,,,,,,,,,,,,,,,,,,,
+157,28.24,,,Lead oxides; red lead and orange lead.,,,,,,,,,,,,,,,,,,,,,
+158,,,,,,,,,,,,,,,,,,,,,,,,,
+159,,2824.10,-,"Lead monoxide (litharge, massicot)",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+160,,2824.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+161,,,,,,,,,,,,,,,,,,,,,,,,,
+162,28.25,,,"Hydrazine and hydroxylamine and their
+inorganic salts; other inorganic bases;
+other metal oxides, hydroxides and
+peroxides.",,,,,,,,,,,,,,,,,,,,,
+163,,,,,,,,,,,,,,,,,,,,,,,,,
+164,,2825.10,-,"Hydrazine and hydroxylamine and their
+inorganic salts",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+165,,2825.20,-,Lithium oxide and hydroxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+166,,2825.30,-,Vanadium oxides and hydroxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+167,,2825.40,-,Nickel oxides and hydroxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+168,,2825.50,-,Copper oxides and hydroxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+169,,2825.60,-,Germanium oxides and zirconium dioxide,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+170,,2825.70,-,Molybdenum oxides and hydroxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+171,,2825.80,-,Antimony oxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+172,,2825.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+173,,,,,,,,,,,,,,,,,,,,,,,,,
+174,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+175,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+176,,,,,,,,,,,,,,,,,,,,,,,,,
+177,,,,"V.- SALTS AND PEROXYSALTS, OF
+INORGANIC ACIDS AND METALS",,,,,,,,,,,,,,,,,,,,,
+178,,,,,,,,,,,,,,,,,,,,,,,,,
+179,28.26,,,"Fluorides; fluorosilicates,
+fluoroaluminates and other complex
+fluorine salts.",,,,,,,,,,,,,,,,,,,,,
+180,,,,,,,,,,,,,,,,,,,,,,,,,
+181,,,-,Fluorides :,,,,,,,,,,,,,,,,,,,,,
+182,,2826.12,--,Of aluminium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+183,,2826.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+184,,2826.30,-,"Sodium hexafluoroaluminate (synthetic
+cryolite)",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+185,,2826.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+186,,,,,,,,,,,,,,,,,,,,,,,,,
+187,28.27,,,"Chlorides, chloride oxides and chloride
+hydroxides; bromides and bromide
+oxides; iodides and iodide oxides.",,,,,,,,,,,,,,,,,,,,,
+188,,,,,,,,,,,,,,,,,,,,,,,,,
+189,,2827.10,-,Ammonium chloride,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+190,,2827.20,-,Calcium chloride,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+191,,,-,Other chlorides :,,,,,,,,,,,,,,,,,,,,,
+192,,2827.31,--,Of magnesium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+193,,2827.32,--,Of aluminium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+194,,2827.35,--,Of nickel,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+195,,2827.39,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+196,,,-,Chloride oxides and chloride hydroxides :,,,,,,,,,,,,,,,,,,,,,
+197,,2827.41,--,Of copper,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+198,,2827.49,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+199,,,-,Bromides and bromide oxides :,,,,,,,,,,,,,,,,,,,,,
+200,,2827.51,--,Bromides of sodium or of potassium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+201,,2827.59,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+202,,2827.60,-,Iodides and iodide oxides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+203,,,,,,,,,,,,,,,,,,,,,,,,,
+204,28.28,,,"Hypochlorites; commercial calcium
+hypochlorite; chlorites; hypobromites.",,,,,,,,,,,,,,,,,,,,,
+205,,,,,,,,,,,,,,,,,,,,,,,,,
+206,,2828.10,-,"Commercial calcium hypochlorite and other
+calcium hypochlorites",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,10%,Free,,2.5%,
+207,,2828.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+208,,,,,,,,,,,,,,,,,,,,,,,,,
+209,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+210,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+211,,,,,,,,,,,,,,,,,,,,,,,,,
+212,28.29,,,"Chlorates and perchlorates; bromates
+and perbromates; iodates and
+periodates.",,,,,,,,,,,,,,,,,,,,,
+213,,,,,,,,,,,,,,,,,,,,,,,,,
+214,,,-,Chlorates :,,,,,,,,,,,,,,,,,,,,,
+215,,2829.11,--,Of sodium,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+216,,2829.19,--,Other,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+217,,2829.90,-,Other,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+218,,,,,,,,,,,,,,,,,,,,,,,,,
+219,28.30,,,"Sulphides; polysulphides, whether or not
+chemically defined.",,,,,,,,,,,,,,,,,,,,,
+220,,,,,,,,,,,,,,,,,,,,,,,,,
+221,,2830.10,-,Sodium sulphides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+222,,2830.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+223,,,,,,,,,,,,,,,,,,,,,,,,,
+224,28.31,,,Dithionites and sulphyoxylates.,,,,,,,,,,,,,,,,,,,,,
+225,,,,,,,,,,,,,,,,,,,,,,,,,
+226,,2831.10,-,Of sodium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+227,,2831.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+228,,,,,,,,,,,,,,,,,,,,,,,,,
+229,28.32,,,Sulphites; thiosulphates.,,,,,,,,,,,,,,,,,,,,,
+230,,,,,,,,,,,,,,,,,,,,,,,,,
+231,,2832.10,-,Sodium sulphites,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+232,,2832.20,-,Other sulphites,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+233,,2832.30,-,Thiosulphates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+234,,,,,,,,,,,,,,,,,,,,,,,,,
+235,28.33,,,"Sulphates; alums; peroxosulphates
+(persulphates).",,,,,,,,,,,,,,,,,,,,,
+236,,,,,,,,,,,,,,,,,,,,,,,,,
+237,,,-,Sodium sulphates :,,,,,,,,,,,,,,,,,,,,,
+238,,2833.11,--,Disodium sulphate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+239,,2833.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+240,,,-,Other sulphates :,,,,,,,,,,,,,,,,,,,,,
+241,,2833.21,--,Of magnesium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+242,,2833.22,--,Of aluminium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+243,,2833.24,--,Of nickel,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+244,,2833.25,--,Of copper,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+245,,2833.27,--,Of barium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+246,,2833.29,--,Other :,,,,,,,,,,,,,,,,,,,,,
+247,,2833.29.10,---,Thallium sulphate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+248,,2833.29.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+249,,2833.30,-,Alums,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+250,,2833.40,-,Peroxosulphates (perulphates),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+251,,,,,,,,,,,,,,,,,,,,,,,,,
+252,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+253,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+254,,,,,,,,,,,,,,,,,,,,,,,,,
+255,28.34,,,Nitrites; nitrates.,,,,,,,,,,,,,,,,,,,,,
+256,,,,,,,,,,,,,,,,,,,,,,,,,
+257,,2834.10,-,Nitrites,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+258,,,-,Nitrates :,,,,,,,,,,,,,,,,,,,,,
+259,,2834.21,--,Of potassium,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+260,,,--,Other :,,,,,,,,,,,,,,,,,,,,,
+261,,2834.29.10,---,"Calcium nitrate containing in the dry state not
+more than 16% by weight of nitrogen",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+262,,2834.29.90,---,Other,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+263,,,,,,,,,,,,,,,,,,,,,,,,,
+264,28.35,,,"Phosphinates (hypophosphites),
+phosphonates (phosphites) and
+phosphates; polyphosphates, whether or
+not chemically defined.",,,,,,,,,,,,,,,,,,,,,
+265,,,,,,,,,,,,,,,,,,,,,,,,,
+266,,2835.10,-,"Phosphinates (hypophosphites) and
+phosphonates (phosphites)",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+267,,,-,Phospates :,,,,,,,,,,,,,,,,,,,,,
+268,,2835.22,--,Of mono- or disodium,kg,,Free,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+269,,2835.24,--,Of potassium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+270,,2835.25,--,"Calcium hydrogenorthophosphate (""dicalcium
+phosphate"")",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+271,,2835.26,--,Other phosphates of calcium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+272,,2835.29,--,Other,kg,,Free,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+273,,,-,Polyphosphates :,,,,,,,,,,,,,,,,,,,,,
+274,,2835.31,--,"Sodium triphosphates (sodium
+tripolyphosphate)",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+275,,2835.39,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+276,,,,,,,,,,,,,,,,,,,,,,,,,
+277,28.36,,,"Carbonates; peroxocarbonates
+(percarbonates); commercial ammonium
+carbonate containing ammonium
+carbamate.",,,,,,,,,,,,,,,,,,,,,
+278,,,,,,,,,,,,,,,,,,,,,,,,,
+279,,2836.20,-,Disodium carbonate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+280,,2836.30,-,"Sodium hydrogencarbonate (sodium
+bicarbonate)",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+281,,2836.40,-,Potassium carbonates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+282,,2836.50,-,Calcium carbonate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+283,,2836.60,-,Barium carbonate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+284,,,-,Other :,,,,,,,,,,,,,,,,,,,,,
+285,,2836.91,--,Lithium carbonates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+286,,2836.92,--,Strontium carbonate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+287,,2836.99,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+288,,,,,,,,,,,,,,,,,,,,,,,,,
+289,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+290,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+291,,,,,,,,,,,,,,,,,,,,,,,,,
+292,28.37,,,"Cyanides, cyanide oxides and complex
+cyanides.",,,,,,,,,,,,,,,,,,,,,
+293,,,,,,,,,,,,,,,,,,,,,,,,,
+294,,,-,Cyanides and cyanide oxides :,,,,,,,,,,,,,,,,,,,,,
+295,,2837.11,--,Of sodium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+296,,2837.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+297,,2837.20,-,Complex cyanides,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+298,,,,,,,,,,,,,,,,,,,,,,,,,
+299,[28.38],,,,,,,,,,,,,,,,,,,,,,,,
+300,,,,,,,,,,,,,,,,,,,,,,,,,
+301,28.39,,,"Silicates; commercial alkali metal
+silicates.",,,,,,,,,,,,,,,,,,,,,
+302,,,,,,,,,,,,,,,,,,,,,,,,,
+303,,,-,Of sodium :,,,,,,,,,,,,,,,,,,,,,
+304,,2839.11,--,Sodium metasilicates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+305,,2839.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+306,,2839.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+307,,,,,,,,,,,,,,,,,,,,,,,,,
+308,28.40,,,Borates; peroxoborates (perborates).,,,,,,,,,,,,,,,,,,,,,
+309,,,,,,,,,,,,,,,,,,,,,,,,,
+310,,,-,Disodium tetraborate (refined borax) :,,,,,,,,,,,,,,,,,,,,,
+311,,2840.11,--,Anhydrous,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+312,,2840.19,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+313,,2840.20,-,Other borates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+314,,2840.30,-,Peroxoborates (perborates),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+315,,,,,,,,,,,,,,,,,,,,,,,,,
+316,28.41,,,"Salts of oxometallic or peroxometallic
+acids.",,,,,,,,,,,,,,,,,,,,,
+317,,,,,,,,,,,,,,,,,,,,,,,,,
+318,,2841.30,-,Sodium dichromate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+319,,2841.50,-,"Other chromates and dichromates;
+peroxochromates",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+320,,,-,"Manganites, manganates and permanganates :",,,,,,,,,,,,,,,,,,,,,
+321,,2841.61,--,Potassium permanganate,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+322,,2841.69,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+323,,2841.70,-,Molybdates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+324,,2841.80,-,Tungstates (wolframates),kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+325,,2841.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+326,,,,,,,,,,,,,,,,,,,,,,,,,
+327,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+328,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+329,,,,,,,,,,,,,,,,,,,,,,,,,
+330,28.42,,,"Other salts of inorganic acids or
+peroxoacids (including aluminosilicates
+whether or not chemically defined),
+other than azides.",,,,,,,,,,,,,,,,,,,,,
+331,,,,,,,,,,,,,,,,,,,,,,,,,
+332,,2842.10,-,"Double or complex silicates, including
+aluminosilicates whether or not chemically
+defined",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+333,,2842.90,-,Other :,,,,,,,,,,,,,,,,,,,,,
+334,,2842.90.10,---,Arsenates,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+335,,2842.90.20,---,Arsenites,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+336,,2842.90.30,---,"Fulminates, cyanates and thiocyanates",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+337,,2842.90.90,---,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+338,,,,,,,,,,,,,,,,,,,,,,,,,
+339,,,,VI.- MISCELLANEOUS,,,,,,,,,,,,,,,,,,,,,
+340,,,,,,,,,,,,,,,,,,,,,,,,,
+341,28.43,,,"Colloidal precious metals; inorganic or
+organic compounds of precious metals,
+whether or not chemically defined;
+amalgams of precious metals.",,,,,,,,,,,,,,,,,,,,,
+342,,,,,,,,,,,,,,,,,,,,,,,,,
+343,,2843.10,-,Colloidal precious metals,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+344,,,-,Silver compounds :,,,,,,,,,,,,,,,,,,,,,
+345,,2843.21,--,Silver nitrate,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+346,,2843.29,--,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+347,,2843.30,-,Gold compounds,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+348,,2843.90,-,Other compounds; amalgams,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+349,,,,,,,,,,,,,,,,,,,,,,,,,
+350,28.44,,,"Radioactive chemical elements and
+radioactive isotopes (including the fissile
+or fertile chemical elements and
+isotopes)and their compounds; mixtures
+and residues containing these products.",,,,,,,,,,,,,,,,,,,,,
+351,,,,,,,,,,,,,,,,,,,,,,,,,
+352,,2844.10,-,"Natural uranium and its compounds; alloys,
+dispersions (including cermets), ceramic
+products and mixtures containing natural
+uranium or natural uranium compounds",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+353,,2844.20,-,"Uranium enriched in U 235 and its compounds;
+plutonium and its compounds; alloys,
+dispersions (including cermets), ceramic
+products and mixtures containing uranium
+enriched in U 235, plutonium or compounds of
+these products",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+354,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+355,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+356,,,,,,,,,,,,,,,,,,,,,,,,,
+357,,2844.30,-,"Uranium depleted in U 235 and its compounds;
+thorium and its compounds; alloys, dispersions
+(including cermets), ceramic products and
+mixtures containing uranium depleted in U
+235, thorium or compounds of these products",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+358,,2844.40.00,-,"Radioactive elements and isotopes and
+compounds other than those of subheading
+2844.10, 2844.20 or 2844.30; alloys,
+dispersions (including cermets), ceramic
+products and mixtures containing these
+elements, isotopes or compounds; radioactive
+residues :",,,,,,,,,,,,,,,,,,,,,
+359,,2844.41,--,"Tritium and its compounds; alloys, dispersions
+(including cermets), ceramic products and
+mixtures containing tritium or its compounds.",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+360,,2844.42,--,"Actinium-225, actinium-227, californium-253,
+curium-240, curium-241, curium-242, curium-
+243, curium-244, einsteinium-253, einsteinium-
+254, gadolinium-148, polonium-208, polonium-
+209, polonium-210, radium-223, uranium-230
+or uranium-232, and their compounds; alloys,
+dispersions (including cermets), ceramic
+products and mixtures containing these
+elements or compounds",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+361,,2844.43,--,"Other radioactive elements and isotopes and
+compounds; other alloys, dispersions
+(including cermets), ceramic products and
+mixtures containing these elements, isotopes
+or compounds.",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+362,,2844.44,--,Radioactive residues.,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+363,,2844.50,-,"Spent (irradiated) fuel elements (cartridges) of
+nuclear reactors",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+364,,,,,,,,,,,,,,,,,,,,,,,,,
+365,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+366,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+367,,,,,,,,,,,,,,,,,,,,,,,,,
+368,28.45,,,"Isotopes other than those of heading
+28.44; compounds, inorganic or organic,
+of such isotopes, whether or not
+chemically defined.",,,,,,,,,,,,,,,,,,,,,
+369,,,,,,,,,,,,,,,,,,,,,,,,,
+370,,2845.10,-,Heavy water (deuterium oxide),kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+371,,2845.20,-,Boron enriched in boron-10 and its compounds,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+372,,2845.30,-,"Lithium enriched in lithium-6 and its
+compounds",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+373,,2845.40,-,Helium-3,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+374,,2845.90,-,Other,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+375,,,,,,,,,,,,,,,,,,,,,,,,,
+376,28.46,,,"Compounds, inorganic or organic, of rare-
+earth metals, of yttrium or of scandium
+or of mixtures of these metals.",,,,,,,,,,,,,,,,,,,,,
+377,,,,,,,,,,,,,,,,,,,,,,,,,
+378,,2846.10,-,Cerium compounds,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+379,,2846.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+380,,,,,,,,,,,,,,,,,,,,,,,,,
+381,28.47,,,"Hydrogen peroxide, whether or not
+solidified with urea.",kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+382,,,,,,,,,,,,,,,,,,,,,,,,,
+383,[28.48],,,,,,,,,,,,,,,,,,,,,,,,
+384,,,,,,,,,,,,,,,,,,,,,,,,,
+385,28.49,,,"Carbides, whether or not chemically
+defined.",,,,,,,,,,,,,,,,,,,,,
+386,,,,,,,,,,,,,,,,,,,,,,,,,
+387,,2849.10,-,Of calcium,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+388,,2849.20,-,Of silicon,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,2.5%,
+389,,2849.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+390,,,,,,,,,,,,,,,,,,,,,,,,,
+391,28.50,,,"Hydrides, nitrides, azides, silicides and
+borides, whether or not chemically
+defined, other than compounds which
+are also carbides of heading 28.49.",kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+392,,,,,,,,,,,,,,,,,,,,,,,,,
+393,[28.51],,,,,,,,,,,,,,,,,,,,,,,,
+394,,,,,,,,,,,,,,,,,,,,,,,,,
+395,28.52,,,"Inorganic or organic compounds of
+mercury, whether or not chemically
+defined, excluding amalgams.",,,,,,,,,,,,,,,,,,,,,
+396,,,,,,,,,,,,,,,,,,,,,,,,,
+397,,2852.10,-,Chemically defined,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+398,,2852.90,-,Other,kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+399,,,,,,,,,,,,,,,,,,,,,,,,,
+400,28.53,,,"Phosphides, whether or not chemically
+defined, excluding ferrophosphorus;
+other inorganic compounds (including
+distilled or conductivity water and water
+of similar purity); liquid air (whether or
+not rare gases have been removed);
+compressed air; amalgams, other than
+amalgams of precious metals.",,,,,,,,,,,,,,,,,,,,,
+401,,,,,,,,,,,,,,,,,,,,,,,,,
+402,HS Hdg,HS Code,,Description,Unit,"ICL/
+SLSI",Preferential Duty,,,,,,,,,,"Gen
+Duty",VAT,PAL,,Cess,,"Excise
+(S.P.D)",SSCL,"S
+C
+L"
+403,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,
+404,,,,,,,,,,,,,,,,,,,,,,,,,
+405,,2853.10,-,Cyanogen chloride (Chlorcyan),kg,L,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+406,,2853.90,-,Other,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,Ex,,,,,2.5%,
+407,,,,,,,,,,,,,,,,,,,,,,,,,
