@@ -1,40 +1,37 @@
-
-from langchain_community.document_loaders import JSONLoader
-
 import json
 from pathlib import Path
 from pprint import pprint
+#from loadJSONAtRuntime.loadJSONAtRuntime import loadJSONAtRuntime
+from functions.loadJSONAtRuntime.loadJSONAtRuntime import loadJSONAtRuntime
 
 # load the json data into a dictionary
 # ......................................... #
-file_path='functions\extract_data\extracted_data\ch28.json'
-json_dict = json.loads(Path(file_path).read_text())
+json_dicts = loadJSONAtRuntime()
 # ......................................... #
-
 
 # create langchain documents with the data we need
 # ......................................... #
 from langchain_core.documents import Document
 
 docs = []
-items = json_dict["Items"]
-source = json_dict["Document Name"]
 
-for item in items:
-    prefix = item["Prefix"]
-    hsHeadingName = item["HS Hdg Name"]
-    hscode = item["HS Code"]
-    description = item["Description"]
+for json_dict in json_dicts:
 
-    content = "Prefix: " + prefix + " , HS Heading Name:" + hsHeadingName + " , Description:" + description
-    document = Document(
-        page_content=content,
-        metadata={
-            "source": source,
-            "HS Code": hscode   
-        }
-    )
-    docs.append(document)
+    items = json_dict["Items"]
+    chapterName = json_dict["Chapter Name"]
+
+    for item in items:
+        prefix = item["Prefix"]
+        hsHeadingName = item["HS Hdg Name"]
+        hscode = item["HS Code"]
+        description = item["Description"]
+
+        content = "Chapter Name: " + chapterName + " , HS Heading Name:" + hsHeadingName + " ,Prefix: " + prefix +  " , Description:" + description
+        document = Document(
+            page_content=content,
+            metadata={ "HS Code": hscode }
+        )
+        docs.append(document)
 # ......................................... #
 
 # create vectorstore
