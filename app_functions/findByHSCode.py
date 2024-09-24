@@ -3,7 +3,8 @@ from pathlib import Path
 
 # search jsons by HS Code
 def findByHSCode(query: str, data_dict: dict) -> list:
-        if query == None or query == '' or (not float(query)):
+     try:
+        if query == None or query == '':
           return[]
         
         results = []
@@ -27,6 +28,9 @@ def findByHSCode(query: str, data_dict: dict) -> list:
                 results.append(item)
 
         return results
+     except:
+         print(Exception)
+         return []
 
     
 

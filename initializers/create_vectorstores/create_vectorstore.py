@@ -59,6 +59,7 @@ embedding = OpenAIEmbeddings()
 from langchain.vectorstores import Chroma
 
 persist_directory = "initializers\create_vectorstores\\vectorstores\chroma"
+print("Deleting existing vectorstore...")
 shutil.rmtree(persist_directory)
 
 print("Creating vectorstore...")
