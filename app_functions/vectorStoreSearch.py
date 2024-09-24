@@ -14,7 +14,7 @@ def vectorStoreSearch(question):
 
 
     from langchain_community.vectorstores import Chroma
-    persist_directory = 'functions\create_vectorstores\\vectorstores\chroma'
+    persist_directory = 'initializers\create_vectorstores\\vectorstores\chroma'
 
     from langchain_community.embeddings import OpenAIEmbeddings
     embedding = OpenAIEmbeddings()

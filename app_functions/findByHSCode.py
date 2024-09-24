@@ -1,33 +1,34 @@
 import json
 from pathlib import Path
-import pprint
 
-class findByHSCode:
-
-    cached_json_dict = {}
-    file_path_that_was_cached = ""
-
-    @staticmethod
-    def findByHSCode(query: str) -> list:
+# search jsons by HS Code
+def findByHSCode(query: str, data_dict: dict) -> list:
+        if query == None or query == '' or (not float(query)):
+          return[]
+        
         results = []
-        file_path='functions\extract_data\extracted_data\ch28.json'
+        chapterNumber = 0
 
-        if findByHSCode.file_path_that_was_cached == file_path:
-            json_dict = findByHSCode.cached_json_dict
-            print("Used cache.")
+        # find the chapter number from the hs code
+        dotIndex = query.find('.')
+        if dotIndex == -1 and int(query)>=100:
+             chapterNumber = int(query) // 100
+        elif dotIndex == -1:
+             chapterNumber = int(query)
         else:
-            json_dict = json.loads(Path(file_path).read_text())
-            findByHSCode.cached_json_dict = json_dict
-            findByHSCode.file_path_that_was_cached = file_path
-            print(file_path + " cached.")
+             chapterNumber = int(query[:dotIndex]) // 100
 
-        items = json_dict["Items"]
+        if not (chapterNumber in data_dict):
+             return []
+        items = data_dict[chapterNumber]["Items"]
         for item in items:
-            # did not use binary search cuz then can search for any part of the hs code
+            # implement binary search
             if query in item["HS Code"] or query == item["HS Code"]:
                 results.append(item)
 
         return results
+
+    
 
 
 # query = input("Enter query:")

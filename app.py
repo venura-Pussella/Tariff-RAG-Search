@@ -1,14 +1,18 @@
 import os
 # roll back open telemetry
 
+import sys
+sys.path.append('/')
+
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)
 from app_functions import findByHSCode
 from app_functions import vectorStoreSearch
+from initializers.loadJSONAtRuntime import loadJSONAtRuntime as lj
 
 app = Flask(__name__)
 
-
+data_dict = lj.loadJSONsAtRuntime()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -18,7 +22,7 @@ def index():
     if request.method == "POST":
         user_query = request.form.get("query")
         print("app.py: user_query is: " + user_query)
-        results = findByHSCode.findByHSCode.findByHSCode(user_query)  # Call the Python function
+        results = findByHSCode.findByHSCode(user_query, data_dict)  # Call the Python function
     return render_template("index.html", results=results, user_query=user_query)
 
 
