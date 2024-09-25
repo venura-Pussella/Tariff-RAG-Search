@@ -32,13 +32,47 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>HS Heading</th>
+                    <th>HS Hdg Name</th>
                     <th>HS Code</th>
-                    <th>Sub-Category</th>
+                    <th>Prefix</th>
                     <th>Description</th>
                     <th>Unit</th>
+                    <th>ICL/SLSI</th>
+                    <th colspan="10">Preferential Duty</th>
                     <th>Gen Duty</th>
                     <th>VAT</th>
+                    <th colspan="2">PAL</th>
+                    <th colspan="2">Cess</th>
+                    <th>Excise (SPD)</th>
+                    <th>SSCL</th>
+                    <th>SCL</th>
+                </tr>
+                 <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>AP</th>
+                    <th>AD</th>
+                    <th>BN</th>
+                    <th>GT</th>
+                    <th>IN</th>
+                    <th>PK</th>
+                    <th>SA</th>
+                    <th>SF</th>
+                    <th>SD</th>
+                    <th>SG</th>
+                    <th></th>
+                    <th></th>
+                    <th>Gen</th>
+                    <th>SG</th>
+                    <th>Gen</th>
+                    <th>SG</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -49,8 +83,26 @@
                     <td>{{ item['Prefix'] }}</td>
                     <td>{{ item['Description'] }}</td>
                     <td>{{ item['Unit'] }}</td>
+                    <td>{{ item['ICL/SLSI'] }}</td>
+                    <td>{{ item['Preferential Duty_AP'] }}</td>
+                    <td>{{ item['Preferential Duty_AD'] }}</td>
+                    <td>{{ item['Preferential Duty_BN'] }}</td>
+                    <td>{{ item['Preferential Duty_GT'] }}</td>
+                    <td>{{ item['Preferential Duty_IN'] }}</td>
+                    <td>{{ item['Preferential Duty_PK'] }}</td>
+                    <td>{{ item['Preferential Duty_SA'] }}</td>
+                    <td>{{ item['Preferential Duty_SF'] }}</td>
+                    <td>{{ item['Preferential Duty_SD'] }}</td>
+                    <td>{{ item['Preferential Duty_SG'] }}</td>
                     <td>{{ item['Gen Duty'] }}</td>
                     <td>{{ item['VAT'] }}</td>
+                    <td>{{ item['PAL_Gen'] }}</td>
+                    <td>{{ item['PAL_SG'] }}</td>
+                    <td>{{ item['Cess_GEN'] }}</td>
+                    <td>{{ item['Cess_SG'] }}</td>
+                    <td>{{ item['Excise SPG'] }}</td>
+                    <td>{{ item['SSCL'] }}</td>
+                    <td>{{ item['SCL'] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

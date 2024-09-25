@@ -9,10 +9,12 @@ from flask import (Flask, redirect, render_template, request,
 from app_functions import findByHSCode
 from app_functions import vectorStoreSearch
 from initializers.loadJSONAtRuntime import loadJSONAtRuntime as lj
+from initializers import loadID_HSCodesAtRuntime as idhs
 
 app = Flask(__name__)
 
 data_dict = lj.loadJSONsAtRuntime()
+ids_hscodes_dict = idhs.loadID_HSCodesAtRuntime()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -39,9 +41,8 @@ def vector_store_search():
     if request.method == "POST":
         user_query = request.form.get("query")
         print("app.py: user_query is: " + user_query)
-        hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict)  # Call the Python function
+        hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, ids_hscodes_dict)  # Call the Python function
         print("no. of results:  " + str(len(hsCodes_of_results)))
-        print(hsCodes_of_results)
     return render_template("vector_store_search.html", results=hsCodes_of_results, user_query=user_query)
 
 

@@ -83,6 +83,8 @@ def savePDFToJSON(filepath) -> None:
     firstLineEndIndex = allText[0].find('\n')
     chapterNumber = int(allText[0][7:firstLineEndIndex])
     startOfNotesIndex = allText[0].find('Notes.')
+    if startOfNotesIndex == -1:
+        startOfNotesIndex = allText[0].find('Note.')
     chapterName = allText[0][firstLineEndIndex+1:startOfNotesIndex]
     chapterName = chapterName.replace("\n"," ")
     # ......................................... #
@@ -108,7 +110,11 @@ def savePDFToJSON(filepath) -> None:
     ongoing_prefix = ""
     ongoing_hshdgname = ""
     ongoing_hshdg = ""
-    keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Cess_SG","Excise SPD","SSCL","SCL"]
+    numOfColumns = df.shape[1]
+    if numOfColumns == 25:
+        keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Cess_SG","Excise SPD","SSCL","SCL"]
+    else:
+        keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Excise SPD","SSCL","SCL"]
     items = []
 
     numOfRows = df.shape[0] # rows
@@ -139,6 +145,8 @@ def savePDFToJSON(filepath) -> None:
             item.pop('Blank',item['Blank'])
             item['HS Hdg'] = ongoing_hshdg
             item['HS Code'] = current_hscode # in case this is an item that has a hs hdg, but no declared hs code
+            if numOfColumns == 24:
+                item["Cess_SG"] = ''
             items.append(item)
 
             #if description contains "other", reset prefix
@@ -166,4 +174,7 @@ filepath = 'Tariff_PDFs'
 for filename in os.listdir(filepath):
     f = os.path.join(filepath, filename)
     if os.path.isfile(f):
+        print("Reading "+f)
         savePDFToJSON(f)
+
+print("Data extracted from tariff pdfs and saved as .json")

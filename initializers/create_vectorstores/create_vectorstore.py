@@ -41,35 +41,21 @@ for key,value in json_dicts.items():
         docs.append(document)
 # ......................................... #
 
-
+import config
 
 # create vectorstore
 # ......................................... #
-import os
-import openai
+if config.vectorstore == "chroma":
+    import initializers.create_vectorstores.chroma_vectorstore as chr
+    chr.createVectorstoreUsingChroma(docs)
+elif config.vectorstore == "azure_cosmos_nosql":
+    import initializers.create_vectorstores.az_cosmos_nosql_vectorstore as azcn
+    azcn.createVectorstoreUsingAzureCosmosNoSQL(docs)
+else:
+    print("Type of vectorstore to be created/overwritten not specified in config.py")
 
-from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
-openai.api_key = os.environ['OPENAI_API_KEY']
-
-from langchain.embeddings.openai import OpenAIEmbeddings
-embedding = OpenAIEmbeddings()
 
 
-from langchain.vectorstores import Chroma
-
-persist_directory = "initializers\create_vectorstores\\vectorstores\chroma"
-print("Deleting existing vectorstore...")
-shutil.rmtree(persist_directory)
-
-print("Creating vectorstore...")
-vectordb = Chroma.from_documents(
-    documents=docs,
-    embedding=embedding,
-    persist_directory=persist_directory
-)
-vectordbCollectionCount = vectordb._collection.count()
-print("Vector store created with collection count: " + str(vectordbCollectionCount))
 # ......................................... #
 
 
