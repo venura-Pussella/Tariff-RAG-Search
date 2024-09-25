@@ -1,8 +1,6 @@
 import os
 # roll back open telemetry
 
-import sys
-sys.path.append('/')
 
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)

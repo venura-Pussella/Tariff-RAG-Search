@@ -5,7 +5,7 @@ from pathlib import Path
 def loadJSONsAtRuntime() -> dict:
 	print("Loading jsons into memory")
 
-	filepath = 'initializers\extract_data\extracted_data'
+	filepath = 'initializers/extract_data/extracted_data'
 	json_dicts = {}
 
 	for filename in os.listdir(filepath):

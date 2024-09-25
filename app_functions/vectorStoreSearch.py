@@ -32,7 +32,7 @@ def vectorStoreSearchChroma(question):
         print("Using chroma vector store...")
 
         from langchain_community.vectorstores import Chroma
-        persist_directory = 'initializers\create_vectorstores\\vectorstores\chroma'
+        persist_directory = 'initializers/create_vectorstores/vectorstores/chroma'
 
         from langchain_community.embeddings import OpenAIEmbeddings
         embedding = OpenAIEmbeddings()
@@ -110,8 +110,8 @@ def vectorStoreSearchAzureCosmosNoSQL(question):
         #search_results = vectorstore.max_marginal_relevance_search(question,k=20,lambda_mult=0.25)
         search_results = vectorstore.similarity_search(question,k=5) # what if search_results is empty
         return search_results
-    except:
-        print(Exception)
+    except Exception as e: 
+        print(e)
         return []
 
 
