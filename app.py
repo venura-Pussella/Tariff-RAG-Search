@@ -15,15 +15,15 @@ data_dict = lj.loadJSONsAtRuntime()
 ids_hscodes_dict = idhs.loadID_HSCodesAtRuntime()
 
 @app.route("/", methods=["GET", "POST"])
-def index():
-    print('Request for index page received')
+def hscode_search():
+    print('Request for hscode_search page received')
     results = None
     user_query = None
     if request.method == "POST":
         user_query = request.form.get("query")
         print("app.py: user_query is: " + user_query)
         results = findByHSCode.findByHSCode(user_query, data_dict)  # Call the Python function
-    return render_template("index.html", results=results, user_query=user_query)
+    return render_template("hscode_search.html", results=results, user_query=user_query)
 
 
 @app.route('/favicon.ico')
