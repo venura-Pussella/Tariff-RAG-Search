@@ -1,13 +1,64 @@
 import os
+import pdfminer
 
-def isEmpty(string):
+# return true if string is '' or None
+# args:
+#   string - the string
+def isEmpty(string) -> bool:
     if string == "" or string == None:
         return True
     return False
 
-def savePDFToJSON(filepath) -> None:
 
-    # Create an 'enum' for header (column) numbering of the dataframe
+# retrieves HSCode to SCCode mapping from the filepath defined inside the function
+# returns - dictionary with key as HSCode and value as SCCode
+def getHSCodeToSCCodeMapping() -> dict[str,str]:
+    import csv
+
+    csv_file = 'initializers/extract_data/HSCode_SCCode_Mapping 1.csv'
+    rows = []
+
+    with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
+        csv_reader = csv.reader(file)
+
+        for row in csv_reader:
+            rows.append(row)
+
+    hsToSCMapping = {}
+
+    for n in range(1,len(rows)):
+        row = rows[n]
+        key = row[0]
+        value = row[1]
+        hsToSCMapping[key] = value
+    
+    return hsToSCMapping
+
+
+# Changes hscodes of the various known formats into a standardized format ####.##.##N
+# eg: '8202.10' becomes '8202.10.00N'
+def standardizeHSCode(hscode) -> str:
+    if len(hscode) == 7: # eg: '8202.10'
+        hscode += '.00N'
+    elif len(hscode) == 10: # eg: '8202.10.20'
+        hscode += 'N'
+    elif len(hscode) == 5: # eg: '28.03'
+        hscode += '.00.00N'
+    else:
+        raise ValueError("HS Code of unknown format passed in: {}".format(hscode))
+    return hscode
+
+
+
+# reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function
+# args -
+#   filepath - the filepath to find the pdf
+#
+# .json has keys - Chapter Number, Chapter Name, Pre-table notes, and Items[]
+# Each item has all the values describing a hscode item
+def savePDFToJSON(filepath):
+
+    # Create an 'enum' that matches a column name with the matching column number in the dataframe
     # ......................................... #
     keys = ["HS Hdg", 
             "HS Code", 
@@ -39,7 +90,12 @@ def savePDFToJSON(filepath) -> None:
     # ......................................... #
 
 
-    # use pdf plumber to extract the data from the pdfs
+    hsToSCMapping = getHSCodeToSCCodeMapping()
+
+
+    # Use pdf plumber to extract the data from the pdfs
+    # All the text that comes before the table are saved in the allText array (one item is a page)
+    # The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
     # ......................................... #
     import pdfplumber
 
@@ -105,7 +161,7 @@ def savePDFToJSON(filepath) -> None:
     import json
 
 
-    # extract useful items with HS codes from the table
+    # extract line items with HS codes from the table, only rows with a valid unit are considered to be a valid line item
     # ......................................... #
     ongoing_prefix = ""
     ongoing_hshdgname = ""
@@ -119,7 +175,7 @@ def savePDFToJSON(filepath) -> None:
 
     numOfRows = df.shape[0] # rows
     # only a row with a non-null unit will be considered a valid item
-    for n in range(3,numOfRows):
+    for n in range(3,numOfRows): # starting from 3 because 0-2 are just table headers all over the place
         current_hshdg = df.loc[n].values[headerNumber['HS Hdg']]
         current_hscode = df.loc[n].values[headerNumber['HS Code']]
         current_description = df.loc[n].values[headerNumber['Description']]
@@ -130,21 +186,30 @@ def savePDFToJSON(filepath) -> None:
         if isEmpty(current_hshdg) and isEmpty(current_unit): # description considered a prefix
             ongoing_prefix = current_description
             continue
-        if (not isEmpty(current_hshdg)) and isEmpty(current_hscode): # row has a HS Hdg no. and no HS code no.
+        if (not isEmpty(current_hshdg)) and isEmpty(current_hscode): # row has a HS Hdg no. but no HS code no.
             ongoing_hshdg = current_hshdg
             ongoing_hshdgname = current_description
             ongoing_prefix = "" # reset on-going prefix since we have moved to a new hs hdg
-            if isEmpty(current_unit): #not an item
+            if isEmpty(current_unit): # not an item
                 continue
             else:
-                current_hscode = current_hshdg # becomes a valid item
+                current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
         if not isEmpty(current_unit): # this is a valid item
             # create a json item
             values = [ongoing_prefix] + [ongoing_hshdgname] + list(df.loc[n].values)
             item = dict(zip(keysForAnItem, values))
             item.pop('Blank',item['Blank'])
             item['HS Hdg'] = ongoing_hshdg
-            item['HS Code'] = current_hscode # in case this is an item that has a hs hdg, but no declared hs code
+            try: standardizedHSCode = standardizeHSCode(current_hscode)
+            except Exception as e: 
+                standardizedHSCode = current_hscode
+                print(e)
+                print("Exception occured at Hs hdg: " + current_hshdg)
+            item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
+            if standardizedHSCode in hsToSCMapping:
+                item['SC Code'] = hsToSCMapping[standardizedHSCode]
+            else:
+                item['SC Code'] = ''
             if numOfColumns == 24:
                 item["Cess_SG"] = ''
             items.append(item)
@@ -175,6 +240,8 @@ for filename in os.listdir(filepath):
     f = os.path.join(filepath, filename)
     if os.path.isfile(f):
         print("Reading "+f)
-        savePDFToJSON(f)
+        try: savePDFToJSON(f)
+        except pdfminer.pdfparser.PDFSyntaxError as e:
+            print("Error processing file @ " + f + " Error: " + str(e))
 
 print("Data extracted from tariff pdfs and saved as .json")

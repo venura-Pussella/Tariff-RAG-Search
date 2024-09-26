@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 
 # search jsons by HS Code
+# Args:
+#    query:
 def findByHSCode(query: str, data_dict: dict) -> list:
      try:
         if query == None or query == '':
