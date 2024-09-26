@@ -1,12 +1,10 @@
 import os
-# roll back open telemetry
-
 
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)
 from app_functions import findByHSCode
 from app_functions import vectorStoreSearch
-from initializers.loadJSONAtRuntime import loadJSONAtRuntime as lj
+from initializers import loadJSONAtRuntime as lj
 from initializers import loadID_HSCodesAtRuntime as idhs
 
 app = Flask(__name__)

@@ -1,5 +1,10 @@
-# Creates & returns vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
-def createVectorstoreUsingAzureCosmosNoSQL(docs: list): # Creates & returns vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
+def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
+    """Creates & returns vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
+    Args:
+        docs: list of langchain documents
+    Returns:
+        vectorstore (Azure cosmos nosql)
+    """
     import os
     import openai
     import config
@@ -9,8 +14,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list): # Creates & returns vect
     _ = load_dotenv(find_dotenv()) # read local .env file
     openai.api_key = os.environ['OPENAI_API_KEY']
 
-    from langchain.embeddings.openai import OpenAIEmbeddings
-    embedding = OpenAIEmbeddings()
+    from initializers import getEmbeddings as emb
+    embedding = emb.getEmbeddings()
 
     # policy for vectorstore in cosmos
     indexing_policy = {
@@ -44,10 +49,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list): # Creates & returns vect
     cosmos_container_properties = {"partition_key": partition_key}
     cosmos_database_properties = {"id": database_name}
 
+    #extract text part and metadata from the langchain documents into python lists
     texts = []
     metadatas = []
-
-    #extract text part and metadata from the langchain documents into python lists
     for doc in docs:
         texts.append(doc.page_content)
         metadatas.append(doc.metadata)
@@ -84,7 +88,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list): # Creates & returns vect
         hscodes.append(md["HS Code"])
     ids_hscode_dict = dict(zip(ids, hscodes))
     json_string = json.dumps(ids_hscode_dict)
-    with open('initializers\create_vectorstores\ids_hscode_dict.json','w') as file:
+    with open('initializers/create_vectorstores/ids_hscode_dict.json','w') as file:
         file.write(json_string)
 
     print("Cosmos vectorstore created or overwritten.")

@@ -1,12 +1,14 @@
-import sys
-sys.path.append('../pdfplumber')
+# Script
+# Creates a vectorstore with the extracted data and chosen vectorstore in config.py
 
-import initializers.loadJSONAtRuntime.loadJSONAtRuntime as lj
-import shutil
+import sys
+sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
+
+import initializers.loadJSONAtRuntime as lj
 
 print("Starting vectorstore creation...")
 
-# load the json data into a dictionary
+# load the extracted json data into a dictionary
 # ......................................... #
 print("Loading json files into memory...")
 json_dicts = lj.loadJSONsAtRuntime()
@@ -14,7 +16,8 @@ json_dicts = lj.loadJSONsAtRuntime()
 
 
 
-# create langchain documents with the data we need
+# create langchain documents with the textual data for embedding put into page_content
+# and hscodes in metadata
 # ......................................... #
 from langchain_core.documents import Document
 

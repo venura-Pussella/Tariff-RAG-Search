@@ -1,4 +1,10 @@
 def createVectorstoreUsingChroma(docs: list):
+    """Creates & persists a chroma vectorstore using the passed in list of langchain documents
+    Args:
+        docs: list of langchain documents
+    Returns:
+        Void
+    """
     import os
     import openai
     import shutil
@@ -7,13 +13,13 @@ def createVectorstoreUsingChroma(docs: list):
     _ = load_dotenv(find_dotenv()) # read local .env file
     openai.api_key = os.environ['OPENAI_API_KEY']
 
-    from langchain.embeddings.openai import OpenAIEmbeddings
-    embedding = OpenAIEmbeddings()
+    from initializers import getEmbeddings as emb
+    embedding = emb.getEmbeddings()
 
 
     from langchain.vectorstores import Chroma
 
-    persist_directory = "initializers\create_vectorstores\\vectorstores\chroma"
+    persist_directory = "initializers/create_vectorstores/vectorstores/chroma"
     print("Deleting existing vectorstore...")
     shutil.rmtree(persist_directory)
 

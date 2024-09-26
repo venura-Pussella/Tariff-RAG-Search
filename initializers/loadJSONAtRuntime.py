@@ -1,8 +1,10 @@
-import os
-import json
-from pathlib import Path
-
 def loadJSONsAtRuntime() -> dict:
+	"""Loads the .json files (the extracted data from the PDFs) into memory from the filepath defined in the function, and returns them as a dictionary.
+	"""
+	import os
+	import json
+	from pathlib import Path
+
 	print("Loading jsons into memory")
 
 	filepath = 'initializers/extract_data/extracted_data'

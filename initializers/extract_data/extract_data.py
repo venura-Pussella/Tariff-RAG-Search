@@ -1,18 +1,26 @@
+# Script
+# Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
+# One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
+
 import os
 import pdfminer
 
-# return true if string is '' or None
-# args:
-#   string - the string
+
 def isEmpty(string) -> bool:
+    """ Returns true if the given string is '' or None
+    """
     if string == "" or string == None:
         return True
     return False
 
 
-# retrieves HSCode to SCCode mapping from the filepath defined inside the function
-# returns - dictionary with key as HSCode and value as SCCode
+
 def getHSCodeToSCCodeMapping() -> dict[str,str]:
+    """Retrieves HSCode to SCCode mapping from the filepath defined inside the function.
+    Returns:
+        dictionary with key as HSCode and value as SCCode
+    """
+    
     import csv
 
     csv_file = 'initializers/extract_data/HSCode_SCCode_Mapping 1.csv'
@@ -32,12 +40,22 @@ def getHSCodeToSCCodeMapping() -> dict[str,str]:
         value = row[1]
         hsToSCMapping[key] = value
     
+    if bool(hsToSCMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
+
     return hsToSCMapping
 
 
-# Changes hscodes of the various known formats into a standardized format ####.##.##N
-# eg: '8202.10' becomes '8202.10.00N'
+
 def standardizeHSCode(hscode) -> str:
+    """ Changes hscodes of the various known formats into a standardized format '####.##.##N'
+
+    Args:
+        hscode: (str) The HS Code to be standardized
+    Returns:
+        Standardized HS Code (str)
+    Raises:
+        ValueError - if HS Code of unknown format is passed in.
+    """
     if len(hscode) == 7: # eg: '8202.10'
         hscode += '.00N'
     elif len(hscode) == 10: # eg: '8202.10.20'
@@ -57,6 +75,10 @@ def standardizeHSCode(hscode) -> str:
 # .json has keys - Chapter Number, Chapter Name, Pre-table notes, and Items[]
 # Each item has all the values describing a hscode item
 def savePDFToJSON(filepath):
+    """ Reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function
+    Args:
+        filepath: filepath to the pdf (str)
+    """
 
     # Create an 'enum' that matches a column name with the matching column number in the dataframe
     # ......................................... #
@@ -210,7 +232,7 @@ def savePDFToJSON(filepath):
                 item['SC Code'] = hsToSCMapping[standardizedHSCode]
             else:
                 item['SC Code'] = ''
-            if numOfColumns == 24:
+            if numOfColumns == 24: # some pdf tables don't have a cess column split into GEN and SG
                 item["Cess_SG"] = ''
             items.append(item)
 
@@ -228,10 +250,11 @@ def savePDFToJSON(filepath):
 
 
     json_string = json.dumps(dictionaryForThisPDF)
-    with open('initializers\extract_data\extracted_data\{}.json'.format(chapterNumber),'w') as file:
+    with open('initializers/extract_data/extracted_data/{}.json'.format(chapterNumber),'w') as file:
         file.write(json_string)
 
     # ......................................... #
+
 
 
 filepath = 'Tariff_PDFs'
