@@ -40,7 +40,7 @@ def getHSCodeToSCCodeMapping() -> dict[str,str]:
         value = row[1]
         hsToSCMapping[key] = value
     
-    if bool(hsToSCMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
+    if not bool(hsToSCMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
 
     return hsToSCMapping
 
