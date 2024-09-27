@@ -13,13 +13,18 @@ def findByHSCode(query: str, data_dict: dict) -> list[dict]:
      chapterNumber = 0
 
      # find the chapter number from the hs code
-     dotIndex = query.find('.')
-     if dotIndex == -1 and int(query)>=100: # eg: 2800, 200 which correspond to ch.28 and ch.2
-          chapterNumber = int(query) // 100
-     elif dotIndex == -1: # eg: 28,2 which correspond to ch.28 and ch.2
-          chapterNumber = int(query)
-     else: # eg: 2802, 2802.10
-          chapterNumber = int(query[:dotIndex]) // 100
+     try:
+          dotIndex = query.find('.')
+          if dotIndex == -1 and int(query)>=100: # eg: 2800, 200 which correspond to ch.28 and ch.2
+               chapterNumber = int(query) // 100
+          elif dotIndex == -1: # eg: 28,2 which correspond to ch.28 and ch.2
+               chapterNumber = int(query)
+          else: # eg: 2802, 2802.10
+               chapterNumber = int(query[:dotIndex]) // 100
+     except ValueError as e:
+          print("Value error raised, user must have enterted text or an unexpected format")
+          print(e)
+          return []
 
      if not (chapterNumber in data_dict): return []
      
