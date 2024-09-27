@@ -23,7 +23,7 @@ def getHSCodeToSCCodeMapping() -> dict[str,str]:
     
     import csv
 
-    csv_file = 'initializers/extract_data/HSCode_SCCode_Mapping 1.csv'
+    csv_file = 'initializers/extract_data/SCCode_HSCode_Mapping Sorted.csv'
     rows = []
 
     with open(csv_file, mode='r', newline='', encoding='utf-8') as file:

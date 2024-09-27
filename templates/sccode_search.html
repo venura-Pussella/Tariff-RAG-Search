@@ -1,0 +1,117 @@
+<!doctype html>
+<head>
+    <title>SC Code Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<html>
+   <body>
+     <main>
+        <div class="px-4 py-3 my-2 text-center">
+            <!-- <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='images/azure-icon.svg') }}" alt="Azure Logo" width="192" height="192"/> -->
+            <!-- <img  src="/docs/5.1/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
+            <h1 class="display-6 fw-bold text-primary">Search by SC Code</h1>     
+            <a href="{{ url_for('vector_store_search')}}">Vector Store Search</a>     
+          </div>
+        <form method="post" action="{{url_for('sccode_search')}}">
+            <div class="col-md-6 mx-auto text-center">
+                <label for="name" class="form-label fw-bold fs-5">Search by SC Code</label>
+
+                <!-- <p class="lead mb-2">Could you please tell me your name?</p> -->
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center align-items-center my-1">
+                    <input type="text" class="form-control" id="query" name="query" style="max-width: 256px;">
+                  </div>            
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center my-2">
+                  <button type="submit" class="btn btn-primary btn-lg px-4 gap-3">Search</button>
+                </div>            
+            </div>
+        </form>
+        
+        {% if results %}
+        <h2>Results for {{user_query}}</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>HS Hdg Name</th>
+                    <th>HS Code</th>
+                    <th>SC Code</th>
+                    <th>Prefix</th>
+                    <th>Description</th>
+                    <th>Unit</th>
+                    <th>ICL/SLSI</th>
+                    <th colspan="10">Preferential Duty</th>
+                    <th>Gen Duty</th>
+                    <th>VAT</th>
+                    <th colspan="2">PAL</th>
+                    <th colspan="2">Cess</th>
+                    <th>Excise (SPD)</th>
+                    <th>SSCL</th>
+                    <th>SCL</th>
+                </tr>
+                 <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>AP</th>
+                    <th>AD</th>
+                    <th>BN</th>
+                    <th>GT</th>
+                    <th>IN</th>
+                    <th>PK</th>
+                    <th>SA</th>
+                    <th>SF</th>
+                    <th>SD</th>
+                    <th>SG</th>
+                    <th></th>
+                    <th></th>
+                    <th>Gen</th>
+                    <th>SG</th>
+                    <th>Gen</th>
+                    <th>SG</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in results %}
+                <tr>
+                    <td>{{ item['HS Hdg Name'] }}</td>
+                    <td>{{ item['HS Code'] }}</td>
+                    <td>{{ item['SC Code'] }}</td>
+                    <td>{{ item['Prefix'] }}</td>
+                    <td>{{ item['Description'] }}</td>
+                    <td>{{ item['Unit'] }}</td>
+                    <td>{{ item['ICL/SLSI'] }}</td>
+                    <td>{{ item['Preferential Duty_AP'] }}</td>
+                    <td>{{ item['Preferential Duty_AD'] }}</td>
+                    <td>{{ item['Preferential Duty_BN'] }}</td>
+                    <td>{{ item['Preferential Duty_GT'] }}</td>
+                    <td>{{ item['Preferential Duty_IN'] }}</td>
+                    <td>{{ item['Preferential Duty_PK'] }}</td>
+                    <td>{{ item['Preferential Duty_SA'] }}</td>
+                    <td>{{ item['Preferential Duty_SF'] }}</td>
+                    <td>{{ item['Preferential Duty_SD'] }}</td>
+                    <td>{{ item['Preferential Duty_SG'] }}</td>
+                    <td>{{ item['Gen Duty'] }}</td>
+                    <td>{{ item['VAT'] }}</td>
+                    <td>{{ item['PAL_Gen'] }}</td>
+                    <td>{{ item['PAL_SG'] }}</td>
+                    <td>{{ item['Cess_GEN'] }}</td>
+                    <td>{{ item['Cess_SG'] }}</td>
+                    <td>{{ item['Excise SPG'] }}</td>
+                    <td>{{ item['SSCL'] }}</td>
+                    <td>{{ item['SCL'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+     </main>      
+   </body>
+</html>
