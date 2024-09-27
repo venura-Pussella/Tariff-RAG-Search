@@ -264,7 +264,7 @@ for filename in os.listdir(filepath):
     if os.path.isfile(f):
         print("Reading "+f)
         try: savePDFToJSON(f)
-        except pdfminer.pdfparser.PDFSyntaxError as e:
+        except Exception as e:
             print("Error processing file @ " + f + " Error: " + str(e))
 
 print("Data extracted from tariff pdfs and saved as .json")

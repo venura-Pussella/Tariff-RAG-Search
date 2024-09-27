@@ -4,6 +4,8 @@ def createVectorstoreUsingChroma(docs: list):
         docs: list of langchain documents
     Returns:
         Void
+    Issues:
+        Need to add code to consider rate limit of embeddings.
     """
     import os
     import openai

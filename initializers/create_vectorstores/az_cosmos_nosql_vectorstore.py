@@ -7,8 +7,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     """
     import os
     import openai
-    import config
     import json
+    from langchain_core.documents import Document
+    import config
 
     from dotenv import load_dotenv, find_dotenv
     _ = load_dotenv(find_dotenv()) # read local .env file
@@ -16,6 +17,86 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
 
     from initializers import getEmbeddings as emb
     embedding = emb.getEmbeddings()
+
+    vectorstore = createBlankCosmosVectorstore(embedding)
+    
+    # Add text to the vectorstore without hitting the embeddings rate limit
+    # 120k for Azure OpenAI Embeddings, 1M for OpenAI Embeddings
+    rateLimit = 0
+    if config.embeddings == "AzureOpenAI": rateLimit = 120000
+    elif config.embeddings == "OpenAI": rateLimit = 1000000
+
+    n = 0
+    tokenCount = 0
+    texts = []
+    metadatas = []
+    allMetaDatas = []
+    allIDs = []
+
+    print("Total number of line items to be added: " + str(len(docs)))
+    print("Takes about 15 mins to add 3300 line items")
+
+    while n < len(docs):
+        doc: Document = docs[n]
+        text = doc.page_content
+        metadata = doc.metadata
+        tokenCount += getTokenCount(text)
+        if (tokenCount >= rateLimit):
+            tokenCount = 0 # reset tokencount
+            n -= 1
+            ids = vectorstore.add_texts(
+                texts = texts,
+                embedding=embedding,
+                metadatas= metadatas, 
+            )
+            print("Added "+ str(len(ids)) + " line items.")
+            # the above process is so slow, that there is no need to worry about hitting the rate limit, so no need to sleep the script
+            texts = []
+            metadatas = []
+            allIDs = allIDs + ids
+        else:
+            texts.append(text)
+            metadatas.append(metadata)
+            allMetaDatas.append(metadata)
+        n += 1
+
+    # add the leftovers also to the vectorstore
+    ids = vectorstore.add_texts(
+        texts = texts,
+        embedding=embedding,
+        metadatas= metadatas, 
+    )
+    print("Added "+ str(len(ids)) + " line items.")
+    allIDs = allIDs + ids
+    
+    # save the HSCode to ID mapping cuz of langchain similarity search issue not picking up hs code as metadata
+    hscodes = []
+    for md in allMetaDatas:
+        hscodes.append(md["HS Code"])
+    ids_hscode_dict = dict(zip(allIDs, hscodes))
+    json_string = json.dumps(ids_hscode_dict)
+    with open('initializers/create_vectorstores/ids_hscode_dict.json','w') as file:
+        file.write(json_string)
+
+    print("Cosmos vectorstore created or overwritten.")
+    #to-do
+    #print number of items in container
+
+    return vectorstore
+
+
+
+
+
+def createBlankCosmosVectorstore(embedding):
+    """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
+    Args:
+        embedding: pass in embedding here
+    Returns:
+        Returns blank vectorstore
+    """
+    import config
+    import os
 
     # policy for vectorstore in cosmos
     indexing_policy = {
@@ -49,12 +130,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     cosmos_container_properties = {"partition_key": partition_key}
     cosmos_database_properties = {"id": database_name}
 
-    #extract text part and metadata from the langchain documents into python lists
-    texts = []
-    metadatas = []
-    for doc in docs:
-        texts.append(doc.page_content)
-        metadatas.append(doc.metadata)
+    
 
 
     #delete existing container to avoid adding duplicates to vectorstore
@@ -74,27 +150,20 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
         cosmos_database_properties=cosmos_database_properties,
         embedding=embedding,
     )
-
-    
-    #add new data into the vectorstore
-    print("adding items to vectorstore... ~40s per tarrif pdf")
-    ids = vectorstore.add_texts(
-        texts = texts,
-        embedding=embedding,
-        metadatas= metadatas, 
-    )
-    hscodes = []
-    for md in metadatas:
-        hscodes.append(md["HS Code"])
-    ids_hscode_dict = dict(zip(ids, hscodes))
-    json_string = json.dumps(ids_hscode_dict)
-    with open('initializers/create_vectorstores/ids_hscode_dict.json','w') as file:
-        file.write(json_string)
-
-    print("Cosmos vectorstore created or overwritten.")
-    #to-do
-    #print number of items in container
-
+    print("Blank vector store returned.")
     return vectorstore
 
 
+def getTokenCount(text) -> int:
+    """Gets number of tokens that a given string will be split into.
+    Args:
+        text: the string to check
+    Returns:
+        (int) The number of tokens in the text.
+    """
+
+    import tiktoken
+    tokenizer = tiktoken.encoding_for_model("text-embedding-ada-002")
+    tokens = tokenizer.encode(text)
+    num_tokens = len(tokens)
+    return num_tokens
