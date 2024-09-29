@@ -10,6 +10,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     import json
     from langchain_core.documents import Document
     import config
+    from initializers import tokenRelatedFuncs as tok
 
     from dotenv import load_dotenv, find_dotenv
     _ = load_dotenv(find_dotenv()) # read local .env file
@@ -40,7 +41,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
         doc: Document = docs[n]
         text = doc.page_content
         metadata = doc.metadata
-        tokenCount += getTokenCount(text)
+        tokenCount += tok.getTokenCount(text)
         if (tokenCount >= rateLimit):
             tokenCount = 0 # reset tokencount
             n -= 1
@@ -118,7 +119,7 @@ def createBlankCosmosVectorstore(embedding):
         ]
     }
 
-    from azure.cosmos import CosmosClient, PartitionKey
+    from azure.cosmos import CosmosClient, PartitionKey, exceptions
     from langchain_community.vectorstores.azure_cosmos_db_no_sql import (AzureCosmosDBNoSqlVectorSearch,)
 
     HOST = os.environ["COSMOS_ENDPOINT"]
@@ -136,7 +137,9 @@ def createBlankCosmosVectorstore(embedding):
     #delete existing container to avoid adding duplicates to vectorstore
     print("Deleting existing items in cosmos db to prepare for new items...")
     database = cosmos_client.create_database_if_not_exists(id=database_name)
-    database.delete_container(container=container_name)
+    try: database.delete_container(container=container_name)
+    except exceptions.CosmosHttpResponseError:
+        print("Container has already been deleted or does not exist.")
 
     #create blank vectorstore (or get an already created one)
     print("Creating blank vector store in cosmos or fetching already exsting one.")
@@ -154,16 +157,3 @@ def createBlankCosmosVectorstore(embedding):
     return vectorstore
 
 
-def getTokenCount(text) -> int:
-    """Gets number of tokens that a given string will be split into.
-    Args:
-        text: the string to check
-    Returns:
-        (int) The number of tokens in the text.
-    """
-
-    import tiktoken
-    tokenizer = tiktoken.encoding_for_model("text-embedding-ada-002")
-    tokens = tokenizer.encode(text)
-    num_tokens = len(tokens)
-    return num_tokens

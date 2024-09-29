@@ -8,6 +8,7 @@ from app_functions import findBySCCode
 from initializers import loadJSONAtRuntime as lj
 from initializers import loadID_HSCodesAtRuntime as idhs
 from initializers import loadSCCodeToHSCodeMappingAtRuntime as schs
+from app_functions.tokenTracker import TokenTracker as toks
 
 app = Flask(__name__)
 
@@ -51,6 +52,8 @@ def vector_store_search():
     user_query = None
     if request.method == "POST":
         user_query = request.form.get("query")
+        user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
+        toks.updateTokens(user_query)
         print("app.py: user_query is: " + user_query)
         hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, ids_hscodes_dict)  # Call the Python function
         print("no. of results:  " + str(len(hsCodes_of_results)))
