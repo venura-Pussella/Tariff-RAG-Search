@@ -4,27 +4,10 @@ def getSCCodeToHSCodeMapping() -> dict[str,list[str]]:
         dictionary with key as SCCode and value as python list of HSCodes
     """
     
-    import csv
-
-    csv_file = 'initializers/extract_data/SCCode_HSCode_Mapping Sorted.csv'
-    rows = []
-
-    with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
-        csv_reader = csv.reader(file)
-
-        for row in csv_reader:
-            rows.append(row)
-
-    scToHSMapping = {}
-
-    for n in range(1,len(rows)):
-        row = rows[n]
-        currentHSCode = row[0]
-        currentSCCode = row[1]
-        if currentSCCode in scToHSMapping:
-            scToHSMapping[currentSCCode].append(currentHSCode)
-        else:
-            scToHSMapping[currentSCCode] = [currentHSCode]
+    import pickle 
+            
+    with open('initializers/extract_data/scCodeToHSCodeMapping.pkl', 'rb') as f:
+        scToHSMapping = pickle.load(f)
     
     if not bool(scToHSMapping): print("WARNING: SC Code to HS Code dictionary is empty!")
 
