@@ -3,7 +3,6 @@
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
 
 import os
-import pdfminer
 
 
 def isEmpty(string) -> bool:
@@ -66,18 +65,99 @@ def standardizeHSCode(hscode) -> str:
         raise ValueError("HS Code of unknown format passed in: {}".format(hscode))
     return hscode
 
+def extractTableAndTextFromPDF(filepath):
+    """Extracts table and pre-table text from the pdf given in the filepath.
+    #### Discussion:
+        Use pdf plumber to extract the data from the pdfs
+    All the text that comes before the table are saved in the allText array (one item is a page)
+    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+    Args:
+        filepath: filepath with the pdf
+    Returns:
+        df: Pandas dataframe containing the table 
+        
+        allText: list[str] containing the textual data that comes before the table
 
+    """
+    import pdfplumber
 
-# reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function
-# args -
-#   filepath - the filepath to find the pdf
-#
-# .json has keys - Chapter Number, Chapter Name, Pre-table notes, and Items[]
-# Each item has all the values describing a hscode item
-def savePDFToJSON(filepath):
+    allText = []
+    rows = []
+    tableReached = False
+
+    pdf = pdfplumber.open(filepath)
+
+    for page in pdf.pages:
+        if tableReached: # if table has already been reached, continue to extract table, no need to find more text due to the document structure having all required text before the table
+            rowsPerPage = page.extract_table()
+            for row in rowsPerPage:
+                rows.append(row)
+            continue
+
+        tableInPage = page.find_table()
+        if tableInPage == None: # if no table found, extract text from whole page
+            textPerPage = page.extract_text()
+            allText.append(textPerPage)
+        else: # else extract text from the part above the table, and start extracting the table
+            tableBBox = tableInPage.bbox
+            tableTop = tableBBox[1] # top value is 2nd value of bounding box tuple
+            croppedPage = page.within_bbox((0,0,page.width,tableTop)) # bounding box tuple order: left, top, right, bottom
+            textPerPage = croppedPage.extract_text()
+            allText.append(textPerPage)
+            tableReached = True
+            rowsPerPage = page.extract_table()
+            for row in rowsPerPage:
+                rows.append(row)
+
+    pdf.close()
+
+    import pandas as pd
+    df = pd.DataFrame(rows)
+
+    return df, allText
+
+def extractTableAndTextFromPDFNonStrictly(filepath):
+    """Extracts table and pre-table text from the pdf given in the filepath.
+    #### Discussion:
+        Use pdf plumber to extract the data from the pdfs
+    All the text that comes before the table are saved in the allText array (one item is a page)
+    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+    Args:
+        filepath: filepath with the pdf
+    Returns:
+        df: Pandas dataframe containing the table 
+        
+        allText: list[str] containing the textual data that comes before the table
+
+    """
+    import pdfplumber
+
+    allText = []
+    rows = []
+
+    pdf = pdfplumber.open(filepath)
+
+    allText.append(pdf.pages[0].extract_text())
+
+    for page in pdf.pages:
+        rowsPerPage = page.extract_table()
+        if rowsPerPage == None: continue
+        for row in rowsPerPage:
+            rows.append(row)
+
+    pdf.close()
+
+    import pandas as pd
+    df = pd.DataFrame(rows)
+
+    return df, allText
+
+def savePDFToJSON(filepath,strict=True):
     """ Reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function
     Args:
         filepath: filepath to the pdf (str)
+        strict: If true extracts text by strictly checking for table dimensions, to identify the part of the document before the table,
+            If false, just extracts text from the first page.
     """
 
     # Create an 'enum' that matches a column name with the matching column number in the dataframe
@@ -115,51 +195,20 @@ def savePDFToJSON(filepath):
     hsToSCMapping = getHSCodeToSCCodeMapping()
 
 
-    # Use pdf plumber to extract the data from the pdfs
-    # All the text that comes before the table are saved in the allText array (one item is a page)
-    # The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
-    # ......................................... #
-    import pdfplumber
+    if strict:
+        df, allText = extractTableAndTextFromPDF(filepath)
+    else:
+        df, allText = extractTableAndTextFromPDFNonStrictly(filepath)
 
-    allText = []
-    rows = []
-    tableReached = False
-
-    pdf = pdfplumber.open(filepath)
-
-    for page in pdf.pages:
-        if tableReached: # if table has already been reached, continue to extract table, no need to find more text due to the document structure having all required text before the table
-            rowsPerPage = page.extract_table()
-            for row in rowsPerPage:
-                rows.append(row)
-            continue
-
-        tableInPage = page.find_table()
-        if tableInPage == None: # if no table found, extract text from whole page
-            textPerPage = page.extract_text()
-            allText.append(textPerPage)
-        else: # else extract text from the part above the table, and start extracting the table
-            tableBBox = tableInPage.bbox
-            tableTop = tableBBox[1] # top value is 2nd value of bounding box tuple
-            croppedPage = page.within_bbox((0,0,page.width,tableTop)) # bounding box tuple order: left, top, right, bottom
-            textPerPage = croppedPage.extract_text()
-            allText.append(textPerPage)
-            tableReached = True
-            rowsPerPage = page.extract_table()
-            for row in rowsPerPage:
-                rows.append(row)
-
-    pdf.close()
-
-    import pandas as pd
-    df = pd.DataFrame(rows)
-    # ......................................... #
 
 
     # isolate chapter number and name
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
-    chapterNumber = int(allText[0][7:firstLineEndIndex])
+    if filepath[-12:] == "63 Final.pdf":
+        chapterNumber = 63
+    else:
+        chapterNumber = int(allText[0][7:firstLineEndIndex])
     startOfNotesIndex = allText[0].find('Notes.')
     if startOfNotesIndex == -1:
         startOfNotesIndex = allText[0].find('Note.')
@@ -226,7 +275,7 @@ def savePDFToJSON(filepath):
             except Exception as e: 
                 standardizedHSCode = current_hscode
                 print(e)
-                print("Exception occured at Hs hdg: " + current_hshdg)
+                print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
             if standardizedHSCode in hsToSCMapping:
                 item['SC Code'] = hsToSCMapping[standardizedHSCode]
@@ -257,14 +306,32 @@ def savePDFToJSON(filepath):
 
 
 
-filepath = 'Tariff_PDFs'
 
-for filename in os.listdir(filepath):
-    f = os.path.join(filepath, filename)
+# SCRIPT
+import traceback
+
+filepathWithPDFs = 'Tariff_PDFs'
+
+for filename in os.listdir(filepathWithPDFs):
+    f = os.path.join(filepathWithPDFs, filename)
     if os.path.isfile(f):
         print("Reading "+f)
         try: savePDFToJSON(f)
         except Exception as e:
             print("Error processing file @ " + f + " Error: " + str(e))
+            # tb = traceback.format_exc()
+            # print("traceback:")
+            # print(tb)
+            print("Using non-strict extraction")
+            try: savePDFToJSON(f,strict=False)
+            except Exception as e:
+                print("Error processing file non-strictly @ " + f + " Error: " + str(e))
+                # tb = traceback.format_exc()
+                # print("traceback:")
+                # print(tb)
+            
 
 print("Data extracted from tariff pdfs and saved as .json")
+
+
+
