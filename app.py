@@ -15,6 +15,7 @@ app = Flask(__name__)
 data_dict = lj.loadJSONsAtRuntime()
 ids_hscodes_dict = idhs.loadID_HSCodesAtRuntime()
 scToHSMapping = schs.getSCCodeToHSCodeMapping()
+vectorstore = vectorStoreSearch.getVectorStore()
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
@@ -55,7 +56,7 @@ def vector_store_search():
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query)
         print("app.py: user_query is: " + user_query)
-        hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, ids_hscodes_dict)  # Call the Python function
+        hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, vectorstore, ids_hscodes_dict)  # Call the Python function
         print("no. of results:  " + str(len(hsCodes_of_results)))
     return render_template("vector_store_search.html", results=hsCodes_of_results, user_query=user_query)
 

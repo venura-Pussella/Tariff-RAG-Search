@@ -8,6 +8,7 @@ def findBySCCode(query: str, data_dict: dict, scToHSMapping: dict) -> list[dict]
      Returns:
           List of line items
      """
+    # formatting user query to match dictionary
     sccode = ''
     if len(query) == 3:
         sccode = 'SC' + query
