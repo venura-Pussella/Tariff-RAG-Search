@@ -51,14 +51,16 @@ def vector_store_search():
     print('Request for vector search page received')
     hsCodes_of_results = None
     user_query = None
+    results = None
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query)
         print("app.py: user_query is: " + user_query)
-        hsCodes_of_results = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, vectorstore, ids_hscodes_dict)  # Call the Python function
+        hsCodes_of_results, scores = vectorStoreSearch.vectorStoreSearch(user_query, data_dict, vectorstore, ids_hscodes_dict)  # Call the Python function
+        results = list(zip(hsCodes_of_results,scores))
         print("no. of results:  " + str(len(hsCodes_of_results)))
-    return render_template("vector_store_search.html", results=hsCodes_of_results, user_query=user_query)
+    return render_template("vector_store_search.html", results=results, user_query=user_query)
 
 
 

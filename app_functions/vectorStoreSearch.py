@@ -1,9 +1,9 @@
 import config
 import os
 import app_functions.findByHSCode as fhsc
-import datetime
+from langchain_community.vectorstores.azure_cosmos_db_no_sql import AzureCosmosDBNoSqlVectorSearch
 
-def vectorStoreSearch(question, data_dict, vectorstore, ids_hscodes_dict=None):
+def vectorStoreSearch(question, data_dict, vectorstore: AzureCosmosDBNoSqlVectorSearch, ids_hscodes_dict=None):
     """Searches the dictionary containing all tariff pdf information for line items by comparing vectorstore embeddings against 
     the embedding of the user query, and returns a list of line items.
     Args:
@@ -21,10 +21,15 @@ def vectorStoreSearch(question, data_dict, vectorstore, ids_hscodes_dict=None):
 
     print("Vector store search called")
     results = []
-    search_results = vectorstore.similarity_search(question, k=5)
+    search_results_and_scores = vectorstore.similarity_search_with_score(query=question, k=100)
+    search_results = []
+    scores = []
+    for search_result_and_score in search_results_and_scores:
+        search_results.append(search_result_and_score[0])
+        scores.append(search_result_and_score[1])
     results = convertSearchResults(search_results, data_dict, ids_hscodes_dict)
 
-    return results
+    return (results, scores)
 
 
 
@@ -124,5 +129,6 @@ def getAzureCosmosVectorstore():
 
         return vectorstore
     except Exception as e: 
+        print("Exception @ getAzureCosmosVectorstore() ")
         print(e)
         return None

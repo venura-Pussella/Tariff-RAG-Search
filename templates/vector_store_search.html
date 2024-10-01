@@ -33,6 +33,7 @@
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
+                    <th>Score</th>
                     <th>HS Hdg Name</th>
                     <th>HS Code</th>
                     <td>SC Code</td>
@@ -50,6 +51,7 @@
                     <th>SCL</th>
                 </tr>
                  <tr>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -81,32 +83,33 @@
             <tbody>
                 {% for item in results %}
                 <tr>
-                    <td>{{ item['HS Hdg Name'] }}</td>
-                    <td>{{ item['HS Code'] }}</td>
-                    <td>{{ item['SC Code'] }}</td>
-                    <td>{{ item['Prefix'] }}</td>
-                    <td>{{ item['Description'] }}</td>
-                    <td>{{ item['Unit'] }}</td>
-                    <td>{{ item['ICL/SLSI'] }}</td>
-                    <td>{{ item['Preferential Duty_AP'] }}</td>
-                    <td>{{ item['Preferential Duty_AD'] }}</td>
-                    <td>{{ item['Preferential Duty_BN'] }}</td>
-                    <td>{{ item['Preferential Duty_GT'] }}</td>
-                    <td>{{ item['Preferential Duty_IN'] }}</td>
-                    <td>{{ item['Preferential Duty_PK'] }}</td>
-                    <td>{{ item['Preferential Duty_SA'] }}</td>
-                    <td>{{ item['Preferential Duty_SF'] }}</td>
-                    <td>{{ item['Preferential Duty_SD'] }}</td>
-                    <td>{{ item['Preferential Duty_SG'] }}</td>
-                    <td>{{ item['Gen Duty'] }}</td>
-                    <td>{{ item['VAT'] }}</td>
-                    <td>{{ item['PAL_Gen'] }}</td>
-                    <td>{{ item['PAL_SG'] }}</td>
-                    <td>{{ item['Cess_GEN'] }}</td>
-                    <td>{{ item['Cess_SG'] }}</td>
-                    <td>{{ item['Excise SPG'] }}</td>
-                    <td>{{ item['SSCL'] }}</td>
-                    <td>{{ item['SCL'] }}</td>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[0]['HS Hdg Name'] }}</td>
+                    <td>{{ item[0]['HS Code'] }}</td>
+                    <td>{{ item[0]['SC Code'] }}</td>
+                    <td>{{ item[0]['Prefix'] }}</td>
+                    <td>{{ item[0]['Description'] }}</td>
+                    <td>{{ item[0]['Unit'] }}</td>
+                    <td>{{ item[0]['ICL/SLSI'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_AP'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_AD'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_BN'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_GT'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_IN'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_PK'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_SA'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_SF'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_SD'] }}</td>
+                    <td>{{ item[0]['Preferential Duty_SG'] }}</td>
+                    <td>{{ item[0]['Gen Duty'] }}</td>
+                    <td>{{ item[0]['VAT'] }}</td>
+                    <td>{{ item[0]['PAL_Gen'] }}</td>
+                    <td>{{ item[0]['PAL_SG'] }}</td>
+                    <td>{{ item[0]['Cess_GEN'] }}</td>
+                    <td>{{ item[0]['Cess_SG'] }}</td>
+                    <td>{{ item[0]['Excise SPG'] }}</td>
+                    <td>{{ item[0]['SSCL'] }}</td>
+                    <td>{{ item[0]['SCL'] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
