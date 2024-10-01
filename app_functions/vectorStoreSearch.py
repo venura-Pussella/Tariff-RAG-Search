@@ -114,7 +114,7 @@ def getAzureCosmosVectorstore():
         cosmos_database_properties = {"id": database_name}
 
         from initializers import getEmbeddings as emb
-        embedding = emb.getEmbeddings()
+        embedding = emb.getEmbeddings.getEmbeddings()
 
         vectorstore = AzureCosmosDBNoSqlVectorSearch(
             cosmos_client=cosmos_client,

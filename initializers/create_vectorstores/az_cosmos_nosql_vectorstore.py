@@ -17,7 +17,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     openai.api_key = os.environ['OPENAI_API_KEY']
 
     from initializers import getEmbeddings as emb
-    embedding = emb.getEmbeddings()
+    embedding = emb.getEmbeddings.getEmbeddings()
 
     vectorstore = createBlankCosmosVectorstore(embedding)
     
