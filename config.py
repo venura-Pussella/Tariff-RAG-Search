@@ -3,3 +3,4 @@ cosmosNoSQLDBName = "tariff-search-db"
 cosmosNoSQLContainerName = "tariff-search-container"
 embeddings = "AzureOpenAI" # 'OpenAI' or 'AzureOpenAI'
 lifetimeTokenLimit = 10000000
+modelForChatBot = "gpt-4o-mini"
