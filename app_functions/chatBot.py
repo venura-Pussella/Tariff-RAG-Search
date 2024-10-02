@@ -1,6 +1,9 @@
 from langchain.prompts import ChatPromptTemplate
 from langchain.chat_models import ChatOpenAI
 import config
+from app_functions.DataStores import DataStores as ds
+from initializers import loadJSONAtRuntime as lj
+import json
 
 def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -> str:
     """A user can ask a very general/complex question from the chat bot. The documents needed to answer the question (RAG) must be fetched from the vectorstore using a similarity search (or similar). For this
@@ -25,6 +28,31 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -
 
     prompt_template = ChatPromptTemplate.from_template(template_for_generating_description_search)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot)
+
+    chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
+    response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
+
+    return response_humaizedQueryForDescSearch.content
+
+
+def getChatBotAnswer(userQuery_to_chatBot) -> str:
+    descriptionSearchQuery = generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot)
+    data_dict = lj.loadJSONsAtRuntime()
+    resultsAndScores = ds.vectorStoreSearch(descriptionSearchQuery, data_dict)
+    lineItems = resultsAndScores[0]
+    lineItemsJSONString = json.dumps(lineItems)
+
+    template_for_answering_userQuery_with_retrieved_docs = """You are a help desk agent at a logistics company. \
+    A user has given you a question regarding tariffs of a certain item or a range of items. \
+    Use the documents (in the form of a json formatted string) delimited by double backticks to answer the user's question. \
+    ``{docs}``
+    The textual data you need to consider when making a decision fall under the keys: 'HS Hdg Name','Description' and 'Prefix'.
+    The user's question is as follows (delimited by triple backticks): ```{question}``` \
+    Give your answer in markdown, using tables if required.
+    """
+
+    prompt_template = ChatPromptTemplate.from_template(template_for_answering_userQuery_with_retrieved_docs)
+    humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot, docs=lineItemsJSONString)
 
     chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
