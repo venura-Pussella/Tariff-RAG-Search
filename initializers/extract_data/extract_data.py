@@ -1,4 +1,5 @@
-# Script
+# SCRIPT
+
 # Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
 
@@ -325,7 +326,8 @@ def savePDFToJSON(filepath,strict=True):
 
 
 # SCRIPT
-import traceback
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
 
 filepathWithPDFs = 'Tariff_PDFs'
 scCodeToHSCodeMapping = {}

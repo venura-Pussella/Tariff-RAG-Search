@@ -1,5 +1,4 @@
 import os
-
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)
 from app_functions import findByHSCode
@@ -11,6 +10,9 @@ from initializers import loadSCCodeToHSCodeMappingAtRuntime as schs
 from app_functions.tokenTracker import TokenTracker as toks
 import app_functions.chatBot as chatBot
 import markdown
+
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
 

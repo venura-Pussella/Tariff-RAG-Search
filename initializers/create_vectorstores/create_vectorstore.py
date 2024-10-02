@@ -1,10 +1,11 @@
-# Script
+# SCRIPT
 # Creates a vectorstore with the extracted data and chosen vectorstore in config.py
 
 import sys
 sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
-
 import initializers.loadJSONAtRuntime as lj
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
 
 print("Starting vectorstore creation...")
 
