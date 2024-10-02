@@ -1,4 +1,5 @@
 import config
+import csv
 import app_functions.findByHSCode as fhsc
 from langchain_community.vectorstores.azure_cosmos_db_no_sql import AzureCosmosDBNoSqlVectorSearch
 from initializers.getEmbeddings import getEmbeddings
@@ -8,9 +9,10 @@ from initializers.CosmosObjects import CosmosObjects
 class DataStores:
 
     __vectorstore = None
+    __hsCodeToSCCodeMapping: dict[str,str] = None
 
     @staticmethod
-    def vectorStoreSearch(question, data_dict, ids_hscodes_dict=None):
+    def vectorStoreSearch(question, data_dict):
         """Searches the dictionary containing all tariff pdf information for line items by comparing vectorstore embeddings against 
         the embedding of the user query, and returns a list of line items.
         Args:
@@ -46,8 +48,6 @@ class DataStores:
 
         return (results, scores)
 
-
-
     @staticmethod
     def __convertSearchResults(hscodes, data_dict) -> list[dict]:
         """ Returns a list of line items that correspond to the search results obtained from a vectorstore
@@ -68,7 +68,6 @@ class DataStores:
 
         return results
         
-
     @classmethod
     def getVectorStore(cls):
 
@@ -81,7 +80,6 @@ class DataStores:
                 print("Valid vectorstore not configured in config.py")
 
         return DataStores.__vectorstore
-
 
     def __getAzureCosmosVectorstore():
         """Connects to and tries to return Azure Cosmos vectorstore object.
@@ -123,8 +121,6 @@ class DataStores:
             print(e)
             return None
 
-
-    
     def __similarity_search_with_score(
             vectorstore: AzureCosmosDBNoSqlVectorSearch,
             embeddings: list[float],
@@ -153,3 +149,36 @@ class DataStores:
 
             sorted_hscodesAndScores = sorted(hscodesAndScores, key=lambda x: x[1], reverse=True) # ~10 milliseconds to sort 1913 results
             return sorted_hscodesAndScores[:k]
+    
+    @classmethod
+    def getHSCodeToSCCodeMapping(cls) -> dict[str,str]:
+        """Retrieves singleton HSCode to SCCode mapping. Initialized using the filepath defined inside the function.
+        Returns:
+            dictionary with key as HSCode and value as SCCode
+        """
+
+        if DataStores.__hsCodeToSCCodeMapping == None:
+
+            # Read from csv file containing HS Code to SC Code mapping. HS Code is unique.
+            csv_file = 'initializers/extract_data/HSCode_to_SCCode_Mapping Sorted.csv'
+            rows = []
+
+            with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
+                csv_reader = csv.reader(file)
+
+                for row in csv_reader:
+                    rows.append(row)
+
+            # HS Code format: ####.##.##N
+
+            DataStores.__hsCodeToSCCodeMapping = {}
+
+            for n in range(1,len(rows)):
+                row = rows[n]
+                key = row[0]
+                value = row[1]
+                DataStores.__hsCodeToSCCodeMapping[key] = value
+            
+            if not bool(DataStores.__hsCodeToSCCodeMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
+
+        return DataStores.__hsCodeToSCCodeMapping

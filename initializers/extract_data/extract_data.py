@@ -2,9 +2,15 @@
 
 # Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
+import sys
+sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
 
 import os
-
+import pdfplumber
+import pandas as pd
+import json
+import pickle 
+from app_functions.DataStores import DataStores
 
 def isEmpty(string) -> bool:
     """ Returns true if the given string is '' or None
@@ -12,41 +18,6 @@ def isEmpty(string) -> bool:
     if string == "" or string == None:
         return True
     return False
-
-
-
-def getHSCodeToSCCodeMapping() -> dict[str,str]:
-    """Retrieves HSCode to SCCode mapping from the filepath defined inside the function.
-    Returns:
-        dictionary with key as HSCode and value as SCCode
-    """
-    
-    import csv
-
-    csv_file = 'initializers/extract_data/SCCode_HSCode_Mapping Sorted.csv'
-    rows = []
-
-    with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
-        csv_reader = csv.reader(file)
-
-        for row in csv_reader:
-            rows.append(row)
-
-    # HS Code format: ####.##.##N
-
-    hsToSCMapping = {}
-
-    for n in range(1,len(rows)):
-        row = rows[n]
-        key = row[0]
-        value = row[1]
-        hsToSCMapping[key] = value
-    
-    if not bool(hsToSCMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
-
-    return hsToSCMapping
-
-
 
 def standardizeHSCode(hscode) -> str:
     """ Changes hscodes of the various known formats into a standardized format '####.##.##N'
@@ -77,12 +48,10 @@ def extractTableAndTextFromPDF(filepath):
     Args:
         filepath: filepath with the pdf
     Returns:
-        df: Pandas dataframe containing the table 
-        
-        allText: list[str] containing the textual data that comes before the table
+        df,allText: tuple - df: Pandas dataframe containing the table, allText: list[str] containing the textual data that comes before the table
 
     """
-    import pdfplumber
+    
 
     allText = []
     rows = []
@@ -114,7 +83,7 @@ def extractTableAndTextFromPDF(filepath):
 
     pdf.close()
 
-    import pandas as pd
+    
     df = pd.DataFrame(rows)
 
     return df, allText
@@ -128,12 +97,8 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
     Args:
         filepath: filepath with the pdf
     Returns:
-        df: Pandas dataframe containing the table 
-        
-        allText: list[str] containing the textual data that comes before the table
-
+        df,allText: tuple - df: Pandas dataframe containing the table, allText: list[str] containing the textual data that comes before the table
     """
-    import pdfplumber
 
     allText = []
     rows = []
@@ -150,7 +115,6 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     pdf.close()
 
-    import pandas as pd
     df = pd.DataFrame(rows)
 
     return df, allText
@@ -195,7 +159,7 @@ def savePDFToJSON(filepath,strict=True):
     # ......................................... #
 
 
-    hsToSCMapping = getHSCodeToSCCodeMapping()
+    hsToSCMapping = DataStores.getHSCodeToSCCodeMapping()
 
 
     if strict:
@@ -232,7 +196,7 @@ def savePDFToJSON(filepath,strict=True):
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
     # ......................................... #
 
-    import json
+    
 
 
     # extract line items with HS codes from the table, only rows with a valid unit are considered to be a valid line item
@@ -278,8 +242,9 @@ def savePDFToJSON(filepath,strict=True):
             try: standardizedHSCode = standardizeHSCode(current_hscode)
             except Exception as e: 
                 standardizedHSCode = current_hscode
-                print(e)
                 print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
+                print(type(e))
+                print(e)
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
 
             standardizedHSCode2 = standardizedHSCode[:-3] + "00N"
@@ -323,8 +288,6 @@ def savePDFToJSON(filepath,strict=True):
     # ......................................... #
 
 
-
-
 # SCRIPT
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -338,14 +301,14 @@ for filename in os.listdir(filepathWithPDFs):
         print("Reading "+f)
         try: savePDFToJSON(f)
         except Exception as e:
-            print("Error processing file @ " + f + " Error: " + str(e))
+            print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
             # tb = traceback.format_exc()
             # print("traceback:")
             # print(tb)
             print("Using non-strict extraction")
             try: savePDFToJSON(f,strict=False)
             except Exception as e:
-                print("Error processing file non-strictly @ " + f + " Error: " + str(e))
+                print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
                 # tb = traceback.format_exc()
                 # print("traceback:")
                 # print(tb)
@@ -353,8 +316,6 @@ for filename in os.listdir(filepathWithPDFs):
 
 print("Data extracted from tariff pdfs and saved as .json")
 
-
-import pickle 
 
 with open('initializers/extract_data/scCodeToHSCodeMapping.pkl', 'wb') as f:
     pickle.dump(scCodeToHSCodeMapping, f)

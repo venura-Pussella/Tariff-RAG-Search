@@ -28,7 +28,7 @@ def hscode_search():
     if request.method == "POST":
         user_query = request.form.get("query")
         print("app.py: user_query is: " + user_query)
-        results = findByHSCode.findByHSCode(user_query, data_dict)  # Call the Python function
+        results = findByHSCode.findByHSCode(user_query, data_dict)
     return render_template("hscode_search.html", results=results, user_query=user_query)
 
 
@@ -60,7 +60,7 @@ def vector_store_search():
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query)
         print("app.py: user_query is: " + user_query)
-        hsCodes_of_results, scores = DataStores.vectorStoreSearch(user_query, data_dict)  # Call the Python function
+        hsCodes_of_results, scores = DataStores.vectorStoreSearch(user_query, data_dict)
         results = list(zip(hsCodes_of_results,scores))
         print("no. of results:  " + str(len(hsCodes_of_results)))
     return render_template("vector_store_search.html", results=results, user_query=user_query)
