@@ -1,4 +1,6 @@
-def findByHSCode(query: str, data_dict: dict) -> list[dict]:
+from data_stores.DataStores import DataStores
+
+def findByHSCode(query: str) -> list[dict]:
      """Searches the dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
      and returns a list of line items
      Args:
@@ -8,6 +10,8 @@ def findByHSCode(query: str, data_dict: dict) -> list[dict]:
           List of line items
      """
      if query == None or query == '': return[]
+
+     data_dict = DataStores.getJson_dicts()
      
      results = []
      chapterNumber = 0

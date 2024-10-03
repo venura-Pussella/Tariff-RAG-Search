@@ -1,3 +1,7 @@
+import shutil
+from other_funcs import getEmbeddings as emb
+from langchain.vectorstores import Chroma
+
 def createVectorstoreUsingChroma(docs: list):
     """Creates & persists a chroma vectorstore using the passed in list of langchain documents
     Args:
@@ -6,22 +10,11 @@ def createVectorstoreUsingChroma(docs: list):
         Void
     Issues:
         Need to add code to consider rate limit of embeddings.
-    """
-    import os
-    import openai
-    import shutil
+    """    
 
-    from dotenv import load_dotenv, find_dotenv
-    _ = load_dotenv(find_dotenv()) # read local .env file
-    openai.api_key = os.environ['OPENAI_API_KEY']
-
-    from initializers import getEmbeddings as emb
     embedding = emb.getEmbeddings.getEmbeddings()
-
-
-    from langchain.vectorstores import Chroma
-
-    persist_directory = "initializers/create_vectorstores/vectorstores/chroma"
+  
+    persist_directory = "files/persisted_vectorstores/chroma"
     print("Deleting existing vectorstore...")
     shutil.rmtree(persist_directory)
 

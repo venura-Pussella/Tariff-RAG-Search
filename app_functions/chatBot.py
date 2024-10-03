@@ -1,9 +1,10 @@
-from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
 import config
-from app_functions.DataStores import DataStores as ds
-from initializers import loadJSONAtRuntime as lj
 import json
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.chat_models import ChatOpenAI
+from data_stores.DataStores import DataStores as ds
+from app_functions import vectorstoreSearch as vs
+
 
 def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -> str:
     """A user can ask a very general/complex question from the chat bot. The documents needed to answer the question (RAG) must be fetched from the vectorstore using a similarity search (or similar). For this
@@ -37,8 +38,7 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -
 
 def getChatBotAnswer(userQuery_to_chatBot) -> str:
     descriptionSearchQuery = generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot)
-    data_dict = lj.loadJSONsAtRuntime()
-    resultsAndScores = ds.vectorStoreSearch(descriptionSearchQuery, data_dict)
+    resultsAndScores = vs.vectorStoreSearch(descriptionSearchQuery)
     lineItems = resultsAndScores[0]
     lineItemsJSONString = json.dumps(lineItems)
 

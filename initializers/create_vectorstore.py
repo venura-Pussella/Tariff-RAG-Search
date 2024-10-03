@@ -3,7 +3,9 @@
 
 import sys
 sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
-import initializers.loadJSONAtRuntime as lj
+import config
+from data_stores.DataStores import DataStores
+from langchain_core.documents import Document
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -12,16 +14,13 @@ print("Starting vectorstore creation...")
 # load the extracted json data into a dictionary
 # ......................................... #
 print("Loading json files into memory...")
-json_dicts = lj.loadJSONsAtRuntime()
+json_dicts = DataStores.getJson_dicts()
 # ......................................... #
-
 
 
 # create langchain documents with the textual data for embedding put into page_content
 # and hscodes in metadata
 # ......................................... #
-from langchain_core.documents import Document
-
 docs = []
 print("Filtering data...")
 
@@ -45,15 +44,15 @@ for key,value in json_dicts.items():
         docs.append(document)
 # ......................................... #
 
-import config
+
 
 # create vectorstore
 # ......................................... #
 if config.vectorstore == "chroma":
-    import initializers.create_vectorstores.chroma_vectorstore as chr
+    import initializers.chroma_vectorstore as chr
     chr.createVectorstoreUsingChroma(docs)
 elif config.vectorstore == "azure_cosmos_nosql":
-    import initializers.create_vectorstores.az_cosmos_nosql_vectorstore as azcn
+    import initializers.az_cosmos_nosql_vectorstore as azcn
     azcn.createVectorstoreUsingAzureCosmosNoSQL(docs)
 else:
     print("Type of vectorstore to be created/overwritten not specified in config.py")

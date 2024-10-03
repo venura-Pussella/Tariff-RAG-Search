@@ -10,7 +10,7 @@ import pdfplumber
 import pandas as pd
 import json
 import pickle 
-from app_functions.DataStores import DataStores
+from data_stores.DataStores import DataStores
 
 def isEmpty(string) -> bool:
     """ Returns true if the given string is '' or None
@@ -172,7 +172,7 @@ def savePDFToJSON(filepath,strict=True):
     # isolate chapter number and name
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
-    if filepath[-12:] == "63 Final.pdf":
+    if filepath[-12:] == "63 Final.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
         chapterNumber = 63
     else:
         chapterNumber = int(allText[0][7:firstLineEndIndex])
@@ -282,7 +282,7 @@ def savePDFToJSON(filepath,strict=True):
 
 
     json_string = json.dumps(dictionaryForThisPDF)
-    with open('initializers/extract_data/extracted_data/{}.json'.format(chapterNumber),'w') as file:
+    with open('files/extracted_data/{}.json'.format(chapterNumber),'w') as file:
         file.write(json_string)
 
     # ......................................... #
@@ -292,7 +292,7 @@ def savePDFToJSON(filepath,strict=True):
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-filepathWithPDFs = 'Tariff_PDFs'
+filepathWithPDFs = 'files/Tariff_PDFs'
 scCodeToHSCodeMapping = {}
 
 for filename in os.listdir(filepathWithPDFs):
@@ -317,7 +317,7 @@ for filename in os.listdir(filepathWithPDFs):
 print("Data extracted from tariff pdfs and saved as .json")
 
 
-with open('initializers/extract_data/scCodeToHSCodeMapping.pkl', 'wb') as f:
+with open('files/scCodeToHSCodeMapping.pkl', 'wb') as f:
     pickle.dump(scCodeToHSCodeMapping, f)
 print("SCCode to HSCode dictionary saved as binary.")
 

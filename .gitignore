@@ -1,6 +1,5 @@
 .conda/
 __pycache__/
-/Tariff_PDFs_all/
 .env
 .deployment
 .vscode

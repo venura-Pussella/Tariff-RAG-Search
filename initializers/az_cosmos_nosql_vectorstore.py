@@ -1,24 +1,18 @@
+import config
+import os
+from langchain_core.documents import Document
+import config
+from other_funcs.tokenTracker import TokenTracker as tok
+from other_funcs import getEmbeddings as emb
+
+
 def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
-    """Creates & returns vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
+    """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
     Args:
         docs: list of langchain documents
-    Returns:
-        vectorstore (Azure cosmos nosql)
-    """
-    import os
-    import openai
-    import json
-    from langchain_core.documents import Document
-    import config
-    from initializers import tokenRelatedFuncs as tok
+    """    
 
-    from dotenv import load_dotenv, find_dotenv
-    _ = load_dotenv(find_dotenv()) # read local .env file
-    openai.api_key = os.environ['OPENAI_API_KEY']
-
-    from initializers import getEmbeddings as emb
     embedding = emb.getEmbeddings.getEmbeddings()
-
     vectorstore = createBlankCosmosVectorstore(embedding)
     
     # Add text to the vectorstore without hitting the embeddings rate limit
@@ -70,54 +64,26 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     print("Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
     
-    # save the HSCode to ID mapping cuz of langchain similarity search issue not picking up hs code as metadata
-    hscodes = []
-    for md in allMetaDatas:
-        hscodes.append(md["HS Code"])
-    ids_hscode_dict = dict(zip(allIDs, hscodes))
-    json_string = json.dumps(ids_hscode_dict)
-    with open('initializers/create_vectorstores/ids_hscode_dict.json','w') as file:
-        file.write(json_string)
-
     print("Cosmos vectorstore created or overwritten.")
     #to-do
     #print number of items in container
-
-    return vectorstore
-
-
 
 
 
 def createBlankCosmosVectorstore(embedding):
     """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
+    Langchain used for this process, #todo - can remove it and do it directly.
     Args:
         embedding: pass in embedding here
     Returns:
         Returns blank vectorstore
     """
-    import config
-    import os
 
     # policy for vectorstore in cosmos
-    indexing_policy = {
-        "indexingMode": "consistent",
-        "includedPaths": [{"path": "/*"}],
-        "excludedPaths": [{"path": '/"_etag"/?'}],
-        "vectorIndexes": [{"path": "/embedding", "type": "quantizedFlat"}],
-    }
+    indexing_policy = config.indexing_policy
 
     # policy for vectorstore in cosmos
-    vector_embedding_policy = {
-        "vectorEmbeddings": [
-            {
-                "path": "/embedding",
-                "dataType": "float32",
-                "distanceFunction": "cosine",
-                "dimensions": 1536,
-            }
-        ]
-    }
+    vector_embedding_policy = config.vector_embedding_policy
 
     from azure.cosmos import CosmosClient, PartitionKey, exceptions
     from langchain_community.vectorstores.azure_cosmos_db_no_sql import (AzureCosmosDBNoSqlVectorSearch,)

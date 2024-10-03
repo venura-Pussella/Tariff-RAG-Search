@@ -10,23 +10,7 @@ class CosmosObjects:
     __cosmosClient: CosmosClient = None
     __cosmosDatabase: AzureCosmosDatabase.DatabaseProxy = None
     __cosmosContainer: AzureCosmosContainer.ContainerProxy = None
-    indexing_policy = {
-        "indexingMode": "consistent",
-        "includedPaths": [{"path": "/*"}],
-        "excludedPaths": [{"path": '/"_etag"/?'}],
-        "vectorIndexes": [{"path": "/embedding", "type": "quantizedFlat"}],
-    }
-    vector_embedding_policy = {
-        "vectorEmbeddings": [
-            {
-                "path": "/embedding",
-                "dataType": "float32",
-                "distanceFunction": "cosine",
-                "dimensions": 1536,
-            }
-        ]
-    }
-
+    
     @classmethod
     def getCosmosClient(cls) -> CosmosClient:
         if CosmosObjects.__cosmosClient == None:
@@ -42,8 +26,9 @@ class CosmosObjects:
     def getCosmosDatabase(cls) -> AzureCosmosDatabase.DatabaseProxy:
         if CosmosObjects.__cosmosDatabase == None:
             try:
-                database = CosmosObjects.__cosmosClient.create_database_if_not_exists(id=config.cosmosNoSQLDBName)
-                print(f"Database created or returned: {database.id}")
+                cosmosClient = CosmosObjects.getCosmosClient()
+                CosmosObjects.__cosmosDatabase = cosmosClient.create_database_if_not_exists(id=config.cosmosNoSQLDBName)
+                print(f"Database created or returned: {CosmosObjects.__cosmosDatabase.id}")
 
             except AzureCosmosExceptions.CosmosHttpResponseError:
                 print("Request to the Azure Cosmos database service failed.")
@@ -56,12 +41,13 @@ class CosmosObjects:
         if CosmosObjects.__cosmosContainer == None:
             try:
                 partition_key_path = PartitionKey(path="/categoryId")
-                container = CosmosObjects.__cosmosDatabase.create_container_if_not_exists(
+                database = CosmosObjects.getCosmosDatabase()
+                CosmosObjects.__cosmosContainer = database.create_container_if_not_exists(
                     id=config.cosmosNoSQLContainerName,
                     partition_key=partition_key_path,
                     offer_throughput=400,
                 )
-                print(f"Container created or returned: {container.id}")
+                print(f"Container created or returned: {CosmosObjects.__cosmosContainer.id}")
 
             except AzureCosmosExceptions.CosmosHttpResponseError:
                 print("Request to the Azure Cosmos database service failed.")
