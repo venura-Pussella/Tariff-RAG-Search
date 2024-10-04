@@ -11,6 +11,49 @@ import pandas as pd
 import json
 import pickle 
 from data_stores.DataStores import DataStores
+import traceback
+
+def extractChapterNumberFromCSVFilepath(string) -> int:
+    string1 = string.replace('\\','/')
+    a = string1.rsplit('.csv',1)[0]
+    slashIndex = a.rfind('/')
+    b = a[slashIndex+1:]
+    return int(b)
+
+def isSeriesALineItem(series, numOfColumns) -> bool:
+        for col in range(4,numOfColumns):
+            value = series.iloc[col]
+            if not isEmpty(value): return True
+        return False
+
+def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
+    keys = ["HS Hdg", 
+            "HS Code", 
+            "Blank",
+            "Description", 
+            "Unit",
+            "ICL/SLSI",
+            "Preferential Duty_AP",
+            "Preferential Duty_AD",
+            "Preferential Duty_BN",
+            "Preferential Duty_GT",
+            "Preferential Duty_IN",
+            "Preferential Duty_PK",
+            "Preferential Duty_SA",
+            "Preferential Duty_SF",
+            "Preferential Duty_SD",
+            "Preferential Duty_SG",
+            "Gen Duty",
+            "VAT",
+            "PAL_Gen",
+            "PAL_SG",
+            "Cess_GEN",
+            "Cess_SG",
+            "Excise SPD",
+            "SSCL",
+            "SCL"]
+    values = list(range(0,25))
+    return dict(zip(keys, values))
 
 def isEmpty(string) -> bool:
     """ Returns true if the given string is '' or None
@@ -36,7 +79,9 @@ def standardizeHSCode(hscode) -> str:
     elif len(hscode) == 5: # eg: '28.03'
         hscode += '.00.00N'
     else:
-        raise ValueError("HS Code of unknown format passed in: {}".format(hscode))
+        errorText = "HS Code of unknown format passed in: {}".format(hscode)
+        print(errorText)
+        raise ValueError()
     return hscode
 
 def extractTableAndTextFromPDF(filepath):
@@ -118,8 +163,8 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
     df = pd.DataFrame(rows)
 
     return df, allText
-
-def savePDFToJSON(filepath,strict=True):
+           
+def saveCSVAndDictToJSON(filepath):
     """ Reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     Args:
         filepath: filepath to the pdf (str)
@@ -129,75 +174,26 @@ def savePDFToJSON(filepath,strict=True):
 
     # Create an 'enum' that matches a column name with the matching column number in the dataframe
     # ......................................... #
-    keys = ["HS Hdg", 
-            "HS Code", 
-            "Blank",
-            "Description", 
-            "Unit",
-            "ICL/SLSI",
-            "Preferential Duty_AP",
-            "Preferential Duty_AD",
-            "Preferential Duty_BN",
-            "Preferential Duty_GT",
-            "Preferential Duty_IN",
-            "Preferential Duty_PK",
-            "Preferential Duty_SA",
-            "Preferential Duty_SF",
-            "Preferential Duty_SD",
-            "Preferential Duty_SG",
-            "Gen Duty",
-            "VAT",
-            "PAL_Gen",
-            "PAL_SG",
-            "Cess_GEN",
-            "Cess_SG",
-            "Excise SPD",
-            "SSCL",
-            "SCL"]
-    values = list(range(0,25))
-    headerNumber = dict(zip(keys, values))
+    headerNumber = getDataframeHeadernameToColumnNumberMapping()
     # ......................................... #
 
 
     hsToSCMapping = DataStores.getHSCodeToSCCodeMapping()
-
-
-    if strict:
-        df, allText = extractTableAndTextFromPDF(filepath)
-    else:
-        df, allText = extractTableAndTextFromPDFNonStrictly(filepath)
-
-
+   
 
     # isolate chapter number and name
     # ......................................... #
-    firstLineEndIndex = allText[0].find('\n')
-    if filepath[-12:] == "63 Final.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
-        chapterNumber = 63
-    else:
-        chapterNumber = int(allText[0][7:firstLineEndIndex])
-    startOfNotesIndex = allText[0].find('Notes.')
-    if startOfNotesIndex == -1:
-        startOfNotesIndex = allText[0].find('Note.')
-    chapterName = allText[0][firstLineEndIndex+1:startOfNotesIndex]
-    chapterName = chapterName.replace("\n"," ")
+    chapterNumber = extractChapterNumberFromCSVFilepath(filepath)
     # ......................................... #
+    df = pd.read_csv("files/review_data/{}.csv".format(chapterNumber), na_filter=False, dtype=str)
+    dictionaryForThisPDF = {}
+    with open('files/review_data/dicts/dict_{}.pkl'.format(chapterNumber), 'rb') as f:
+        dictionaryForThisPDF = pickle.load(f)
 
 
-    # create a dictionary for creating a json for the whole pdf
-    # ......................................... #
-    dictionaryForThisPDF = dict.fromkeys(["Chapter Number", "Chapter Name", "Pre-Table Notes", "Items"])
-
-    dictionaryForThisPDF["Chapter Number"] = chapterNumber
-    dictionaryForThisPDF["Chapter Name"] = chapterName
-    preTableNotes = ""
-    for text in allText:
-        preTableNotes += text
-    dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
-    # ......................................... #
-
-    
-
+    del df[df.columns[0]]
+    numOfColumns = df.shape[1]
+    del df[df.columns[numOfColumns - 1]]
 
     # extract line items with HS codes from the table, only rows with a valid unit are considered to be a valid line item
     # ......................................... #
@@ -211,29 +207,38 @@ def savePDFToJSON(filepath,strict=True):
         keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Excise SPD","SSCL","SCL"]
     items = []
 
+    def isSeriesALineItem(series) -> bool:
+        for col in range(4,numOfColumns):
+            value = series.iloc[col]
+            if not isEmpty(value): return True
+        return False
 
     numOfRows = df.shape[0] # rows
-    # only a row with a non-null unit will be considered a valid item
-    for n in range(3,numOfRows): # starting from 3 because 0-2 are just table headers all over the place
-        current_hshdg = df.loc[n].values[headerNumber['HS Hdg']]
-        current_hscode = df.loc[n].values[headerNumber['HS Code']]
-        current_description = df.loc[n].values[headerNumber['Description']]
-        current_unit = df.loc[n].values[headerNumber['Unit']]
 
-        if isEmpty(current_description) or (current_hshdg == "HS Hdg") or (current_hshdg == None): # row is considered empty
+    # only a row with a non-null unit will be considered a valid item
+    for n in range(0,numOfRows): # starting from 3 because 0-2 are just table headers all over the place
+        current_series = df.loc[n]
+        current_hshdg = current_series.values[headerNumber['HS Hdg']]; 
+        if current_hshdg == None: current_hshdg = ''
+        current_hscode = current_series.values[headerNumber['HS Code']]
+        if current_hscode == None: current_hscode = ''
+        current_description = current_series.values[headerNumber['Description']]
+        if current_description == None: current_description = ''
+
+        if isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
             continue
-        if isEmpty(current_hshdg) and isEmpty(current_unit): # description considered a prefix
+        if isEmpty(current_hshdg) and not isSeriesALineItem(current_series): # description considered a prefix
             ongoing_prefix = current_description
             continue
-        if (not isEmpty(current_hshdg)) and isEmpty(current_hscode): # row has a HS Hdg no. but no HS code no.
+        if (not isEmpty(current_hshdg)) and not isSeriesALineItem(current_series): # row has a HS Hdg no. but no HS code no.
             ongoing_hshdg = current_hshdg
             ongoing_hshdgname = current_description
             ongoing_prefix = "" # reset on-going prefix since we have moved to a new hs hdg
-            if isEmpty(current_unit): # not an item
+            if not isSeriesALineItem(current_series): # not an item
                 continue
             else:
                 current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
-        if not isEmpty(current_unit): # this is a valid item
+        if isSeriesALineItem(current_series) and not isEmpty(current_hscode): # this is a valid item
             # create a json item
             values = [ongoing_prefix] + [ongoing_hshdgname] + list(df.loc[n].values)
             item = dict(zip(keysForAnItem, values))
@@ -242,6 +247,7 @@ def savePDFToJSON(filepath,strict=True):
             try: standardizedHSCode = standardizeHSCode(current_hscode)
             except Exception as e: 
                 standardizedHSCode = current_hscode
+                print(current_hscode)
                 print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
                 print(type(e))
                 print(e)
@@ -280,7 +286,6 @@ def savePDFToJSON(filepath,strict=True):
     # ......................................... #
     dictionaryForThisPDF["Items"] = items
 
-
     json_string = json.dumps(dictionaryForThisPDF)
     with open('files/extracted_data/{}.json'.format(chapterNumber),'w') as file:
         file.write(json_string)
@@ -292,29 +297,22 @@ def savePDFToJSON(filepath,strict=True):
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-filepathWithPDFs = 'files/Tariff_PDFs'
+filepathWithCSVs = 'files/review_data'
 scCodeToHSCodeMapping = {}
 
-for filename in os.listdir(filepathWithPDFs):
-    f = os.path.join(filepathWithPDFs, filename)
+for filename in os.listdir(filepathWithCSVs):
+    f = os.path.join(filepathWithCSVs, filename)
     if os.path.isfile(f):
         print("Reading "+f)
-        try: savePDFToJSON(f)
+        try: saveCSVAndDictToJSON(f)
         except Exception as e:
-            print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-            # tb = traceback.format_exc()
-            # print("traceback:")
-            # print(tb)
-            print("Using non-strict extraction")
-            try: savePDFToJSON(f,strict=False)
-            except Exception as e:
-                print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-                # tb = traceback.format_exc()
-                # print("traceback:")
-                # print(tb)
+            print("Error processing reviewed data for saving to json store @ " + f + " Error: " + str(type(e)) + ": " + str(e))
+            tb = traceback.format_exc()
+            print("traceback:")
+            print(tb)
             
 
-print("Data extracted from tariff pdfs and saved as .json")
+print("Data extracted from reviewed data and saved as .json")
 
 
 with open('files/scCodeToHSCodeMapping.pkl', 'wb') as f:
