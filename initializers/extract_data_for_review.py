@@ -234,6 +234,8 @@ def savePdfToCsvAndStringsForReview(filepath, strict=True):
                 continue
             else:
                 current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
+        if (not isEmpty(current_hshdg)) and isSeriesALineItem(current_series, numOfColumns) and isEmpty(current_hscode):
+            current_hscode = current_hshdg
         if isSeriesALineItem(current_series, numOfColumns): # this is a valid item
             # create a json item
             df.loc[n, 'LineItem?'] = 'line item'

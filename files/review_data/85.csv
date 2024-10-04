@@ -138,8 +138,8 @@
 136,,,,Sealed type accumulators filled with acid solution and ready for use,u,,,,,,,,,,,,,,,,,,,,2.5%,,hscode error
 137,HS Hdg,HS Code 8507.10.10,---,Description,Unit,ICL/ SLSI,Preferential Duty,,,,,,,,,,Gen Duty,VAT,PAL,,Cess,,Excise (S.P.D),Surcharge on Customs Duty,SSCL,L C S,empty
 138,,,,,,,AP,AD,BN,GT,IN,PK,SA,SF,SD,SG,,,Gen,SG,GEN,SG,,,,,empty
-139,,,,,,,,,,,,,,,,,20% or,,,,10% or,,,,,,empty
-140,,,,Lead- Acid Starter Batteries,u,S,,,,,,,,,,,Rs.270/= per kg,18%,10%,,Rs.130/= per kg,,,,2.5%,,hscode error
+139,,,,,,,,,,,,,,,,,,,,,,,,,,,empty
+140,,8507.10.10,,Sealed type accumulators filled with acid solution and ready for use,u,S,,,,,,,,,,,20% or Rs.270/= per kg,18%,10%,,10% or Rs.130/= per kg,,,,2.5%,,hscode error
 141,,8507.10.90,---,Other,u,,,,,,,,,,,,20% or Rs.270/= per kg,18%,5%,,10% or Rs.130/= per kg,,,,2.5%,,line item
 142,,,,Lead- Acid Starter Batteries,u,S,,,,,,,,,,,,,,,,,,,2.5%,,hscode error
 143,,8507.20,-,Other lead-acid accumulators,,,,,,,,,,,,,,,,,,,,,,,prefix
@@ -256,7 +256,7 @@
 254,,8516.50,-,Microwave ovens,u,,19%,,,,Free,Free,,Free,Free,Free,20%,18%,5%,2%,,,,,2.5%,,line item
 255,,8516.60,-,"Other ovens; cookers, cooking plates, boiling rings, grillers and roasters :",,,,,,,,,,,,,,,,,,,,,,,prefix
 256,,8516.60.10,---,Rice cookers,u,,,,,,Free,Free,,Free,Free,Free,20%,18%,5%,2%,,,,,2.5%,,line item
-257,,8516.60.90,---,Other,u,,,,,,Free,Free,,5%,5%,,20%,18%,5%,2%,10%,Free,,,2.5%,,line item
+257,,8516.60.90,---,"Other, including electric hot plates",u,,,,,,Free,Free,,5%,5%,,20%,18%,5%,2%,10%,Free,,,2.5%,,line item
 258,,,,Electric Hot plates,u,S,,,,,,,,,,,,,,,,,,,2.5%,,hscode error
 259,,,-,Other electro-thermic appliances :,,,,,,,,,,,,,,,,,,,,,,,prefix
 260,,8516.71,--,Coffee or tea makers,u,,,,,,Free,Free,,Free,Free,Free,Free,18%,5%,6%,,,,,2.5%,,line item
@@ -399,7 +399,7 @@
 397,,,-,"Radio-broadcast receivers not capable of operating without an external source of power, of a kind used in motor vehicles :",,,,,,,,,,,,,,,,,,,,,,,prefix
 398,,8527.21,--,Combined with sound recording or reproducing apparatus,u,,Free,,,,,,,Free,Free,Free,Free,18%,5%,2%,,,,,2.5%,,line item
 399,,8527.29,--,Other,u,,Free,,,,,,,Free,Free,Free,Free,18%,5%,6%,,,,,2.5%,,line item
-400,,,-,Other :,,,,,,,,,,,,,,18%,,,,,,,,,hscode error
+400,,,-,Other :,,,,,,,,,,,,,,,,,,,,,,,hscode error
 401,,8527.91,--,Combined with sound recording or reproducing apparatus,u,,,,,,,,,Free,Free,Free,20%,18%,5%,2%,,,,,2.5%,,line item
 402,,8527.92,--,Not combined with sound recording or reproducing apparatus but combined with a clock,u,,,,,,,,,Free,Free,Free,Free,18%,5%,2%,,,,,2.5%,,line item
 403,,8527.99,--,Other,u,,,,,,,,,Free,Free,Free,Free,18%,5%,6%,,,,,2.5%,,line item
@@ -409,7 +409,7 @@
 407,,,,,,,,,,,,,,,,,,,,,,,,,,,empty
 408,85.28,,,"Monitors and projectors, not incorporating television reception apparatus; reception apparatus for television, whether or not incorporating radio-broadcast receivers or sound or video recording or reproducing apparatus.",,,,,,,,,,,,,,,,,,,,,,,just HS heading
 409,,,,,,,,,,,,,,,,,,,,,,,,,,,empty
-410,,,-,Cathode-ray tube monitors :,,,,,,,,,,,,,,18%,,,,,,,,,hscode error
+410,,,-,Cathode-ray tube monitors :,,,,,,,,,,,,,,,,,,,,,,,hscode error
 411,,8528.42,--,Capable of directly connecting to and designed for use with an automatic data processing machine of heading 84.71,u,,,,,,Free,Free,,Free,Free,Free,Free,18%,5%,6%,,,,,2.5%,,line item
 412,,8528.49,--,Other :,,,,,,,,,,,,,,,,,,,,,,,prefix
 413,,8528.49.10,---,Used / reconditioned,u,L,,,,,Free,Free,,5%,4.5%,10.0%,15%,18%,Ex,,,,,,2.5%,,line item
@@ -565,7 +565,7 @@
 563,,,-,"Lamp-holders, plugs and sockets :",,,,,,,,,,,,,,,,,,,,,,,prefix
 564,,8536.61,--,Lamp-holders :,,,,,,,,,,,,,,,,,,,,,,,prefix
 565,,8536.61.10,---,Holders for fluorescent lamps and starters,kg,,,,,,,,,,,Free,Free,18%,10%,6%,,,,,2.5%,,line item
-566,,8536.61.90,---,Other,kg,,,,,,,,,,,,20%,18%,10%,,10%,,,,2.5%,,line item
+566,,8536.61.90,---,"Other, including Insulated bayonet lamp holders",kg,,,,,,,,,,,,20%,18%,10%,,10%,,,,2.5%,,line item
 567,,,,Insulated bayonet lamp holders,kg,S,,,,,,,,,,,,,,,,,,,2.5%,,hscode error
 568,,8536.69,--,Other :,,,,,,,,,,,,,,,,,,,,,,,prefix
 569,,8536.69.10,---,For a voltage not exceeding 80 V,kg,,,,,,,,,,,Free,Free,18%,10%,6%,,,,,2.5%,,line item
@@ -718,10 +718,10 @@
 716,,8544.49.10,---,For a voltage not exceeding 80 V,kg,S,,,,,,,,,,,20%,18%,10%,6%,10%,Free,,,2.5%,,line item
 717,,8544.49.20,---,Other up to four cored unarmoured wire and cable not exceeding 16 mm2 conductor cross- section per core,kg,S,,,,,,,,,,,20%,18%,10%,6%,10%,Free,,,2.5%,,line item
 718,,8544.49.30,---,Other single and multi-cored wire and cable not exceeding 185 mm2 conductor cross- section per core,kg,S,,,,,,,,,,,20%,18%,10%,6%,10%,Free,,,2.5%,,line item
-719,,8544.49.40,---,Other armoured and underground cables not exceeding 150 mm2 conductor cross-section per core,kg,,,,,,,,,,,,20%,18%,10%,6%,10%,Free,,,2.5%,,line item
+719,,8544.49.40,---,"Other armoured and underground cables not exceeding 150 mm2 conductor cross-section per core, including PVC insulated electric cable 600/1000V",kg,,,,,,,,,,,,20%,18%,10%,6%,10%,Free,,,2.5%,,line item
 720,,,,PVC insulated electric cable 600/1000V,,S,,,,,,,,,,,,,,,,,,,,,hscode error
 721,,8544.49.90,---,Other,kg,S,,,,,,,,,,10.0%,15%,18%,10%,6%,0%,,,,2.5%,,line item
-722,,8544.60,-,"Other electric conductors, for a voltage exceeding 1000 V",kg,,,,,,Free,Free,,4%,1.5%,Free,Free,18%,10%,6%,,,,,2.5%,,line item
+722,,8544.60,-,"Other electric conductors, for a voltage exceeding 1000 V, including PVC insulated electric cable 600/1000V",kg,,,,,,Free,Free,,4%,1.5%,Free,Free,18%,10%,6%,,,,,2.5%,,line item
 723,,,,PVC insulated electric cable 600/1000V,,S,,,,,,,,,,,,,,,,,,,,,hscode error
 724,,8544.70,-,Optical fibre cables,kg,,,,,,Free,Free,,Free,Free,Free,Free,18%,10%,6%,,,,,2.5%,,line item
 725,,,,,,,,,,,,,,,,,,,,,,,,,,,empty

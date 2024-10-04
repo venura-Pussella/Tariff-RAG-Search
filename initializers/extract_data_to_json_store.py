@@ -207,7 +207,7 @@ def saveCSVAndDictToJSON(filepath):
         keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Excise SPD","SSCL","SCL"]
     items = []
 
-    def isSeriesALineItem(series) -> bool:
+    def isSeriesALineItem(series, numOfColumns) -> bool:
         for col in range(4,numOfColumns):
             value = series.iloc[col]
             if not isEmpty(value): return True
@@ -227,18 +227,20 @@ def saveCSVAndDictToJSON(filepath):
 
         if isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
             continue
-        if isEmpty(current_hshdg) and not isSeriesALineItem(current_series): # description considered a prefix
+        if isEmpty(current_hshdg) and not isSeriesALineItem(current_series, numOfColumns): # description considered a prefix
             ongoing_prefix = current_description
             continue
-        if (not isEmpty(current_hshdg)) and not isSeriesALineItem(current_series): # row has a HS Hdg no. but no HS code no.
+        if (not isEmpty(current_hshdg)) and not isSeriesALineItem(current_series, numOfColumns): # row has a HS Hdg no. but no HS code no.
             ongoing_hshdg = current_hshdg
             ongoing_hshdgname = current_description
             ongoing_prefix = "" # reset on-going prefix since we have moved to a new hs hdg
-            if not isSeriesALineItem(current_series): # not an item
+            if not isSeriesALineItem(current_series, numOfColumns): # not an item
                 continue
             else:
                 current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
-        if isSeriesALineItem(current_series) and not isEmpty(current_hscode): # this is a valid item
+        if (not isEmpty(current_hshdg)) and isSeriesALineItem(current_series, numOfColumns) and isEmpty(current_hscode):
+            current_hscode = current_hshdg
+        if isSeriesALineItem(current_series, numOfColumns) and not isEmpty(current_hscode): # this is a valid item
             # create a json item
             values = [ongoing_prefix] + [ongoing_hshdgname] + list(df.loc[n].values)
             item = dict(zip(keysForAnItem, values))
