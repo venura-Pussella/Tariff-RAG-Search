@@ -9,8 +9,10 @@ embeddingModel = "text-embedding-ada-002"
 indexing_policy = {
     "indexingMode": "consistent",
     "includedPaths": [{"path": "/*"}],
-    "excludedPaths": [{"path": '/"_etag"/?'}],
-    "vectorIndexes": [{"path": "/embedding", "type": "quantizedFlat"}],
+    "excludedPaths": [
+        {"path": '/"_etag"/?'}, {"path": "/embedding/*"}
+    ],
+    "vectorIndexes": [{"path": "/embedding", "type": "diskANN"}],
 }
 vector_embedding_policy = {
     "vectorEmbeddings": [

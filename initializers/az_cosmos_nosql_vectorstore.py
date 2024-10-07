@@ -4,6 +4,7 @@ from langchain_core.documents import Document
 import config
 from other_funcs.tokenTracker import TokenTracker as tok
 from other_funcs import getEmbeddings as emb
+import datetime
 
 
 def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
@@ -28,6 +29,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     allMetaDatas = []
     allIDs = []
 
+    ct = datetime.datetime.now()
+    print("|||Adding items to cosmos begin: - " + str(ct))
     print("Total number of line items to be added: " + str(len(docs)))
     print("Takes about 15 mins to add 3300 line items")
 
@@ -64,6 +67,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     print("Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
     
+    ct = datetime.datetime.now()
+    print("|||Adding items to cosmos end: - " + str(ct))
     print("Cosmos vectorstore created or overwritten.")
     #to-do
     #print number of items in container
