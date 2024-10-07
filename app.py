@@ -60,7 +60,7 @@ def vector_store_search():
 
 @app.route("/chatbot", methods=["GET", "POST"])
 def chatbot():
-    print('Request for chatbot page received')
+    print('Request for RAG page received')
     user_query = None
     answer_html = None
     if request.method == "POST":
