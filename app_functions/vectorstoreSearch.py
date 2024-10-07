@@ -65,12 +65,12 @@ def similarity_search_with_score(queryEmbeddings: list[float], k: int = 4) -> li
         A list of (HS Codes, Similarity Score)
     """
 
-    query = "SELECT " + ' c["HS Code"], VectorDistance(c.embedding, '
+    query = "SELECT TOP " + str(k)
+    query += ' c["HS Code"], VectorDistance(c.embedding, '
     query += str(queryEmbeddings) + ") "
     query += "AS similarityScore FROM c "
 
-    # query += "ORDER BY VectorDistance(c.embedding, " + str(queryEmbeddings) + ")"
-    # Using ORDER BY massively increases RUs used, and Microsoft documentation mentions something about ORDER BY triggering a brute force approach.
+    query += "ORDER BY VectorDistance(c.embedding, " + str(queryEmbeddings) + ")"
 
     hscodesAndScores = []
 
@@ -82,6 +82,5 @@ def similarity_search_with_score(queryEmbeddings: list[float], k: int = 4) -> li
         score = item["similarityScore"]
         hscodesAndScores.append((hscode,score))
 
-    sorted_hscodesAndScores = sorted(hscodesAndScores, key=lambda x: x[1], reverse=True) # ~10 milliseconds to sort 1913 results
-    return sorted_hscodesAndScores[:k]
-  
+    # sorted_hscodesAndScores = sorted(hscodesAndScores, key=lambda x: x[1], reverse=True) # ~10 milliseconds to sort 1913 results
+    return hscodesAndScores
