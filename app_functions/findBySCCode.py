@@ -3,11 +3,11 @@ from data_stores.DataStores import DataStores
 def findBySCCode(query: str) -> list[dict]:
     """Searches the dictionary containing all tariff pdf information for line items whose SCCodes match the search query,
      and returns a list of line items
-     Args:
+     ### Args:
           query: query for a sccode
           data_dict: dictionary containing all tariff pdf information
           scToHSMapping: dictionary containing scToHSMapping
-     Returns:
+     ### Returns:
           List of line items
      """
     

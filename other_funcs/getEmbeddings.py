@@ -2,8 +2,7 @@ import config
 
 class getEmbeddings():
     """Singleton class with func to return embeddings according to what's defined in config.py
-    ...
-    Methods
+    ### Methods
     ------
         getEmbeddings(): returns embeddings
     """
@@ -12,7 +11,7 @@ class getEmbeddings():
 
     def getEmbeddings():
         """Returns embedding according to config.py
-        Raises:
+        ### Raises:
             ValueError: If Embedding to be used not defined in config.py, or is not known
         """
 

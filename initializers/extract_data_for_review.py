@@ -11,6 +11,8 @@ import pandas as pd
 import pickle 
 
 def removeNewLineCharactersFromDataframe(dataframe):
+    """Removes new line character ('\n') from the dataframe. Done in place. Returns void.
+    """
     numOfRows = dataframe.shape[0]
     numOfCols = dataframe.shape[1]
     for r in range(0,numOfRows):
@@ -20,12 +22,15 @@ def removeNewLineCharactersFromDataframe(dataframe):
     
 
 def isSeriesALineItem(series, numOfColumns) -> bool:
-        for col in range(4,numOfColumns):
-            value = series.iloc[col]
-            if not isEmpty(value): return True
-        return False
+    """Checks if a dataframe row (i.e. a series), qualifies as a line item (i.e. has values from the unit column onwards)"""
+    for col in range(4,numOfColumns):
+        value = series.iloc[col]
+        if not isEmpty(value): return True
+    return False
 
 def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
+    """Returns a dictionary mapping an easy to use column name for the dataframe, with its corresponsing column number.
+    """
     keys = ["HS Hdg", 
             "HS Code", 
             "Blank",
@@ -83,14 +88,16 @@ def standardizeHSCode(hscode) -> str:
 
 def extractTableAndTextFromPDF(filepath):
     """Extracts table and pre-table text from the pdf given in the filepath.
-    #### Discussion:
+    ### Discussion:
         Use pdf plumber to extract the data from the pdfs
-    All the text that comes before the table are saved in the allText array (one item is a page)
-    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
-    Args:
+        All the text that comes before the table are saved in the allText array (one item is a page)
+        The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+    ### Args:
         filepath: filepath with the pdf
-    Returns:
-        df,allText: tuple - df: Pandas dataframe containing the table, allText: list[str] containing the textual data that comes before the table
+    ### Returns:
+        df,allText: tuple - 
+            df: Pandas dataframe containing the table
+            allText: list[str] containing the textual data that comes before the table
 
     """
     
@@ -132,14 +139,16 @@ def extractTableAndTextFromPDF(filepath):
 
 def extractTableAndTextFromPDFNonStrictly(filepath):
     """Extracts table and pre-table text from the pdf given in the filepath.
-    #### Discussion:
+    ### Discussion:
         Use pdf plumber to extract the data from the pdfs
-    All the text that comes before the table are saved in the allText array (one item is a page)
-    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
-    Args:
+        All the text that comes before the table are saved in the allText array (one item is a page)
+        The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+    ### Args:
         filepath: filepath with the pdf
-    Returns:
-        df,allText: tuple - df: Pandas dataframe containing the table, allText: list[str] containing the textual data that comes before the table
+    ### Returns:
+        df,allText: tuple - 
+            df: Pandas dataframe containing the table 
+            allText: list[str] containing the textual data that comes before the table
     """
 
     allText = []
@@ -162,6 +171,14 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
     return df, allText
 
 def savePdfToExcelAndStringsForReview(filepath, strict=True):
+    """The data ripped from the pdf is persisted to disk for review.
+    ### Discussion:
+    The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
+    The table which is extracted as a pandas dataframe is saved as an excel file, for easy reviewing and editing.
+    ### Args:
+        filepath: the filepath with the PDFs
+        strict: (defaults to True) whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.
+    """
     
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
 

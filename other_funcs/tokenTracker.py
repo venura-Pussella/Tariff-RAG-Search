@@ -8,7 +8,7 @@ class TokenTracker:
     @classmethod
     def updateTokens(cls,text):
         """Static method to track lifetime token count. If lifetime token limit in config.py is exceeded, exits app.
-        Args:
+        ### Args:
             text: Text that will be tokenized, and thus its token count must be added to lifetime tokens.
         """
 
@@ -22,7 +22,7 @@ class TokenTracker:
     @classmethod
     def updateTokens_chatbot(cls,text):
         """Static method to track lifetime token count of chatbot. If lifetime token limit in config.py is exceeded, exits app.
-        Args:
+        ### Args:
             text: Text that will be tokenized, and thus its token count must be added to lifetime tokens of chatbot.
         """
 
@@ -37,9 +37,9 @@ class TokenTracker:
     @staticmethod
     def getTokenCount(text) -> int:
         """Gets number of tokens that a given string will be split into.
-        Args:
+        ### Args:
             text: the string to check
-        Returns:
+        ### Returns:
             (int) The number of tokens in the text.
         """
 

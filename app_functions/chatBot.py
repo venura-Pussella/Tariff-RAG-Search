@@ -10,9 +10,9 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -
     """A user can ask a very general/complex question from the chat bot. The documents needed to answer the question (RAG) must be fetched from the vectorstore using a similarity search (or similar). For this
     the user's question must be simplified to drop information that may not have been embedded in the vectorstore.
     ( eg: If the user query is 'What is the preferential_duty_SF for a tractor.' the description_search to fetch documents should be 'tractor' )
-    Args:
+    ### Args:
         userQuery_to_chatBot: General/complex question user passed to chatbot.
-    Returns:
+    ### Returns:
         Search query suitable for the vectorstore search.
     """
 
@@ -37,6 +37,12 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot) -
 
 
 def getChatBotAnswer(userQuery_to_chatBot) -> str:
+    """Takes a user's query, retrieves suitable documents using vector search and returns an answer.
+    ### Args:
+        userQuery_to_chatBot: The user's question
+    ### Returns:
+        (str) llm generated answer
+    """
     descriptionSearchQuery = generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot)
     resultsAndScores = vs.vectorStoreSearch(descriptionSearchQuery)
     lineItems = resultsAndScores[0]

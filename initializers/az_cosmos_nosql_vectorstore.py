@@ -8,7 +8,7 @@ from other_funcs import getEmbeddings as emb
 
 def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
     """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
-    Args:
+    ### Args:
         docs: list of langchain documents
     """    
 
@@ -73,9 +73,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
 def createBlankCosmosVectorstore(embedding):
     """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
     Langchain used for this process, #todo - can remove it and do it directly.
-    Args:
+    ### Args:
         embedding: pass in embedding here
-    Returns:
+    ### Returns:
         Returns blank vectorstore
     """
 

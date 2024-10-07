@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 class DataStores:
+    """Singleton class to hold datastores (So that things are loaded from disk only once per item)."""
 
     __hsCodeToSCCodeMapping: dict[str,str] = None
     __json_dicts = None

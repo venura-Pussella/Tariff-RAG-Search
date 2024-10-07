@@ -6,6 +6,8 @@ import os
 import config
 
 class CosmosObjects:
+    """Singleton class to hold cosmos objects. (So that wasteful similar calls to cosmos are not made, each time a reference to an object is required)
+    """
 
     __cosmosClient: CosmosClient = None
     __cosmosDatabase: AzureCosmosDatabase.DatabaseProxy = None
@@ -13,6 +15,7 @@ class CosmosObjects:
     
     @classmethod
     def getCosmosClient(cls) -> CosmosClient:
+        """Singleton method to return a Cosmos object"""
         if CosmosObjects.__cosmosClient == None:
             ENDPOINT = os.environ["COSMOS_ENDPOINT"]
             KEY = os.environ["COSMOS_KEY"]
@@ -24,6 +27,7 @@ class CosmosObjects:
 
     @classmethod
     def getCosmosDatabase(cls) -> AzureCosmosDatabase.DatabaseProxy:
+        """Singleton method to return a Cosmos object"""
         if CosmosObjects.__cosmosDatabase == None:
             try:
                 cosmosClient = CosmosObjects.getCosmosClient()
@@ -38,6 +42,7 @@ class CosmosObjects:
 
     @classmethod
     def getCosmosContainer(cls) -> AzureCosmosContainer.ContainerProxy:
+        """Singleton method to return a Cosmos object"""
         if CosmosObjects.__cosmosContainer == None:
             try:
                 partition_key_path = PartitionKey(path="/categoryId")

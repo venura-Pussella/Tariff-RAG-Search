@@ -14,6 +14,10 @@ from data_stores.DataStores import DataStores
 import traceback
 
 def extractChapterNumberFromExcelFilepath(string) -> int:
+    """Extracts the chapter number from the filepath.
+    ### Discussion:
+        example: some_folder/84.xlsx - the number 84 will be correctly extracted and returned.
+    """
     string1 = string.replace('\\','/')
     a = string1.rsplit('.xlsx',1)[0]
     slashIndex = a.rfind('/')
@@ -21,12 +25,15 @@ def extractChapterNumberFromExcelFilepath(string) -> int:
     return int(b)
 
 def isSeriesALineItem(series, numOfColumns) -> bool:
-        for col in range(4,numOfColumns):
-            value = series.iloc[col]
-            if not isEmpty(value): return True
-        return False
+    """Checks if a dataframe row (i.e. a series), qualifies as a line item (i.e. has values from the unit column onwards)"""
+    for col in range(4,numOfColumns):
+        value = series.iloc[col]
+        if not isEmpty(value): return True
+    return False
 
 def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
+    """Returns a dictionary mapping an easy to use column name for the dataframe, with its corresponsing column number.
+    """
     keys = ["HS Hdg", 
             "HS Code", 
             "Blank",
@@ -165,11 +172,10 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
     return df, allText
            
 def saveExcelAndDictToJSON(filepath):
-    """ Reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
-    Args:
+    """ Reads a single excel file from the specified filepath (and the persisted corresponding pickle dictionary), 
+    and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
+    ### Args:
         filepath: filepath to the pdf (str)
-        strict: If true extracts text by strictly checking for table dimensions, to identify the part of the document before the table,
-            If false, just extracts text from the first page.
     """
 
     # Create an 'enum' that matches a column name with the matching column number in the dataframe

@@ -5,13 +5,13 @@ from data_stores.CosmosObjects import CosmosObjects
 def vectorStoreSearch(question):
     """Searches the dictionary containing all tariff pdf information for line items by comparing vectorstore embeddings against 
     the embedding of the user query, and returns a list of line items.
-    Args:
+    ### Args:
         question: question/text to embed and compare with the vectorstore
         data_dict: dictionary containing all tariff pdf information
         vectostore: vectorstore reference to be used
         ids_hscodes_dict: contains azure comsos db IDs to HScodes mapping, needed in case azure cosmos db is used (as a workaround due to 
-            the langchain similarity search to azure cosmos not returning hs code metadata)
-    Returns:
+        the langchain similarity search to azure cosmos not returning hs code metadata)
+    ### Returns:
         List of line items
     """
     # ct = datetime.datetime.now()
@@ -39,13 +39,13 @@ def vectorStoreSearch(question):
 
 def convertHSCodeToItem(hscode) -> dict:
     """ Returns a list of line items that correspond to the search results obtained from a vectorstore
-    Args:
+    ### Args:
         search_results: langchain documents returned by a vectorstore
         data_dict: the dictionary containing the .jsons representing tariff pdfs and their line items
         ids_hscodes_dict: dictionary containing mapping of azure cosmos DB ids to HS codes (required in case search results
             are from azure cosmos db, as it does not return our custom metadata (inlcuding hs code) due to a bug/limitation in
             the langchain similarity search function (as seen in its source code))
-    Returns:
+    ### Returns:
         List of line items
     """
     item = {}
@@ -58,10 +58,10 @@ def convertHSCodeToItem(hscode) -> dict:
 
 def similarity_search_with_score(queryEmbeddings: list[float], k: int = 4) -> list[tuple[str, float]]:
     """Performs a similarity search vectorsearch against Cosmos.
-    Args:
+    ### Args:
         queryEmbeddings: The embeddings of the query (vector)
         k: Top how much to return
-    Returns:
+    ### Returns:
         A list of (HS Codes, Similarity Score)
     """
 

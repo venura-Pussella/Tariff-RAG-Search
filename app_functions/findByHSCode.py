@@ -3,10 +3,10 @@ from data_stores.DataStores import DataStores
 def findByHSCode(query: str) -> list[dict]:
      """Searches the dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
      and returns a list of line items
-     Args:
+     ### Args:
           query: query for a hscode
           data_dict: dictionary containing all tariff pdf information
-     Returns:
+     ### Returns:
           List of line items
      """
      if query == None or query == '': return[]
