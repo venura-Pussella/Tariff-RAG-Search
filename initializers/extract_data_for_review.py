@@ -9,7 +9,6 @@ import os
 import pdfplumber
 import pandas as pd
 import pickle 
-from data_stores.DataStores import DataStores
 
 def removeNewLineCharactersFromDataframe(dataframe):
     numOfRows = dataframe.shape[0]
@@ -162,7 +161,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToCsvAndStringsForReview(filepath, strict=True):
+def savePdfToExcelAndStringsForReview(filepath, strict=True):
     
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
 
@@ -251,7 +250,7 @@ def savePdfToCsvAndStringsForReview(filepath, strict=True):
             if "OTHER" in current_description_uppercase:
                 ongoing_prefix = "" # reset on-going prefix since we have reached "other" description
 
-    df.to_csv("files/review_data/{}.csv".format(chapterNumber))  
+    df.to_excel("files/review_data/{}.xlsx".format(chapterNumber), engine='openpyxl')  
          
 
 
@@ -266,14 +265,14 @@ for filename in os.listdir(filepathWithPDFs):
     f = os.path.join(filepathWithPDFs, filename)
     if os.path.isfile(f):
         print("Reading "+f)
-        try: savePdfToCsvAndStringsForReview(f)
+        try: savePdfToExcelAndStringsForReview(f)
         except Exception as e:
             print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
             # tb = traceback.format_exc()
             # print("traceback:")
             # print(tb)
             print("Using non-strict extraction")
-            try: savePdfToCsvAndStringsForReview(f,strict=False)
+            try: savePdfToExcelAndStringsForReview(f,strict=False)
             except Exception as e:
                 print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
                 # tb = traceback.format_exc()
@@ -281,6 +280,6 @@ for filename in os.listdir(filepathWithPDFs):
                 # print(tb)
             
 
-print("Data extracted from tariff pdfs and saved as csv (and text data dictionary pickle) for review.")
+print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
 

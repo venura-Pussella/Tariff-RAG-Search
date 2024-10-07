@@ -13,9 +13,9 @@ import pickle
 from data_stores.DataStores import DataStores
 import traceback
 
-def extractChapterNumberFromCSVFilepath(string) -> int:
+def extractChapterNumberFromExcelFilepath(string) -> int:
     string1 = string.replace('\\','/')
-    a = string1.rsplit('.csv',1)[0]
+    a = string1.rsplit('.xlsx',1)[0]
     slashIndex = a.rfind('/')
     b = a[slashIndex+1:]
     return int(b)
@@ -164,7 +164,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
            
-def saveCSVAndDictToJSON(filepath):
+def saveExcelAndDictToJSON(filepath):
     """ Reads a single pdf file from the specified filepath, and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     Args:
         filepath: filepath to the pdf (str)
@@ -183,9 +183,9 @@ def saveCSVAndDictToJSON(filepath):
 
     # isolate chapter number and name
     # ......................................... #
-    chapterNumber = extractChapterNumberFromCSVFilepath(filepath)
+    chapterNumber = extractChapterNumberFromExcelFilepath(filepath)
     # ......................................... #
-    df = pd.read_csv("files/review_data/{}.csv".format(chapterNumber), na_filter=False, dtype=str)
+    df = pd.read_excel("files/review_data/{}.xlsx".format(chapterNumber), na_filter=False, dtype=str)
     dictionaryForThisPDF = {}
     with open('files/review_data/dicts/dict_{}.pkl'.format(chapterNumber), 'rb') as f:
         dictionaryForThisPDF = pickle.load(f)
@@ -299,14 +299,14 @@ def saveCSVAndDictToJSON(filepath):
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-filepathWithCSVs = 'files/review_data'
+filepathWithExcels = 'files/review_data'
 scCodeToHSCodeMapping = {}
 
-for filename in os.listdir(filepathWithCSVs):
-    f = os.path.join(filepathWithCSVs, filename)
+for filename in os.listdir(filepathWithExcels):
+    f = os.path.join(filepathWithExcels, filename)
     if os.path.isfile(f):
         print("Reading "+f)
-        try: saveCSVAndDictToJSON(f)
+        try: saveExcelAndDictToJSON(f)
         except Exception as e:
             print("Error processing reviewed data for saving to json store @ " + f + " Error: " + str(type(e)) + ": " + str(e))
             tb = traceback.format_exc()
