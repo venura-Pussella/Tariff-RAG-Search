@@ -1,18 +1,20 @@
 import os
 import markdown
 from flask import (Flask, redirect, render_template, request,
-                   send_from_directory, url_for)
-
+                   send_from_directory, url_for, flash)
+from werkzeug.utils import secure_filename
 from app_functions import findByHSCode
 from app_functions import findBySCCode
 import app_functions.chatBot as chatBot
 from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
+from initializers import file_management as fm
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
+app.secret_key = 'secret_key'  # Needed for flash messages
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
@@ -72,6 +74,51 @@ def chatbot():
         answer_html = markdown.markdown(answer,extensions=['tables'])
     return render_template("chatbot.html", results=answer_html, user_query=user_query)
 
+
+@app.route('/file_management')
+def file_management():
+    tableRows = fm.generateArrayForTableRows()
+    return render_template('file_management.html', tableRows = tableRows)
+
+@app.route('/pdf_upload', methods=['POST'])
+def pdf_upload():
+    # Check if the request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(url_for('file_management'))
+    
+    file = request.files['file']
+    chapterNumber = request.form.get('chapterNumber')
+    
+    # If no file was selected
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('file_management'))
+    
+    if file and not fm.allowed_file(file.filename, 'pdf'):
+        flash('Incompatible file type or extension.') 
+        return redirect(url_for('file_management'))
+
+    if file and fm.allowed_file(file.filename, 'pdf'):
+        # Save the file securely
+        filename = secure_filename(file.filename)
+        filename = filename.rsplit(".")[-1]
+        filename = str(chapterNumber) + '.' + filename
+        filepath = os.path.join('files/Tariff_PDFs', filename)
+        file.save(filepath)
+        fm.upload_blob_file(filepath)
+        flash('File successfully uploaded')
+        return redirect(url_for('upload_form'))
+    
+@app.route('/cell_clicked', methods=['POST'])
+def cell_clicked():
+    print("triggered")
+    print(request.json)
+    cell_value = request.json['cell_value']
+    print(f"Cell clicked with value: {cell_value}")
+    # Trigger any function based on cell value here
+    # For now, just return a success message
+    return "You clicked on " + str(cell_value)
 
 
 if __name__ == '__main__':

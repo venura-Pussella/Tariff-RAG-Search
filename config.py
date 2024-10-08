@@ -24,3 +24,8 @@ vector_embedding_policy = {
         }
     ]
 }
+
+pdf_container_name = "pdf-container"
+generatedExcel_container_name = "generatedExcel-container"
+reviewedExcel_container_name = "reviewedExcel-container"
+json_container_name = "json-container"
