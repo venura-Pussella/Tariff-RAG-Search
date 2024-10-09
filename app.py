@@ -108,7 +108,7 @@ def pdf_upload():
         file.save(filepath)
         fm.upload_blob_file(filepath)
         flash('File successfully uploaded')
-        return redirect(url_for('upload_form'))
+        return redirect(url_for('pdf_upload'))
     
 @app.route('/cell_clicked', methods=['POST'])
 def cell_clicked():
