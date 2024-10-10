@@ -104,11 +104,12 @@ def pdf_upload():
         filename = secure_filename(file.filename)
         filename = filename.rsplit(".")[-1]
         filename = str(chapterNumber) + '.' + filename
-        filepath = os.path.join('files/Tariff_PDFs', filename)
+        filepath = os.path.join('files/Tariff_PDFs/', filename)
+        print(filepath)
         file.save(filepath)
         fm.upload_blob_file(filepath)
         flash('File successfully uploaded')
-        return redirect(url_for('pdf_upload'))
+        return redirect(url_for('file_management'))
     
 @app.route('/cell_clicked', methods=['POST'])
 def cell_clicked():

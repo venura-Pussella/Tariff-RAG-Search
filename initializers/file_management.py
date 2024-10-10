@@ -20,6 +20,7 @@ def upload_blob_file(filepath: str):
     print("filename about to be uploaded to blob: " + filename)
     with open(filepath, mode="rb") as data:
         blob_client = container_client.upload_blob(name=filename, data=data, overwrite=True)
+    os.remove(filepath)
 
 def getListOfFilenamesInContainer(containerName: str):
     containerClient = ABO.get_container_client(containerName)
