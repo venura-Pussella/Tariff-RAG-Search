@@ -1,6 +1,7 @@
 import os
 import markdown
 import platform
+import config
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
@@ -108,15 +109,30 @@ def pdf_upload():
         filename = str(chapterNumber) + '.' + filename
         filepath = os.path.join('files/', filename)
         file.save(filepath)
-        fm.upload_blob_file(filepath)
+        fm.upload_blob_file(filepath, config.pdf_container_name)
         flash('File successfully uploaded')
+        reviewFilepaths = fm.convertPDFToExcelForReview(filepath)
+        print("PDF converted to excel and dict for review.")
+        os.remove(filepath)
+        fm.upload_blob_file(reviewFilepaths[0],config.generatedExcel_container_name)
+        fm.upload_blob_file(reviewFilepaths[1],config.generatedDict_container_name)
+        os.remove(reviewFilepaths[0])
+        os.remove(reviewFilepaths[1])
+        print("Uploaded pdf and dict for review")
         return redirect(url_for('file_management'))
     
-@app.route('/cell_clicked', methods=['POST'])
-def cell_clicked():
+@app.route('/file_clicked', methods=['POST'])
+def file_clicked():
     filename = request.json['cell_value']
-    print(f"Cell clicked with value: {filename}")
-    fm.download_blob_file(filename)
+    filetype = request.json['file_type']
+    print(f"Cell clicked with value: {filename}, of type {filetype}")
+    containerName = None
+    fileTypeToContainerNameMapping = {
+        'pdf':config.pdf_container_name,
+        'genExcel':config.generatedExcel_container_name
+    }
+    containerName = fileTypeToContainerNameMapping[filetype]
+    fm.download_blob_file(filename, containerName)
     filepath = 'files/' + filename
     response = send_file(filepath, as_attachment=True, download_name=filename)
     if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.

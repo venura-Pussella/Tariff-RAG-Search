@@ -65,8 +65,8 @@
                 {% for tableRow in tableRows %}
                 <tr>
                     <td>{{ tableRow[0] }}</td>
-                    <td><span onclick="cellClicked('{{ tableRow[1] }}')">{{ tableRow[1] }}</span></td>
-                    <td><a href="#">{{ tableRow[2] }}</a></td>
+                    <td><span onclick="fileClicked('{{ tableRow[1] }}', 'pdf')">{{ tableRow[1] }}</span></td>
+                    <td><span onclick="fileClicked('{{ tableRow[2] }}', 'genExcel')">{{ tableRow[2] }}</span></td>
                     <td><a href="#">{{ tableRow[3] }}</a></td>
                     <td><a href="#">{{ tableRow[4] }}</a></td>
                     <td>{{ tableRow[5] }}</td>
@@ -78,7 +78,7 @@
     </div>
 
     <script>
-        function cellClicked(cellValue) {
+        function fileClicked(cellValue, fileType) {
             // Trigger a POST request to the Flask backend
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -96,10 +96,10 @@
                     a.click();
                 }
             };
-            xhttp.open("POST", "/cell_clicked", true);
+            xhttp.open("POST", "/file_clicked", true);
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.responseType = "blob";
-            xhttp.send(JSON.stringify({cell_value: cellValue}));
+            xhttp.send(JSON.stringify({cell_value: cellValue, file_type: fileType}));
         }
     </script>
 </body>

@@ -26,6 +26,7 @@ vector_embedding_policy = {
 }
 
 pdf_container_name = "pdf-container"
-generatedExcel_container_name = "generatedExcel-container"
-reviewedExcel_container_name = "reviewedExcel-container"
+generatedExcel_container_name = "generatedexcel-container"
+generatedDict_container_name = "generatedict-container"
+reviewedExcel_container_name = "reviewedexcel-container"
 json_container_name = "json-container"

@@ -3,5 +3,3 @@ __pycache__/
 .env
 .deployment
 .vscode
-files/review_data
-files/Tariff_PDFs

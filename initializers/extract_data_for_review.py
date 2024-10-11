@@ -170,7 +170,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToExcelAndStringsForReview(filepath, strict=True):
+def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDocs='files/review_data/') -> tuple[str,str]:
     """The data ripped from the pdf is persisted to disk for review.
     ### Discussion:
     The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
@@ -178,6 +178,9 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True):
     ### Args:
         filepath: the filepath with the PDFs
         strict: (defaults to True) whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.
+        filepathForReviewDocs: filepath to save documents generated for review
+    ### Returns: 
+        filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
     """
     
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
@@ -192,7 +195,7 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True):
     # isolate chapter number and name
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
-    if filepath[-12:] == "63 Final.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
+    if filepath[-12:] == "63 Final.pdf" or filepath[-6:] == "63.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
         chapterNumber = 63
     else:
         chapterNumber = int(allText[0][7:firstLineEndIndex])
@@ -215,7 +218,8 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True):
         preTableNotes += text
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
 
-    with open('files/review_data/dicts/dict_{}.pkl'.format(chapterNumber), 'wb') as f:
+    dictionaryFilePath = filepathForReviewDocs + 'dicts/dict_{}.pkl'.format(chapterNumber)
+    with open(dictionaryFilePath, 'wb') as f:
         pickle.dump(dictionaryForThisPDF, f)
     # ......................................... #
 
@@ -267,36 +271,38 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True):
             if "OTHER" in current_description_uppercase:
                 ongoing_prefix = "" # reset on-going prefix since we have reached "other" description
 
-    df.to_excel("files/review_data/{}.xlsx".format(chapterNumber), engine='openpyxl')  
+    filepathForExcel = filepathForReviewDocs + '{}.xlsx'.format(chapterNumber)
+    df.to_excel(filepathForExcel, engine='openpyxl')  
+    return (filepathForExcel, dictionaryFilePath)
          
 
 
 # SCRIPT
-from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
+# from dotenv import load_dotenv, find_dotenv
+# _ = load_dotenv(find_dotenv()) # read local .env file
 
-filepathWithPDFs = 'files/Tariff_PDFs'
-scCodeToHSCodeMapping = {}
+# filepathWithPDFs = 'files/Tariff_PDFs'
+# scCodeToHSCodeMapping = {}
 
-for filename in os.listdir(filepathWithPDFs):
-    f = os.path.join(filepathWithPDFs, filename)
-    if os.path.isfile(f):
-        print("Reading "+f)
-        try: savePdfToExcelAndStringsForReview(f)
-        except Exception as e:
-            print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-            # tb = traceback.format_exc()
-            # print("traceback:")
-            # print(tb)
-            print("Using non-strict extraction")
-            try: savePdfToExcelAndStringsForReview(f,strict=False)
-            except Exception as e:
-                print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-                # tb = traceback.format_exc()
-                # print("traceback:")
-                # print(tb)
+# for filename in os.listdir(filepathWithPDFs):
+#     f = os.path.join(filepathWithPDFs, filename)
+#     if os.path.isfile(f):
+#         print("Reading "+f)
+#         try: savePdfToExcelAndStringsForReview(f)
+#         except Exception as e:
+#             print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
+#             # tb = traceback.format_exc()
+#             # print("traceback:")
+#             # print(tb)
+#             print("Using non-strict extraction")
+#             try: savePdfToExcelAndStringsForReview(f,strict=False)
+#             except Exception as e:
+#                 print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
+#                 # tb = traceback.format_exc()
+#                 # print("traceback:")
+#                 # print(tb)
             
 
-print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
+# print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
 
