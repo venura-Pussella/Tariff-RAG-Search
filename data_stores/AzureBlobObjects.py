@@ -1,7 +1,7 @@
 import os
 from azure.storage.blob import BlobServiceClient
 import config
-# from azure.core.exceptions import ResourceExistsError
+from azure.core.exceptions import ServiceRequestError
 
 class AzureBlobObjects:
 
@@ -31,10 +31,13 @@ class AzureBlobObjects:
     def get_container_client(cls, containerName: str):
         relevantPrivateContainerClient = cls.containerClientToNameMapping[containerName]
 
-        if relevantPrivateContainerClient == None:
-            blob_service_client = cls.get_blob_service_client()
-            relevantPrivateContainerClient = blob_service_client.get_container_client(container=containerName)
-            if not relevantPrivateContainerClient.exists():
-                relevantPrivateContainerClient = blob_service_client.create_container(name=containerName)
+        try:
+            if relevantPrivateContainerClient == None:
+                blob_service_client = cls.get_blob_service_client()
+                relevantPrivateContainerClient = blob_service_client.get_container_client(container=containerName)
+                if not relevantPrivateContainerClient.exists():
+                    relevantPrivateContainerClient = blob_service_client.create_container(name=containerName)
+        except ServiceRequestError:
+            print('Service Request Error. Also check if the server is connected to the internet.')
 
         return relevantPrivateContainerClient

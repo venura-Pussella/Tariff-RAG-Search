@@ -45,18 +45,21 @@ def generateArrayForTableRows():
     tableRows = []
     listOfPDFNames = getListOfFilenamesInContainer(config.pdf_container_name)
     listOfGeneratedExcelNames = getListOfFilenamesInContainer(config.generatedExcel_container_name)
+    listOfReviewedExcelNames = getListOfFilenamesInContainer(config.reviewedExcel_container_name)
     for name in listOfPDFNames:
         chapterNumber = name.rsplit('.')[0]
         excelName = chapterNumber + '.xlsx'
         tableRow = [chapterNumber,name]
         if excelName in listOfGeneratedExcelNames: tableRow.append(excelName)
         else: tableRow.append('Nil')
-        tableRow += ['d2','d3','status']
+        if excelName in listOfReviewedExcelNames: tableRow.append(excelName)
+        else: tableRow.append('Nil')
+        tableRow += ['d3','status']
         # tableRows.append([chapterNumber,name,'d1','d2','d3','uploaded'])
         tableRows.append(tableRow)
     return tableRows
 
-def download_blob_file(filename: str, containerName: str):
+def download_blob_file(filename: str, containerName: str, savepath: str):
     """Download file specified in filename from Azure blob to an appropriate local directory.
     ### Args:
             filename: filename to be downloaded from Azure blob
@@ -66,8 +69,7 @@ def download_blob_file(filename: str, containerName: str):
     container_client = ABO.get_container_client(containerName)
     print("filename about to be downloaded from blob: " + filename)
     blob_client = container_client.get_blob_client(blob=filename)
-    filepath = os.path.join('files/', filename)
-    with open(filepath, mode="wb") as data:
+    with open(savepath, mode="wb") as data:
         try: 
             download_stream = blob_client.download_blob()
             data.write(download_stream.readall())

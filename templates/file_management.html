@@ -20,7 +20,7 @@
         </ul>       
     </nav>
     <div class="ui container" style="margin-top: 50px;">
-        <h2 class="ui header">Upload a Document</h2>
+        <h2 class="ui header">Upload PDF</h2>
         
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -35,6 +35,32 @@
         {% endwith %}
         
         <form class="ui form" action="{{ url_for('pdf_upload') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Chapter Number</label>
+                <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
+            </div>
+            <div class="field">
+                <label>Select File</label>
+                <input type="file" name="file" required>
+            </div>
+            <button class="ui button primary" type="submit">Upload</button>
+        </form>
+
+        <h2 class="ui header">Upload Reviewed and Corrected Excel</h2>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="ui positive message">
+                    <ul class="list">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="ui form" action="{{ url_for('excel_upload') }}" method="POST" enctype="multipart/form-data">
             <div class="field">
                 <label>Chapter Number</label>
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>

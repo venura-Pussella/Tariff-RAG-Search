@@ -11,6 +11,7 @@ import app_functions.chatBot as chatBot
 from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
 from initializers import file_management as fm
+from initializers.extract_data_to_json_store import saveExcelAndDictToJSON2
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -120,6 +121,50 @@ def pdf_upload():
         os.remove(reviewFilepaths[1])
         print("Uploaded pdf and dict for review")
         return redirect(url_for('file_management'))
+
+
+@app.route('/excel_upload', methods=['POST'])
+def excel_upload():
+    print('Excel upload request received.')
+    # Check if the request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(url_for('file_management'))
+    
+    file = request.files['file']
+    chapterNumber = request.form.get('chapterNumber')
+    
+    # If no file was selected
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('file_management'))
+    
+    if file and not fm.allowed_file(file.filename, 'xlsx'):
+        flash('Incompatible file type or extension.') 
+        return redirect(url_for('file_management'))
+
+    if file and fm.allowed_file(file.filename, 'xlsx'):
+        # Save the file securely
+        filename = secure_filename(file.filename)
+        filename = filename.rsplit(".")[-1]
+        filename = str(chapterNumber) + '.' + filename
+        excelFilepath = os.path.join('files/reviewed_data/', filename)
+        file.save(excelFilepath)
+        fm.upload_blob_file(excelFilepath, config.reviewedExcel_container_name)
+        flash('File successfully uploaded')
+        dictFileName = str(chapterNumber) + '.pkl'
+        dictPath = 'files/reviewed_data/' + dictFileName
+        fm.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
+        jsonPath = 'files/reviewed_data/' + str(chapterNumber) + '.json'
+        saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath)
+        print("Excel converted to json.")
+        os.remove(dictPath)
+        os.remove(excelFilepath)
+        fm.upload_blob_file(jsonPath,config.json_container_name)
+        os.remove(jsonPath)
+        print("Uploaded json")
+        return redirect(url_for('file_management'))
+
     
 @app.route('/file_clicked', methods=['POST'])
 def file_clicked():
@@ -132,11 +177,11 @@ def file_clicked():
         'genExcel':config.generatedExcel_container_name
     }
     containerName = fileTypeToContainerNameMapping[filetype]
-    fm.download_blob_file(filename, containerName)
-    filepath = 'files/' + filename
-    response = send_file(filepath, as_attachment=True, download_name=filename)
+    savepath = 'files/tempDownloadToOfferUser/' + filename
+    fm.download_blob_file(filename, containerName, savepath)
+    response = send_file(savepath, as_attachment=True, download_name=filename)
     if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-        os.remove(filepath)
+        os.remove(savepath)
     return response
 
 

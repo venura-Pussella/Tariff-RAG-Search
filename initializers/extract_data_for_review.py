@@ -218,7 +218,7 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDo
         preTableNotes += text
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
 
-    dictionaryFilePath = filepathForReviewDocs + 'dicts/dict_{}.pkl'.format(chapterNumber)
+    dictionaryFilePath = filepathForReviewDocs + 'dicts/{}.pkl'.format(chapterNumber)
     with open(dictionaryFilePath, 'wb') as f:
         pickle.dump(dictionaryForThisPDF, f)
     # ......................................... #
