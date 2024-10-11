@@ -18,7 +18,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'  # Needed for flash messages
+app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flash messages
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
