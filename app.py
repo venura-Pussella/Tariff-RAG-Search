@@ -1,5 +1,6 @@
 import os
 import markdown
+import platform
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
@@ -56,7 +57,6 @@ def vector_store_search():
         toks.updateTokens(user_query)
         print("app.py: user_query is: " + user_query)
         itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
-        print("no. of results:  " + str(len(itemsAndScores)))
     return render_template("vector_store_search.html", results=itemsAndScores, user_query=user_query)
 
 
@@ -77,11 +77,13 @@ def chatbot():
 
 @app.route('/file_management')
 def file_management():
+    print('Request for file management page received')
     tableRows = fm.generateArrayForTableRows()
     return render_template('file_management.html', tableRows = tableRows)
 
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
+    print('PDF upload request received.')
     # Check if the request has the file part
     if 'file' not in request.files:
         flash('No file part')
@@ -105,7 +107,6 @@ def pdf_upload():
         filename = filename.rsplit(".")[-1]
         filename = str(chapterNumber) + '.' + filename
         filepath = os.path.join('files/', filename)
-        print(filepath)
         file.save(filepath)
         fm.upload_blob_file(filepath)
         flash('File successfully uploaded')
@@ -118,7 +119,8 @@ def cell_clicked():
     fm.download_blob_file(filename)
     filepath = 'files/' + filename
     response = send_file(filepath, as_attachment=True, download_name=filename)
-    print("made response")
+    if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+        os.remove(filepath)
     return response
 
 
