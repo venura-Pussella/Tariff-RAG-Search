@@ -2,7 +2,7 @@
 # Creates a vectorstore with the extracted data and chosen vectorstore in config.py
 
 import sys
-sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
+sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
 import config
 from data_stores.DataStores import DataStores
 from langchain_core.documents import Document

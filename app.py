@@ -12,6 +12,7 @@ from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
 from initializers import file_management as fm
 from initializers.extract_data_to_json_store import saveExcelAndDictToJSON2
+import subprocess
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -163,6 +164,7 @@ def excel_upload():
         fm.upload_blob_file(jsonPath,config.json_container_name)
         os.remove(jsonPath)
         print("Uploaded json")
+        subprocess.Popen(["python", "initializers/create_vectorstore.py"])
         return redirect(url_for('file_management'))
 
     

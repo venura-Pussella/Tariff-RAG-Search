@@ -3,7 +3,7 @@
 # Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
 import sys
-sys.path.append('../pdfplumber') # IMPORTANT: required since we manually run this script from this location itself
+sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
 
 import os
 import pdfplumber
@@ -218,7 +218,7 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDo
         preTableNotes += text
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
 
-    dictionaryFilePath = filepathForReviewDocs + 'dicts/{}.pkl'.format(chapterNumber)
+    dictionaryFilePath = filepathForReviewDocs + '{}.pkl'.format(chapterNumber)
     with open(dictionaryFilePath, 'wb') as f:
         pickle.dump(dictionaryForThisPDF, f)
     # ......................................... #
