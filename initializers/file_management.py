@@ -46,15 +46,19 @@ def generateArrayForTableRows():
     listOfPDFNames = getListOfFilenamesInContainer(config.pdf_container_name)
     listOfGeneratedExcelNames = getListOfFilenamesInContainer(config.generatedExcel_container_name)
     listOfReviewedExcelNames = getListOfFilenamesInContainer(config.reviewedExcel_container_name)
+    listOfJSONs = getListOfFilenamesInContainer(config.json_container_name)
     for name in listOfPDFNames:
         chapterNumber = name.rsplit('.')[0]
         excelName = chapterNumber + '.xlsx'
+        jsonName = chapterNumber + '.json'
         tableRow = [chapterNumber,name]
         if excelName in listOfGeneratedExcelNames: tableRow.append(excelName)
         else: tableRow.append('Nil')
         if excelName in listOfReviewedExcelNames: tableRow.append(excelName)
         else: tableRow.append('Nil')
-        tableRow += ['d3','status']
+        if jsonName in listOfJSONs: tableRow.append(jsonName)
+        else: tableRow.append('Nil')
+        tableRow += ['status']
         # tableRows.append([chapterNumber,name,'d1','d2','d3','uploaded'])
         tableRows.append(tableRow)
     return tableRows
