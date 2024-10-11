@@ -14,7 +14,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     """    
 
     embedding = emb.getEmbeddings.getEmbeddings()
-    vectorstore = createBlankCosmosVectorstore(embedding)
+    vectorstore = getLangchainVectorstore(embedding)
     
     # Add text to the vectorstore without hitting the embeddings rate limit
     # 120k for Azure OpenAI Embeddings, 1M for OpenAI Embeddings
@@ -75,7 +75,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
 
 
 
-def createBlankCosmosVectorstore(embedding):
+def getLangchainVectorstore(embedding):
     """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
     Langchain used for this process, #todo - can remove it and do it directly.
     ### Args:
@@ -104,16 +104,8 @@ def createBlankCosmosVectorstore(embedding):
 
     
 
-
-    #delete existing container to avoid adding duplicates to vectorstore
-    print("Deleting existing items in cosmos db to prepare for new items...")
-    database = cosmos_client.create_database_if_not_exists(id=database_name)
-    try: database.delete_container(container=container_name)
-    except exceptions.CosmosHttpResponseError:
-        print("Container has already been deleted or does not exist.")
-
     #create blank vectorstore (or get an already created one)
-    print("Creating blank vector store in cosmos or fetching already exsting one.")
+    print("Getting langchain vectorstore object.")
     vectorstore = AzureCosmosDBNoSqlVectorSearch(
         cosmos_client=cosmos_client,
         database_name=database_name,
@@ -124,7 +116,7 @@ def createBlankCosmosVectorstore(embedding):
         cosmos_database_properties=cosmos_database_properties,
         embedding=embedding,
     )
-    print("Blank vector store returned.")
+    print("Langchain vector store returned.")
     return vectorstore
 
 
