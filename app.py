@@ -174,7 +174,8 @@ def file_clicked():
     containerName = None
     fileTypeToContainerNameMapping = {
         'pdf':config.pdf_container_name,
-        'genExcel':config.generatedExcel_container_name
+        'genExcel':config.generatedExcel_container_name,
+        'correctedExcel':config.reviewedExcel_container_name
     }
     containerName = fileTypeToContainerNameMapping[filetype]
     savepath = 'files/tempDownloadToOfferUser/' + filename
