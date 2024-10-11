@@ -1,7 +1,7 @@
 import os
 import markdown
 from flask import (Flask, redirect, render_template, request,
-                   send_from_directory, url_for, flash)
+                   send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
 from app_functions import findByHSCode
 from app_functions import findBySCCode
@@ -104,7 +104,7 @@ def pdf_upload():
         filename = secure_filename(file.filename)
         filename = filename.rsplit(".")[-1]
         filename = str(chapterNumber) + '.' + filename
-        filepath = os.path.join('files/Tariff_PDFs/', filename)
+        filepath = os.path.join('files/', filename)
         print(filepath)
         file.save(filepath)
         fm.upload_blob_file(filepath)
@@ -113,13 +113,13 @@ def pdf_upload():
     
 @app.route('/cell_clicked', methods=['POST'])
 def cell_clicked():
-    print("triggered")
-    print(request.json)
-    cell_value = request.json['cell_value']
-    print(f"Cell clicked with value: {cell_value}")
-    # Trigger any function based on cell value here
-    # For now, just return a success message
-    return "You clicked on " + str(cell_value)
+    filename = request.json['cell_value']
+    print(f"Cell clicked with value: {filename}")
+    fm.download_blob_file(filename)
+    filepath = 'files/' + filename
+    response = send_file(filepath, as_attachment=True, download_name=filename)
+    print("made response")
+    return response
 
 
 if __name__ == '__main__':
