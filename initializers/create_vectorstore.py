@@ -9,12 +9,21 @@ from langchain_core.documents import Document
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-print("Starting vectorstore creation...")
+commandLineArguments =  sys.argv
+chapterNumber = None
+if len(commandLineArguments) == 2:
+    chapterNumber = int(commandLineArguments[1]) # Document this
+
+print("Starting vectorstore creation..." + str(commandLineArguments))
 
 # load the extracted json data into a dictionary
 # ......................................... #
 print("Loading json files into memory...")
-json_dicts = DataStores.getJson_dicts()
+DataStores.updateJSONdictsFromAzureBlob([chapterNumber])
+if chapterNumber:
+    json_dicts = DataStores.getJson_dicts([chapterNumber])
+else:
+    json_dicts = DataStores.getJson_dicts()
 # ......................................... #
 
 
@@ -39,7 +48,7 @@ for key,value in json_dicts.items():
         content = "Chapter Name: " + chapterName + " , HS Heading Name:" + hsHeadingName + " ,Prefix: " + prefix +  " , Description:" + description
         document = Document(
             page_content=content,
-            metadata={ "HS Code": hscode }
+            metadata={ "HS Code": hscode, "Chapter Number": chapterNumber }
         )
         docs.append(document)
 # ......................................... #
@@ -53,7 +62,7 @@ if config.vectorstore == "chroma":
     chr.createVectorstoreUsingChroma(docs)
 elif config.vectorstore == "azure_cosmos_nosql":
     import initializers.az_cosmos_nosql_vectorstore as azcn
-    azcn.createVectorstoreUsingAzureCosmosNoSQL(docs)
+    azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber)
 else:
     print("Type of vectorstore to be created/overwritten not specified in config.py")
 

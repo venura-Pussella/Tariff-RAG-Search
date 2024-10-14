@@ -12,6 +12,7 @@ from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
 from initializers import file_management as fm
 from initializers.extract_data_to_json_store import saveExcelAndDictToJSON2
+from data_stores.DataStores import DataStores as ds
 import subprocess
 
 from dotenv import load_dotenv, find_dotenv
@@ -157,14 +158,15 @@ def excel_upload():
         dictPath = 'files/reviewed_data/' + dictFileName
         fm.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
         jsonPath = 'files/reviewed_data/' + str(chapterNumber) + '.json'
-        saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath)
+        json_string = saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath)
         print("Excel converted to json.")
         os.remove(dictPath)
         os.remove(excelFilepath)
         fm.upload_blob_file(jsonPath,config.json_container_name)
+        ds.insertNewJSONDictManually(json_string, int(chapterNumber))
         os.remove(jsonPath)
         print("Uploaded json")
-        subprocess.Popen(["python", "initializers/create_vectorstore.py"])
+        subprocess.Popen(["python", "initializers/create_vectorstore.py", chapterNumber])
         return redirect(url_for('file_management'))
 
     

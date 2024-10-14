@@ -11,13 +11,15 @@ class AzureBlobObjects:
     __generatedDict_container_client = None
     __reviewedExcel_container_client = None
     __json_container_client = None
+    __cosmos_ids_container_client = None
 
     containerClientToNameMapping = {
         config.pdf_container_name: __pdf_container_client,
         config.generatedExcel_container_name: __generatedExcel_container_client,
         config.generatedDict_container_name: __generatedDict_container_client,
         config.reviewedExcel_container_name: __reviewedExcel_container_client,
-        config.json_container_name: __json_container_client
+        config.json_container_name: __json_container_client,
+        config.cosmos_ids_container_name: __cosmos_ids_container_client
     }
 
     @classmethod

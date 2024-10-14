@@ -300,7 +300,7 @@ def saveExcelAndDictToJSON(filepath):
 
     # ......................................... #
 
-def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON):
+def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON) -> str:
     """ Reads a single excel file from the specified filepath (and the persisted corresponding pickle dictionary), 
     and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     ### Args:
@@ -424,6 +424,7 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON):
     with open(targetPathForJSON,'w') as file:
         file.write(json_string)
 
+    return json_string
     # ......................................... #
 
 

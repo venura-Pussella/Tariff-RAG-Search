@@ -1,13 +1,16 @@
 import config
 import os
+import io
 from langchain_core.documents import Document
 import config
 from other_funcs.tokenTracker import TokenTracker as tok
 from other_funcs import getEmbeddings as emb
 import datetime
+import pickle
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from azure.core import exceptions
 
-
-def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
+def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int): 
     """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
     ### Args:
         docs: list of langchain documents
@@ -15,6 +18,23 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
 
     embedding = emb.getEmbeddings.getEmbeddings()
     vectorstore = getLangchainVectorstore(embedding)
+
+    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
+    blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
+    try:
+        existing_cosmos_ids_pickle_stream = blob_client.download_blob()
+        cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
+    except exceptions.ResourceNotFoundError:
+        cosmosIDs: list = None
+    try:
+        for cosmosID in cosmosIDs:
+            vectorstore.delete_document_by_id(cosmosID)
+            print("Deleted cosmos ID: " + str(cosmosID))
+        blob_client.delete_blob()
+    except TypeError as e:
+        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+
     
     # Add text to the vectorstore without hitting the embeddings rate limit
     # 120k for Azure OpenAI Embeddings, 1M for OpenAI Embeddings
@@ -66,6 +86,10 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     )
     print("Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
+
+    allIDs_bytes = pickle.dumps(allIDs)
+    
+    blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
     
     ct = datetime.datetime.now()
     print("|||Adding items to cosmos end: - " + str(ct))
