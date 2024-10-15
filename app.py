@@ -118,10 +118,14 @@ def excel_upload():
     
     chapterNumber = request.form.get('chapterNumber')
     excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
-    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name) # Excel uploaded to Azure blob
-    print('Excel @ ' + excelFilepath + ' successfully uploaded')
-    extract_data_to_json_store(chapterNumber, excelFilepath)
-    flash('Excel and generated json successfully uploaded.')
+    
+    isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath)
+    if isSuccess:
+        flash('Excel and generated json successfully uploaded.')
+    else:
+        flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
+        return redirect(url_for('file_management'))
+    
     subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber)]) # continue remaining processing in the background
     return redirect(url_for('file_management'))
 

@@ -68,7 +68,13 @@ def standardizeHSCode(hscode) -> str:
         raise ValueError()
     return hscode
           
-def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON) -> str:
+def doesHSCodeMatchChapterNumber(hscode: str, chapterNumber: int) -> bool:
+    standardizedHSCode = standardizeHSCode(hscode)
+    chapterNumberPart = standardizedHSCode[:2] # extract the chapter number part from the standardized hs code
+    if int(chapterNumberPart) == chapterNumber: return True
+    else: return False
+
+def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, userEnteredChapterNumber: int) -> str:
     """ Reads a single excel file from the specified filepath (and the persisted corresponding pickle dictionary), 
     and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     ### Args:
@@ -153,7 +159,11 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON) -> s
                 print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
                 print(type(e))
                 print(e)
+                continue # skip this row
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
+
+            if not doesHSCodeMatchChapterNumber(current_hscode, userEnteredChapterNumber):
+                raise Exception("User entered chapter number does not match at least one of the valid HS codes in the excel file")
 
             standardizedHSCode2 = standardizedHSCode[:-3] + "00N"
             standardizedHSCode3 = standardizedHSCode2[:-6]+"00.00N"
@@ -195,16 +205,26 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON) -> s
     return json_string
     # ......................................... #
 
-def extract_data_to_json_store(chapterNumber: int, excelFilepath: str):
+def extract_data_to_json_store(chapterNumber: int, excelFilepath: str) -> bool:
     dictFileName = str(chapterNumber) + '.pkl'
     dictPath = config.temp_folderpath_for_reviewed_data + dictFileName
     abo.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
     jsonPath = config.temp_folderpath_for_reviewed_data + str(chapterNumber) + '.json'
-    json_string = saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath)
+    try:
+        json_string = saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath, chapterNumber)
+    except Exception as e:
+        print(e)
+        os.remove(dictPath)
+        os.remove(excelFilepath)
+        return False
+
     print("Excel converted to json.")
+    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name) # Excel uploaded to Azure blob
+    print('Excel @ ' + excelFilepath + ' successfully uploaded')
     os.remove(dictPath)
     os.remove(excelFilepath)
     abo.upload_blob_file(jsonPath,config.json_container_name)
     ds.insertNewJSONDictManually(json_string, int(chapterNumber))
     os.remove(jsonPath)
     print("Uploaded json")
+    return True
