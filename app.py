@@ -4,6 +4,7 @@ import platform
 import config
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
+from werkzeug.utils import secure_filename
 from app_functions import findByHSCode
 from app_functions import findBySCCode
 import app_functions.chatBot as chatBot
@@ -133,6 +134,7 @@ def excel_upload():
 # called when user clicks on downloadables on the dynamic table in the html
 def file_clicked():
     filename = request.json['cell_value']
+    filename = secure_filename(filename)
     filetype = request.json['file_type']
     print(f"Cell clicked with value: {filename}, of type {filetype}")
     containerName = None
