@@ -38,3 +38,6 @@ temp_folderpath_for_genExcel_downloads = 'files/genExcelDownloads/'
 temp_folderpath_for_reviewedExcel_downloads = 'files/reviewedExcelDownloads/'
 temp_folderpath_for_data_to_review = 'files/review_data/'
 temp_folderpath_for_reviewed_data = 'files/reviewed_data/'
+
+azureStorageTableName = 'chapterTracker'
+azureStorageTablePartitionKeyValue = 'chapters'
