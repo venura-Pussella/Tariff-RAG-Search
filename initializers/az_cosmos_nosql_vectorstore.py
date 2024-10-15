@@ -16,7 +16,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
     """    
 
     embedding = emb.getEmbeddings.getEmbeddings()
-    vectorstore = getLangchainVectorstore(embedding) # get vectorstore object
+    vectorstore = getLangchainVectorstore() # get vectorstore object
 
     # get the current cosmos document IDs of the chapter we are attempting to upload
     cosmos_ids_filename = str(chapterNumber) + '.pkl'
@@ -97,7 +97,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
 
 
 
-def getLangchainVectorstore(embedding):
+def getLangchainVectorstore():
     """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
     Langchain used for this process, #todo - can remove it and do it directly.
     ### Args:
@@ -105,6 +105,7 @@ def getLangchainVectorstore(embedding):
     ### Returns:
         Returns blank vectorstore
     """
+    embedding = emb.getEmbeddings.getEmbeddings()
 
     # policy for vectorstore in cosmos
     indexing_policy = config.indexing_policy
@@ -141,4 +142,26 @@ def getLangchainVectorstore(embedding):
     print("Langchain vector store returned.")
     return vectorstore
 
+def deleteChapterFromCosmos(chapterNumber: int):
+    vectorstore = getLangchainVectorstore()
+
+    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
+    blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
+    try:
+        existing_cosmos_ids_pickle_stream = blob_client.download_blob()
+        cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
+    except exceptions.ResourceNotFoundError:
+        cosmosIDs: list = None
+        print("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber))
+        return
+
+    # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
+    try:
+        for cosmosID in cosmosIDs:
+            vectorstore.delete_document_by_id(cosmosID)
+            print("Deleted cosmos ID: " + str(cosmosID))
+        blob_client.delete_blob()
+    except TypeError as e:
+        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 

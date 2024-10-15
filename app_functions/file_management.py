@@ -3,6 +3,8 @@ import config
 from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
 from flask import url_for, request
 from werkzeug.utils import secure_filename
+from initializers import deletingFuncs as delf
+import concurrent.futures
 
 def allowed_file(filename: str, extension: str):
     """Checks if filename has allowed extension.
@@ -76,3 +78,24 @@ def saveFile(folderpath: str) -> str:
     file.save(filepath)
 
     return filepath
+
+def delete_upto_corrected_excel(chapterNumber: int):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(delf.deleteChapterFromCosmos(chapterNumber)), 
+            executor.submit(delf.deleteChapterJsonBlob(chapterNumber)), 
+            executor.submit(delf.deleteChapterReviewedExcelBlob(chapterNumber))
+        ]
+        concurrent.futures.wait(futures)
+    
+
+def delete_upto_pdf(chapterNumber: int):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(delete_upto_corrected_excel(chapterNumber)),
+            executor.submit(delf.deleteChapterDictPickleBlob(chapterNumber)),
+            executor.submit(delf.deleteChapterGeneratedExcelBlob(chapterNumber)),
+            executor.submit(delf.deleteChapterPDFBlob(chapterNumber))
+        ]
+        concurrent.futures.wait(futures)
+    

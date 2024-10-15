@@ -48,18 +48,6 @@
 
         <h2 class="ui header">Upload Reviewed and Corrected Excel</h2>
         
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="ui positive message">
-                    <ul class="list">
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-        {% endwith %}
-
         <form class="ui form" action="{{ url_for('excel_upload') }}" method="POST" enctype="multipart/form-data">
             <div class="field">
                 <label>Chapter Number</label>
@@ -101,6 +89,29 @@
             </tbody>
             {% endif %}
         </table>
+
+        <h2 class="ui header">Delete upto corrected excel level</h2>
+        <p>This will delete from cosmos db, cosmos ID records, json and corrected excel blob</p>
+        
+        <form class="ui form" action="{{ url_for('delete_till_corrected_excel') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Chapter Number</label>
+                <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
+            </div>
+            <button class="ui button primary" type="submit">Delete</button>
+        </form>
+
+        <h2 class="ui header">Delete upto pdf (all)</h2>
+        <p>This will delete the chapter upto the pdf i.e. everything</p>
+        
+        <form class="ui form" action="{{ url_for('delete_till_pdf') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Chapter Number</label>
+                <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
+            </div>
+            <button class="ui button primary" type="submit">Delete</button>
+        </form>
+
     </div>
 
     <script>

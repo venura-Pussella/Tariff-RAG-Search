@@ -156,6 +156,20 @@ def file_clicked():
         os.remove(savepath)
     return response
 
+@app.route('/delete_till_corrected_excel', methods=['POST'])
+def delete_till_corrected_excel():
+    chapterNumber = request.form.get('chapterNumber')
+    fm.delete_upto_corrected_excel(chapterNumber)
+    flash('Deleted upto corrected excel - chapter ' + str(chapterNumber))
+    return redirect(url_for('file_management'))
+
+@app.route('/delete_till_pdf', methods=['POST'])
+def delete_till_pdf():
+    chapterNumber = request.form.get('chapterNumber')
+    fm.delete_upto_pdf(chapterNumber)
+    print('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
+    flash('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
+    return redirect(url_for('file_management'))
 
 if __name__ == '__main__':
    app.run()
