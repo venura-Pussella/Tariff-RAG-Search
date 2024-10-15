@@ -12,6 +12,7 @@ from other_funcs.tokenTracker import TokenTracker as toks
 from app_functions import file_management as fm
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.DataStores import DataStores as ds
+from initializers.extract_data_for_review import convertPDFToExcelForReview
 import subprocess
 from initializers.extract_data_to_json_store import extract_data_to_json_store
 
@@ -86,6 +87,7 @@ def file_management():
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
     print('PDF upload request received.')
+    chapterNumber = request.form.get('chapterNumber')
 
     result = fm.validateUpload(extension='pdf')
     if result[0] == False:
@@ -93,11 +95,16 @@ def pdf_upload():
         return redirect(result[2])
 
     filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
+    reviewFilepaths = convertPDFToExcelForReview(filepath, int(chapterNumber))
+    if not reviewFilepaths: # i.e. an exception was raised when trying to extract data from the pdf
+        flash('Error with pdf or entered chapter number')
+        return redirect(url_for('file_management'))
+    
     abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
     print('PDF @ ' + filepath + ' successfully uploaded')
     flash('PDF successfully uploaded')
 
-    subprocess.Popen(["python", "initializers/extract_data_for_review.py", filepath]) # continue PDF processing in background
+    subprocess.Popen(["python", "initializers/post_PDF_dataExtraction_tasks.py", reviewFilepaths[0], reviewFilepaths[1], filepath]) # continue PDF processing in background
     return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])

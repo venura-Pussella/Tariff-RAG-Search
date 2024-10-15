@@ -2,14 +2,11 @@
 
 # Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
-import sys
-sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
-import os
 import pdfplumber
 import pandas as pd
 import pickle
 import config
-from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+
 
 def removeNewLineCharactersFromDataframe(dataframe):
     """Removes new line character ('\n') from the dataframe. Done in place. Returns void.
@@ -170,7 +167,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToExcelAndStringsForReview(filepath, strict=True) -> tuple[str,str]:
+def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, strict=True) -> tuple[str,str]:
     """The data ripped from the pdf is persisted to disk for review.
     ### Discussion:
     The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
@@ -206,6 +203,8 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True) -> tuple[str,str]:
     chapterName = chapterName.replace("\n"," ")
     # ......................................... #
 
+    if chapterNumber != userEnteredChapterNumber:
+        raise Exception('User entered chapter number does not match that of the PDF')
    
     # create a dictionary for creating a json for the whole pdf
     # ......................................... #
@@ -275,41 +274,22 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True) -> tuple[str,str]:
     df.to_excel(filepathForExcel, engine='openpyxl')  
     return (filepathForExcel, dictionaryFilePath)
          
-def convertPDFToExcelForReview(pdfFilepath) -> tuple[str, str] | None:
+def convertPDFToExcelForReview(pdfFilepath: str, userEnteredChapterNumber: int) -> tuple[str, str] | None:
     """Converts the pdf in the given filepath to excel
     ### Returns:
         filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
     """
     reviewFilepaths = None
-    try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath)
+    try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath, userEnteredChapterNumber)
     except Exception as e:
         print("Error processing file @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
         print("Using non-strict extraction")
-        try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath,strict=False)
+        try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath,userEnteredChapterNumber,strict=False)
         except Exception as e:
             print("Error processing file non-strictly @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
     return reviewFilepaths
 
 
-# SCRIPT
 
-from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
-commandLineArguments = sys.argv
-pdfFilepath = None
-if len(commandLineArguments) == 2:
-    pdfFilepath = commandLineArguments[1] # Get filepath of PDF from command line argument
-
-
-scCodeToHSCodeMapping = {} # functionality temporarily removed for now. Does nothing.
-
-reviewFilepaths = convertPDFToExcelForReview(pdfFilepath) # Convert to excel and dictionary pickle. Using default filepath of 'files/review_data/'
-os.remove(pdfFilepath)
-abo.upload_blob_file(reviewFilepaths[0],config.generatedExcel_container_name) # upload generated excel to azure blob
-abo.upload_blob_file(reviewFilepaths[1],config.generatedDict_container_name) # upload dictionary pickle to azure blob
-os.remove(reviewFilepaths[0])
-os.remove(reviewFilepaths[1])           
-
-print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
 
