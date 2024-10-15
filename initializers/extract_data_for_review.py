@@ -4,11 +4,12 @@
 # One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
 import sys
 sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
-
 import os
 import pdfplumber
 import pandas as pd
-import pickle 
+import pickle
+import config
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 
 def removeNewLineCharactersFromDataframe(dataframe):
     """Removes new line character ('\n') from the dataframe. Done in place. Returns void.
@@ -20,7 +21,6 @@ def removeNewLineCharactersFromDataframe(dataframe):
             if dataframe.iloc[r,c] == None: continue
             dataframe.iloc[r,c] = dataframe.iloc[r,c].replace('\n',' ')
     
-
 def isSeriesALineItem(series, numOfColumns) -> bool:
     """Checks if a dataframe row (i.e. a series), qualifies as a line item (i.e. has values from the unit column onwards)"""
     for col in range(4,numOfColumns):
@@ -170,7 +170,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDocs='files/review_data/') -> tuple[str,str]:
+def savePdfToExcelAndStringsForReview(filepath, strict=True) -> tuple[str,str]:
     """The data ripped from the pdf is persisted to disk for review.
     ### Discussion:
     The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
@@ -218,7 +218,7 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDo
         preTableNotes += text
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
 
-    dictionaryFilePath = filepathForReviewDocs + '{}.pkl'.format(chapterNumber)
+    dictionaryFilePath = config.temp_folderpath_for_data_to_review + '{}.pkl'.format(chapterNumber)
     with open(dictionaryFilePath, 'wb') as f:
         pickle.dump(dictionaryForThisPDF, f)
     # ......................................... #
@@ -271,38 +271,45 @@ def savePdfToExcelAndStringsForReview(filepath, strict=True, filepathForReviewDo
             if "OTHER" in current_description_uppercase:
                 ongoing_prefix = "" # reset on-going prefix since we have reached "other" description
 
-    filepathForExcel = filepathForReviewDocs + '{}.xlsx'.format(chapterNumber)
+    filepathForExcel = config.temp_folderpath_for_data_to_review + '{}.xlsx'.format(chapterNumber)
     df.to_excel(filepathForExcel, engine='openpyxl')  
     return (filepathForExcel, dictionaryFilePath)
          
+def convertPDFToExcelForReview(pdfFilepath) -> tuple[str, str] | None:
+    """Converts the pdf in the given filepath to excel
+    ### Returns:
+        filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
+    """
+    reviewFilepaths = None
+    try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath)
+    except Exception as e:
+        print("Error processing file @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
+        print("Using non-strict extraction")
+        try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath,strict=False)
+        except Exception as e:
+            print("Error processing file non-strictly @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
+    return reviewFilepaths
 
 
 # SCRIPT
-# from dotenv import load_dotenv, find_dotenv
-# _ = load_dotenv(find_dotenv()) # read local .env file
 
-# filepathWithPDFs = 'files/Tariff_PDFs'
-# scCodeToHSCodeMapping = {}
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+commandLineArguments = sys.argv
+pdfFilepath = None
+if len(commandLineArguments) == 2:
+    pdfFilepath = commandLineArguments[1] # Get filepath of PDF from command line argument
 
-# for filename in os.listdir(filepathWithPDFs):
-#     f = os.path.join(filepathWithPDFs, filename)
-#     if os.path.isfile(f):
-#         print("Reading "+f)
-#         try: savePdfToExcelAndStringsForReview(f)
-#         except Exception as e:
-#             print("Error processing file @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-#             # tb = traceback.format_exc()
-#             # print("traceback:")
-#             # print(tb)
-#             print("Using non-strict extraction")
-#             try: savePdfToExcelAndStringsForReview(f,strict=False)
-#             except Exception as e:
-#                 print("Error processing file non-strictly @ " + f + " Error: " + str(type(e)) + ": " + str(e))
-#                 # tb = traceback.format_exc()
-#                 # print("traceback:")
-#                 # print(tb)
-            
 
-# print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
+scCodeToHSCodeMapping = {} # functionality temporarily removed for now. Does nothing.
+
+reviewFilepaths = convertPDFToExcelForReview(pdfFilepath) # Convert to excel and dictionary pickle. Using default filepath of 'files/review_data/'
+os.remove(pdfFilepath)
+abo.upload_blob_file(reviewFilepaths[0],config.generatedExcel_container_name) # upload generated excel to azure blob
+abo.upload_blob_file(reviewFilepaths[1],config.generatedDict_container_name) # upload dictionary pickle to azure blob
+os.remove(reviewFilepaths[0])
+os.remove(reviewFilepaths[1])           
+
+print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
 

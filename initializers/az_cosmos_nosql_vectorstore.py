@@ -1,6 +1,5 @@
 import config
 import os
-import io
 from langchain_core.documents import Document
 import config
 from other_funcs.tokenTracker import TokenTracker as tok
@@ -17,8 +16,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
     """    
 
     embedding = emb.getEmbeddings.getEmbeddings()
-    vectorstore = getLangchainVectorstore(embedding)
+    vectorstore = getLangchainVectorstore(embedding) # get vectorstore object
 
+    # get the current cosmos document IDs of the chapter we are attempting to upload
     cosmos_ids_filename = str(chapterNumber) + '.pkl'
     cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
     blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
@@ -27,6 +27,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
         cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
     except exceptions.ResourceNotFoundError:
         cosmosIDs: list = None
+
+    # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
     try:
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
@@ -50,9 +52,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
     allIDs = []
 
     ct = datetime.datetime.now()
-    print("|||Adding items to cosmos begin: - " + str(ct))
-    print("Total number of line items to be added: " + str(len(docs)))
-    print("Takes about 15 mins to add 3300 line items")
+    print("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
+    print("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(docs)))
 
     while n < len(docs):
         doc: Document = docs[n]
@@ -67,7 +68,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
                 embedding=embedding,
                 metadatas= metadatas, 
             )
-            print("Added "+ str(len(ids)) + " line items.")
+            print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
             # the above process is so slow, that there is no need to worry about hitting the rate limit, so no need to sleep the script
             texts = []
             metadatas = []
@@ -84,7 +85,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
         embedding=embedding,
         metadatas= metadatas, 
     )
-    print("Added "+ str(len(ids)) + " line items.")
+    print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
 
     allIDs_bytes = pickle.dumps(allIDs)
@@ -92,10 +93,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
     blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
     
     ct = datetime.datetime.now()
-    print("|||Adding items to cosmos end: - " + str(ct))
-    print("Cosmos vectorstore created or overwritten.")
-    #to-do
-    #print number of items in container
+    print("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
 
 
 

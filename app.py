@@ -4,22 +4,24 @@ import platform
 import config
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
-from werkzeug.utils import secure_filename
 from app_functions import findByHSCode
 from app_functions import findBySCCode
 import app_functions.chatBot as chatBot
 from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
-from initializers import file_management as fm
-from initializers.extract_data_to_json_store import saveExcelAndDictToJSON2
+from app_functions import file_management as fm
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.DataStores import DataStores as ds
 import subprocess
+from initializers.extract_data_to_json_store import extract_data_to_json_store
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flash messages
+
+ds.updateJSONdictsFromAzureBlob()
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
@@ -28,10 +30,9 @@ def hscode_search():
     user_query = None
     if request.method == "POST":
         user_query = request.form.get("query")
-        print("app.py: user_query is: " + user_query)
+        print("app.py: user_query for hscode_search is: " + user_query)
         results = findByHSCode.findByHSCode(user_query)
     return render_template("hscode_search.html", results=results, user_query=user_query)
-
 
 @app.route("/sccode_search", methods=["GET", "POST"])
 def sccode_search():
@@ -40,10 +41,9 @@ def sccode_search():
     user_query = None
     if request.method == "POST":
         user_query = request.form.get("query")
-        print("app.py: user_query is: " + user_query)
+        print("app.py: user_query for sccode_search is: " + user_query)
         results = findBySCCode.findBySCCode(user_query)
     return render_template("sccode_search.html", results=results, user_query=user_query)
-
 
 @app.route('/favicon.ico')
 def favicon():
@@ -59,10 +59,9 @@ def vector_store_search():
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query)
-        print("app.py: user_query is: " + user_query)
+        print("app.py: user_query for vector_search is: " + user_query)
         itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
     return render_template("vector_store_search.html", results=itemsAndScores, user_query=user_query)
-
 
 @app.route("/chatbot", methods=["GET", "POST"])
 def chatbot():
@@ -73,11 +72,10 @@ def chatbot():
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens_chatbot(user_query)
-        print("app.py: user_query is: " + user_query)
+        print("app.py: user_query for RAG page is: " + user_query)
         answer = chatBot.getChatBotAnswer(user_query)
         answer_html = markdown.markdown(answer,extensions=['tables'])
     return render_template("chatbot.html", results=answer_html, user_query=user_query)
-
 
 @app.route('/file_management')
 def file_management():
@@ -88,89 +86,40 @@ def file_management():
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
     print('PDF upload request received.')
-    # Check if the request has the file part
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(url_for('file_management'))
-    
-    file = request.files['file']
-    chapterNumber = request.form.get('chapterNumber')
-    
-    # If no file was selected
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(url_for('file_management'))
-    
-    if file and not fm.allowed_file(file.filename, 'pdf'):
-        flash('Incompatible file type or extension.') 
-        return redirect(url_for('file_management'))
 
-    if file and fm.allowed_file(file.filename, 'pdf'):
-        # Save the file securely
-        filename = secure_filename(file.filename)
-        filename = filename.rsplit(".")[-1]
-        filename = str(chapterNumber) + '.' + filename
-        filepath = os.path.join('files/', filename)
-        file.save(filepath)
-        fm.upload_blob_file(filepath, config.pdf_container_name)
-        flash('File successfully uploaded')
-        reviewFilepaths = fm.convertPDFToExcelForReview(filepath)
-        print("PDF converted to excel and dict for review.")
-        os.remove(filepath)
-        fm.upload_blob_file(reviewFilepaths[0],config.generatedExcel_container_name)
-        fm.upload_blob_file(reviewFilepaths[1],config.generatedDict_container_name)
-        os.remove(reviewFilepaths[0])
-        os.remove(reviewFilepaths[1])
-        print("Uploaded pdf and dict for review")
-        return redirect(url_for('file_management'))
+    result = fm.validateUpload(extension='pdf')
+    if result[0] == False:
+        flash(result[1]) 
+        return redirect(result[2])
 
+    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
+    abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
+    print('PDF @ ' + filepath + ' successfully uploaded')
+    flash('PDF successfully uploaded')
+
+    subprocess.Popen(["python", "initializers/extract_data_for_review.py", filepath]) # continue PDF processing in background
+    return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])
 def excel_upload():
     print('Excel upload request received.')
-    # Check if the request has the file part
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(url_for('file_management'))
     
-    file = request.files['file']
+    result = fm.validateUpload(extension='xlsx')
+    if result[0] == False:
+        flash(result[1]) 
+        return redirect(result[2])
+    
     chapterNumber = request.form.get('chapterNumber')
-    
-    # If no file was selected
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(url_for('file_management'))
-    
-    if file and not fm.allowed_file(file.filename, 'xlsx'):
-        flash('Incompatible file type or extension.') 
-        return redirect(url_for('file_management'))
+    excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
+    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name) # Excel uploaded to Azure blob
+    print('Excel @ ' + excelFilepath + ' successfully uploaded')
+    extract_data_to_json_store(chapterNumber, excelFilepath)
+    flash('Excel and generated json successfully uploaded.')
+    subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber)]) # continue remaining processing in the background
+    return redirect(url_for('file_management'))
 
-    if file and fm.allowed_file(file.filename, 'xlsx'):
-        # Save the file securely
-        filename = secure_filename(file.filename)
-        filename = filename.rsplit(".")[-1]
-        filename = str(chapterNumber) + '.' + filename
-        excelFilepath = os.path.join('files/reviewed_data/', filename)
-        file.save(excelFilepath)
-        fm.upload_blob_file(excelFilepath, config.reviewedExcel_container_name)
-        flash('File successfully uploaded')
-        dictFileName = str(chapterNumber) + '.pkl'
-        dictPath = 'files/reviewed_data/' + dictFileName
-        fm.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
-        jsonPath = 'files/reviewed_data/' + str(chapterNumber) + '.json'
-        json_string = saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath)
-        print("Excel converted to json.")
-        os.remove(dictPath)
-        os.remove(excelFilepath)
-        fm.upload_blob_file(jsonPath,config.json_container_name)
-        ds.insertNewJSONDictManually(json_string, int(chapterNumber))
-        os.remove(jsonPath)
-        print("Uploaded json")
-        subprocess.Popen(["python", "initializers/create_vectorstore.py", chapterNumber])
-        return redirect(url_for('file_management'))
-
-    
 @app.route('/file_clicked', methods=['POST'])
+# called when user clicks on downloadables on the dynamic table in the html
 def file_clicked():
     filename = request.json['cell_value']
     filetype = request.json['file_type']
@@ -182,9 +131,15 @@ def file_clicked():
         'correctedExcel':config.reviewedExcel_container_name,
         'json':config.json_container_name
     }
+    fileTypeToFolderpathMapping = {
+        'pdf':config.temp_folderpath_for_pdf_and_json_downloads,
+        'genExcel':config.temp_folderpath_for_genExcel_downloads,
+        'correctedExcel':config.temp_folderpath_for_reviewedExcel_downloads,
+        'json':config.temp_folderpath_for_pdf_and_json_downloads
+    }
     containerName = fileTypeToContainerNameMapping[filetype]
-    savepath = 'files/tempDownloadToOfferUser/' + filename
-    fm.download_blob_file(filename, containerName, savepath)
+    savepath = fileTypeToFolderpathMapping[filetype] + filename
+    abo.download_blob_file(filename, containerName, savepath)
     response = send_file(savepath, as_attachment=True, download_name=filename)
     if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
         os.remove(savepath)

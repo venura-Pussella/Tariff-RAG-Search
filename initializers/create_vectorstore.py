@@ -9,10 +9,10 @@ from langchain_core.documents import Document
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-commandLineArguments =  sys.argv
+commandLineArguments = sys.argv
 chapterNumber = None
 if len(commandLineArguments) == 2:
-    chapterNumber = int(commandLineArguments[1]) # Document this
+    chapterNumber = int(commandLineArguments[1])
 
 print("Starting vectorstore creation..." + str(commandLineArguments))
 

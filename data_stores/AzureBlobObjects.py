@@ -1,9 +1,14 @@
 import os
 from azure.storage.blob import BlobServiceClient
 import config
-from azure.core.exceptions import ServiceRequestError
+from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
 
 class AzureBlobObjects:
+    """Singleton class to hold blob-service-client and container clients. Contains methods to retrieve them.
+
+    Other methods:
+        getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
+    """
 
     __blob_service_client = None
     __pdf_container_client = None
@@ -43,3 +48,41 @@ class AzureBlobObjects:
             print('Service Request Error. Also check if the server is connected to the internet.')
 
         return relevantPrivateContainerClient
+    
+    @classmethod
+    def getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
+        containerClient = cls.get_container_client(containerName)
+        blobName_list = containerClient.list_blob_names()
+        return list(blobName_list)
+    
+    @classmethod
+    def upload_blob_file(cls, filepath: str, containerName: str):
+        """Upload file specified in filepath to Azure blob.
+        ### Args:
+            filepath: filepath with file to be uploaded
+        ### Returns: 
+            void
+        """
+        container_client = cls.get_container_client(containerName)
+        filename = filepath.rsplit("/")[-1]
+        print("filename about to be uploaded to blob: " + filename)
+        with open(filepath, mode="rb") as data:
+            blob_client = container_client.upload_blob(name=filename, data=data, overwrite=True)
+
+    @classmethod
+    def download_blob_file(cls, filename: str, containerName: str, savepath: str):
+        """Download file specified in filename from Azure blob to an appropriate local directory.
+        ### Args:
+                filename: filename to be downloaded from Azure blob
+        ### Returns: 
+                void
+        """
+        container_client = cls.get_container_client(containerName)
+        print("filename about to be downloaded from blob: " + filename)
+        blob_client = container_client.get_blob_client(blob=filename)
+        with open(savepath, mode="wb") as data:
+            try: 
+                download_stream = blob_client.download_blob()
+                data.write(download_stream.readall())
+            except ResourceNotFoundError:
+                print("The file was not found, maybe user clicked on a Nil cell")
