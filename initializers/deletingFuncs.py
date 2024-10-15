@@ -1,7 +1,7 @@
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from azure.core.exceptions import ResourceNotFoundError
 import config
-
+from data_stores.DataStores import DataStores as ds
 
 def __deleteChapterBlob(chapterNumber: int, file_extension: str, container_name: str):
     filename = f"{chapterNumber}.{file_extension}"
@@ -13,6 +13,7 @@ def __deleteChapterBlob(chapterNumber: int, file_extension: str, container_name:
 
 def deleteChapterJsonBlob(chapterNumber: int):
     __deleteChapterBlob(chapterNumber, 'json', config.json_container_name)
+    ds.updateJSONdictsFromAzureBlob([chapterNumber])
 
 def deleteChapterReviewedExcelBlob(chapterNumber: int):
     __deleteChapterBlob(chapterNumber, 'xlsx', config.reviewedExcel_container_name)

@@ -2,7 +2,7 @@ import json
 import config
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from azure.storage.blob import ContainerClient
-from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
+from azure.core.exceptions import ResourceNotFoundError
 
 class DataStores:
     """Used to hold and manipulate the json dictionaries, and HScode-SCcode mappings.
@@ -51,21 +51,24 @@ class DataStores:
         Returns:
             Dictionary with chapter dictionaries (chapter number maps to chapter dictionary)
         """
-        def updateJSONdictFromAzureBlob(jsonName: str):
+        def updateJSONdictFromAzureBlob(jsonName: str, chapterNumber: int):
             blob_client = container_client.get_blob_client(blob=jsonName)
-            downloader = blob_client.download_blob(max_concurrency=1, encoding='UTF-8')
-            blob_text = downloader.readall()
-            json_dict = json.loads(blob_text)
-            chapterNumber = json_dict["Chapter Number"]
-            DataStores.__json_dicts[chapterNumber] = json_dict
+            try:
+                downloader = blob_client.download_blob(max_concurrency=1, encoding='UTF-8')
+                blob_text = downloader.readall()
+                json_dict = json.loads(blob_text)
+                cls.__json_dicts[chapterNumber] = json_dict
+            except ResourceNotFoundError: # that means the chapter does not exist (probably has been deleted). Therefore it must be removed from cls.__json_dicts
+                del cls.__json_dicts[chapterNumber]
+            
 
-        container_client: ContainerClient = ABO.get_container_client(config.json_container_name)
+        container_client: ContainerClient = abo.get_container_client(config.json_container_name)
         jsonNameList = abo.getListOfFilenamesInContainer(config.json_container_name)
 
         if chapterNumbers:
             for chapterNumber in chapterNumbers:
                 jsonName = str(chapterNumber) + '.json'
-                updateJSONdictFromAzureBlob(jsonName)
+                updateJSONdictFromAzureBlob(jsonName, chapterNumber)
         else:
             for jsonName in jsonNameList:
                 updateJSONdictFromAzureBlob(jsonName)
