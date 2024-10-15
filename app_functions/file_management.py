@@ -16,6 +16,14 @@ def validateUpload(extension: str) -> tuple[bool, str, str]:
     # Check if the request has the file part
     flashMessage = ''
     redirectMessage = ''
+
+    chapterNumber = request.form.get('chapterNumber')
+    try:
+        int(chapterNumber)
+    except:
+        flashMessage = 'Error with entered chapter number'
+        redirectMessage = url_for('file_management')
+
     if 'file' not in request.files:
         flashMessage = 'No file part'
         redirectMessage = url_for('file_management')
