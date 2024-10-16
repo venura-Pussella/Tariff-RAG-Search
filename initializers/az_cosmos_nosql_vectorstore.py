@@ -7,9 +7,10 @@ from other_funcs import getEmbeddings as emb
 import datetime
 import pickle
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from data_stores.AzureTableObjects import AzureTableObjects as ato
 from azure.core import exceptions
 
-def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int): 
+def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutexKey: str): 
     """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
     ### Args:
         docs: list of langchain documents
@@ -33,7 +34,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
             print("Deleted cosmos ID: " + str(cosmosID))
+        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletedExistingCosmosRecords)
         blob_client.delete_blob()
+        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletedExistingCosmosIdTracker)
     except TypeError as e:
         print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
@@ -87,10 +90,13 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int):
     )
     print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addedNewDocsToCosmos)
 
     allIDs_bytes = pickle.dumps(allIDs)
     
     blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addedNewCosmosIdTracker, newRecordState=config.RecordState.excelUploaded)
+    ato.release_mutex(chapterNumber, mutexKey)
     
     ct = datetime.datetime.now()
     print("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))

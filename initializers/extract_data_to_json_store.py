@@ -6,6 +6,7 @@ import config
 import os
 from data_stores.DataStores import DataStores as ds
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from data_stores.AzureTableObjects import AzureTableObjects as ato
 
 
 def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
@@ -205,7 +206,7 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, user
     return json_string
     # ......................................... #
 
-def extract_data_to_json_store(chapterNumber: int, excelFilepath: str) -> bool:
+def extract_data_to_json_store(chapterNumber: int, excelFilepath: str, mutexKey: str) -> bool:
     dictFileName = str(chapterNumber) + '.pkl'
     dictPath = config.temp_folderpath_for_reviewed_data + dictFileName
     abo.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
@@ -220,10 +221,12 @@ def extract_data_to_json_store(chapterNumber: int, excelFilepath: str) -> bool:
 
     print("Excel converted to json.")
     abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name) # Excel uploaded to Azure blob
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedCorrectedExcel)
     print('Excel @ ' + excelFilepath + ' successfully uploaded')
     os.remove(dictPath)
     os.remove(excelFilepath)
     abo.upload_blob_file(jsonPath,config.json_container_name)
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedJson)
     ds.insertNewJSONDictManually(json_string, int(chapterNumber))
     os.remove(jsonPath)
     print("Uploaded json")

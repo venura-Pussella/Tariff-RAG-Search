@@ -43,17 +43,14 @@ azureStorageTableName = 'chaptertracker12345'
 azureStorageTablePartitionKeyValue = 'a'
 
 class RecordStatus:
-    uploadingPdf = 'uploadingPdf'
     uploadedPdf = 'uploadedPdf'
-    uploadingGeneratedDocuments = 'uploadingGeneratedDocuments'
     uploadedGeneratedDocuments = 'uploadedGeneratedDocuments'
-    uploadingCorrectedExcel = 'uploadingCorrectedExcel'
-    uploadingJson = 'uploadingJson'
+    uploadedCorrectedExcel = 'uploadedCorrectedExcel'
     uploadedJson = 'uploadedJson'
-    deletingExistingCosmosRecords = 'deletingExistingCosmosRecords'
-    deletingExistingCosmosIdTracker = 'deletingExistingCosmosIdTracker'
-    addingNewDocsToCosmos = 'addingNewDocsToCosmos'
-    addingNewCosmosIdTracker = 'addingNewCosmosIdTracker'
+    deletedExistingCosmosRecords = 'deletedExistingCosmosRecords'
+    deletedExistingCosmosIdTracker = 'deletedExistingCosmosIdTracker'
+    addedNewDocsToCosmos = 'addedNewDocsToCosmos'
+    addedNewCosmosIdTracker = 'addedNewCosmosIdTracker'
 
 class RecordState:
     pdfUploaded = 'pdfUploaded'

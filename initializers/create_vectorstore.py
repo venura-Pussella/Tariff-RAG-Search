@@ -11,8 +11,9 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 commandLineArguments = sys.argv
 chapterNumber = None
-if len(commandLineArguments) == 2:
+if len(commandLineArguments) == 3:
     chapterNumber = int(commandLineArguments[1])
+    mutexKey = commandLineArguments[2]
 
 print("Starting vectorstore creation..." + str(commandLineArguments))
 
@@ -62,7 +63,7 @@ if config.vectorstore == "chroma":
     chr.createVectorstoreUsingChroma(docs)
 elif config.vectorstore == "azure_cosmos_nosql":
     import initializers.az_cosmos_nosql_vectorstore as azcn
-    azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber)
+    azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber, mutexKey)
 else:
     print("Type of vectorstore to be created/overwritten not specified in config.py")
 

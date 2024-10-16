@@ -108,9 +108,10 @@ def pdf_upload():
     ato.create_new_blank_entity(chapterNumber)
     try: ato.claim_mutex(chapterNumber, mutexKey)
     except MutexError as e:
+        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+            os.remove(filepath)
         flash(e)
         return redirect(url_for('file_management'))
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPdf)
     abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedPdf)
     print('PDF @ ' + filepath + ' successfully uploaded')
@@ -131,14 +132,22 @@ def excel_upload():
     chapterNumber = request.form.get('chapterNumber')
     excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
     
-    isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath)
+    mutexKey = secrets.token_hex()
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+            os.remove(excelFilepath)
+        flash(e)
+        return redirect(url_for('file_management'))
+
+    isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
     if isSuccess:
         flash('Excel and generated json successfully uploaded.')
     else:
         flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
         return redirect(url_for('file_management'))
     
-    subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber)]) # continue remaining processing in the background
+    subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber), mutexKey]) # continue remaining processing in the background
     return redirect(url_for('file_management'))
 
 @app.route('/file_clicked', methods=['POST'])

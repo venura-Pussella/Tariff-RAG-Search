@@ -66,7 +66,9 @@ class AzureTableObjects:
     @classmethod
     def release_mutex(cls, chapterNumber: int, mutexKey: str):
         entity = cls.get_entity(chapterNumber)
-        if entity['MutexKey'] == mutexKey: entity['MutexLock'] = False
+        if entity['MutexKey'] == mutexKey:
+            entity['MutexLock'] = False
+            entity['MutexKey'] = ''
         else: raise MutexError(chapterNumber)
 
         table_client = cls.get_table_client()
