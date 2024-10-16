@@ -173,5 +173,30 @@ def delete_till_pdf():
     flash('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
     return redirect(url_for('file_management'))
 
+@app.route('/generate_excel_for_review', methods=['POST'])
+def generate_excel_for_review():
+    print('Request to generate excel received.')
+    chapterNumber = request.form.get('chapterNumber')
+
+    result = fm.validateUpload(extension='pdf')
+    if result[0] == False:
+        flash(result[1]) 
+        return redirect(result[2])
+    
+    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
+    reviewFilepaths = convertPDFToExcelForReview(filepath, int(chapterNumber))
+
+    if not reviewFilepaths: # i.e. an exception was raised when trying to extract data from the pdf
+        flash('Error with pdf or entered chapter number')
+        return redirect(url_for('file_management'))
+    
+    filename = reviewFilepaths[0].rsplit("/")[-1]
+    response = send_file(reviewFilepaths[0], as_attachment=True, download_name=filename)
+    if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+        os.remove(filepath)
+        os.remove(reviewFilepaths[0])
+        os.remove(reviewFilepaths[1])
+    return response
+
 if __name__ == '__main__':
    app.run()

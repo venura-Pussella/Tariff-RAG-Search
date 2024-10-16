@@ -112,6 +112,21 @@
             <button class="ui button primary" type="submit">Delete</button>
         </form>
 
+        <h2 class="ui header">Generate excel for review</h2>
+        
+        <form class="ui form" action="{{ url_for('generate_excel_for_review') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Chapter Number</label>
+                <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
+            </div>
+            <div class="field">
+                <label>Select File</label>
+                <input type="file" name="file" required>
+            </div>
+            <button class="ui button primary" type="submit">Generate</button>
+        </form>
+        
+
     </div>
 
     <script>
