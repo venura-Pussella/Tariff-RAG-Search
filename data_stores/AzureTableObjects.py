@@ -2,6 +2,15 @@ import os
 import config
 from azure.data.tables import TableServiceClient, TableEntity, UpdateMode
 
+class MutexError(Exception):
+    """Custom exception for specific error handling."""
+    def __init__(self, chapterNumber: int):
+        self.chapterNumber = chapterNumber
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"Chapter {self.chapterNumber} is under a mutex lock by another user."
+
 class AzureTableObjects:
 
     __table_service_client = None
@@ -22,15 +31,17 @@ class AzureTableObjects:
             cls.__table_client = table_service_client.create_table_if_not_exists(table_name=config.azureStorageTableName)
         return cls.__table_client
     
-    
+
     
     @classmethod
     def create_new_blank_entity(cls, chapterNumber: int):
         entity = {
             'PartitionKey': config.azureStorageTablePartitionKeyValue,
-            'RowKey': chapterNumber,
-            'Status': '',
-            'Operation': 'None'
+            'RowKey': str(chapterNumber), # it seems the rowkey cannot be an int
+            'RecordStatus': '',
+            'RecordState': '',
+            'MutexKey': '',
+            'MutexLock': False
         }
         table_client = cls.get_table_client()
         table_client.create_entity(entity)
@@ -38,21 +49,47 @@ class AzureTableObjects:
     @classmethod
     def get_entity(cls, chapterNumber: int) -> TableEntity:
         table_client = cls.get_table_client()
-        return table_client.get_entity(partition_key= config.azureStorageTablePartitionKeyValue, row_key= chapterNumber)
+        return table_client.get_entity(partition_key= config.azureStorageTablePartitionKeyValue, row_key= str(chapterNumber))
     
     @classmethod
-    def edit_entity(cls, chapterNumber: int, newStatus: str = None, newOperation = None):
-        if newStatus == None and newOperation == None: return # nothing to update
-
+    def claim_mutex(cls, chapterNumber: int, mutexKey: str):
         entity = cls.get_entity(chapterNumber)
-        if newStatus != None:
-            entity['Status'] = newStatus
-        if newOperation != None:
-            entity['Operation'] = newOperation
+        if entity['MutexLock'] == False:
+            entity['MutexLock'] = True
+            entity['MutexKey'] = mutexKey
+        elif entity['MutexLock'] == True and entity['MutexKey'] == mutexKey: pass
+        else: raise MutexError(chapterNumber)
+
         table_client = cls.get_table_client()
         table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
 
     @classmethod
-    def delete_entity(cls, chapterNumber: int):
+    def release_mutex(cls, chapterNumber: int, mutexKey: str):
+        entity = cls.get_entity(chapterNumber)
+        if entity['MutexKey'] == mutexKey: entity['MutexLock'] = False
+        else: raise MutexError(chapterNumber)
+
         table_client = cls.get_table_client()
-        table_client.delete_entity(partition_key=config.azureStorageTablePartitionKeyValue, row_key=chapterNumber)
+        table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
+
+    
+    @classmethod
+    def edit_entity(cls, chapterNumber: int, mutexKey: str, newRecordStatus: str = None, newRecordState = None):
+        entity = cls.get_entity(chapterNumber)
+        if entity['MutexKey'] != mutexKey: raise MutexError(chapterNumber)
+
+        if newRecordStatus != None:
+            entity['RecordStatus'] = newRecordStatus
+        if newRecordState != None:
+            entity['RecordState'] = newRecordState
+
+        table_client = cls.get_table_client()
+        table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
+
+    @classmethod
+    def delete_entity(cls, chapterNumber: int, mutexKey: str):
+        entity = cls.get_entity(chapterNumber)
+        if entity['MutexKey'] != mutexKey: raise MutexError(chapterNumber)
+
+        table_client = cls.get_table_client()
+        table_client.delete_entity(partition_key=config.azureStorageTablePartitionKeyValue, row_key=str(chapterNumber))

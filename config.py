@@ -39,5 +39,22 @@ temp_folderpath_for_reviewedExcel_downloads = 'files/reviewedExcelDownloads/'
 temp_folderpath_for_data_to_review = 'files/review_data/'
 temp_folderpath_for_reviewed_data = 'files/reviewed_data/'
 
-azureStorageTableName = 'chapterTracker'
-azureStorageTablePartitionKeyValue = 'chapters'
+azureStorageTableName = 'chaptertracker12345'
+azureStorageTablePartitionKeyValue = 'a'
+
+class RecordStatus:
+    uploadingPdf = 'uploadingPdf'
+    uploadedPdf = 'uploadedPdf'
+    uploadingGeneratedDocuments = 'uploadingGeneratedDocuments'
+    uploadedGeneratedDocuments = 'uploadedGeneratedDocuments'
+    uploadingCorrectedExcel = 'uploadingCorrectedExcel'
+    uploadingJson = 'uploadingJson'
+    uploadedJson = 'uploadedJson'
+    deletingExistingCosmosRecords = 'deletingExistingCosmosRecords'
+    deletingExistingCosmosIdTracker = 'deletingExistingCosmosIdTracker'
+    addingNewDocsToCosmos = 'addingNewDocsToCosmos'
+    addingNewCosmosIdTracker = 'addingNewCosmosIdTracker'
+
+class RecordState:
+    pdfUploaded = 'pdfUploaded'
+    excelUploaded = 'excelUploaded'

@@ -2,6 +2,7 @@ import os
 import markdown
 import platform
 import config
+import secrets
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
@@ -12,10 +13,12 @@ from app_functions import vectorstoreSearch
 from other_funcs.tokenTracker import TokenTracker as toks
 from app_functions import file_management as fm
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.DataStores import DataStores as ds
 from initializers.extract_data_for_review import convertPDFToExcelForReview
 import subprocess
 from initializers.extract_data_to_json_store import extract_data_to_json_store
+from data_stores.AzureTableObjects import MutexError
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -88,7 +91,7 @@ def file_management():
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
     print('PDF upload request received.')
-    chapterNumber = request.form.get('chapterNumber')
+    chapterNumber = int(request.form.get('chapterNumber'))
 
     result = fm.validateUpload(extension='pdf')
     if result[0] == False:
@@ -101,11 +104,19 @@ def pdf_upload():
         flash('Error with pdf or entered chapter number')
         return redirect(url_for('file_management'))
     
+    mutexKey = secrets.token_hex()
+    ato.create_new_blank_entity(chapterNumber)
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        flash(e)
+        return redirect(url_for('file_management'))
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPdf)
     abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedPdf)
     print('PDF @ ' + filepath + ' successfully uploaded')
     flash('PDF successfully uploaded')
 
-    subprocess.Popen(["python", "initializers/post_PDF_dataExtraction_tasks.py", reviewFilepaths[0], reviewFilepaths[1], filepath]) # continue PDF processing in background
+    subprocess.Popen(["python", "initializers/post_PDF_dataExtraction_tasks.py", reviewFilepaths[0], reviewFilepaths[1], filepath, mutexKey, str(chapterNumber)]) # continue PDF processing in background
     return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])
