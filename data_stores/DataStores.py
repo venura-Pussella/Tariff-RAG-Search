@@ -59,7 +59,8 @@ class DataStores:
                 json_dict = json.loads(blob_text)
                 cls.__json_dicts[chapterNumber] = json_dict
             except ResourceNotFoundError: # that means the chapter does not exist (probably has been deleted). Therefore it must be removed from cls.__json_dicts
-                del cls.__json_dicts[chapterNumber]
+                try: del cls.__json_dicts[chapterNumber]
+                except KeyError: pass # the chapter was not in cls.__json_dicts anyway, so nothing to do
             
 
         container_client: ContainerClient = abo.get_container_client(config.json_container_name)
@@ -71,7 +72,8 @@ class DataStores:
                 updateJSONdictFromAzureBlob(jsonName, chapterNumber)
         else:
             for jsonName in jsonNameList:
-                updateJSONdictFromAzureBlob(jsonName)
+                chapterNumber = int(jsonName.rsplit('.')[0])
+                updateJSONdictFromAzureBlob(jsonName, chapterNumber)
         print("Loading jsons from Azure Blob into memory completed.")
 
     @classmethod

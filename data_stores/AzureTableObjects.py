@@ -6,10 +6,8 @@ class MutexError(Exception):
     """Custom exception for specific error handling."""
     def __init__(self, chapterNumber: int):
         self.chapterNumber = chapterNumber
-        super().__init__(self.message)
+        super().__init__(f"Chapter {self.chapterNumber} is under a mutex lock by another user.")
 
-    def __str__(self):
-        return f"Chapter {self.chapterNumber} is under a mutex lock by another user."
 
 class AzureTableObjects:
 

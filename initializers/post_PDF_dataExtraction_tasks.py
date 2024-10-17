@@ -22,9 +22,10 @@ if len(commandLineArguments) == 6:
 
 if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
     os.remove(pdfFilepath)
+ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
 abo.upload_blob_file(excelPath,config.generatedExcel_container_name) # upload generated excel to azure blob
 abo.upload_blob_file(dictPath,config.generatedDict_container_name) # upload dictionary pickle to azure blob
-ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedGeneratedDocuments, newRecordState=config.RecordState.pdfUploaded)
+ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
 ato.release_mutex(chapterNumber, mutexKey)
 if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
     os.remove(excelPath)

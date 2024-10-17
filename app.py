@@ -19,6 +19,7 @@ from initializers.extract_data_for_review import convertPDFToExcelForReview
 import subprocess
 from initializers.extract_data_to_json_store import extract_data_to_json_store
 from data_stores.AzureTableObjects import MutexError
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -104,16 +105,20 @@ def pdf_upload():
         flash('Error with pdf or entered chapter number')
         return redirect(url_for('file_management'))
     
+    try: ato.create_new_blank_entity(chapterNumber)
+    except ResourceExistsError: 
+        flash(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
+        return redirect(url_for('file_management'))
+    
     mutexKey = secrets.token_hex()
-    ato.create_new_blank_entity(chapterNumber)
     try: ato.claim_mutex(chapterNumber, mutexKey)
     except MutexError as e:
         if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
             os.remove(filepath)
-        flash(e)
+        flash(e.__str__())
         return redirect(url_for('file_management'))
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPDF)
     abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadedPdf)
     print('PDF @ ' + filepath + ' successfully uploaded')
     flash('PDF successfully uploaded')
 
@@ -137,7 +142,12 @@ def excel_upload():
     except MutexError as e:
         if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
             os.remove(excelFilepath)
-        flash(e)
+        flash(e.__str__())
+        return redirect(url_for('file_management'))
+    except ResourceNotFoundError:
+        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+            os.remove(excelFilepath)
+        flash('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
         return redirect(url_for('file_management'))
 
     isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
@@ -181,14 +191,47 @@ def file_clicked():
 @app.route('/delete_till_corrected_excel', methods=['POST'])
 def delete_till_corrected_excel():
     chapterNumber = request.form.get('chapterNumber')
+
+    try: entity = ato.get_entity(chapterNumber)
+    except ResourceNotFoundError:
+        flash('The chapter was not found.')
+        return redirect(url_for('file_management'))
+    if entity['RecordState'] != config.RecordState.excelUploaded:
+        flash('Nothing to delete yet.')
+        return redirect(url_for('file_management'))
+    
+
+    mutexKey = secrets.token_hex()
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        flash(e.__str__())
+        return redirect(url_for('file_management'))
+    
+
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeleteExcel)
     fm.delete_upto_corrected_excel(int(chapterNumber))
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.release_mutex(chapterNumber, mutexKey)
     flash('Deleted upto corrected excel - chapter ' + str(chapterNumber))
     return redirect(url_for('file_management'))
 
 @app.route('/delete_till_pdf', methods=['POST'])
 def delete_till_pdf():
     chapterNumber = request.form.get('chapterNumber')
+
+    mutexKey = secrets.token_hex()
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        flash(e.__str__())
+        return redirect(url_for('file_management'))
+    except ResourceNotFoundError:
+        flash('The chapter was not found.')
+        return redirect(url_for('file_management'))
+    print('haha3')
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeletePDF)
     fm.delete_upto_pdf(int(chapterNumber))
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeleteEntity)
+    ato.delete_entity(chapterNumber, mutexKey)
     print('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
     flash('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
     return redirect(url_for('file_management'))

@@ -1,6 +1,7 @@
 import os
 import config
 from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
+from data_stores.AzureTableObjects import AzureTableObjects as ato
 from flask import url_for, request
 from werkzeug.utils import secure_filename
 from initializers import deletingFuncs as delf
@@ -62,8 +63,9 @@ def generateArrayForTableRows():
         else: tableRow.append('Nil')
         if jsonName in listOfJSONs: tableRow.append(jsonName)
         else: tableRow.append('Nil')
-        tableRow += ['status']
-        # tableRows.append([chapterNumber,name,'d1','d2','d3','uploaded'])
+        entity = ato.get_entity(chapterNumber)
+        status = entity['RecordStatus']
+        tableRow += [status]
         tableRows.append(tableRow)
     return tableRows
 
