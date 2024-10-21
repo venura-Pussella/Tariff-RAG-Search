@@ -10,7 +10,7 @@ indexing_policy = {
     "indexingMode": "consistent",
     "includedPaths": [{"path": "/*"}],
     "excludedPaths": [
-        {"path": '/"_etag"/?'}, {"path": "/embedding/*"}
+        {"path": '/"_etag"/?'}, {"path": "/embedding/*"} # vector path is added to excludedPaths for improved insertion performance and less insertion RU cost: https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/vector-search
     ],
     "vectorIndexes": [{"path": "/embedding", "type": "diskANN"}],
 }
@@ -20,7 +20,7 @@ vector_embedding_policy = {
             "path": "/embedding",
             "dataType": "float32",
             "distanceFunction": "cosine",
-            "dimensions": 1536,
+            "dimensions": 1536, # since the ada-002 embedding model returns vectors of 1536 dimensions
         }
     ]
 }
