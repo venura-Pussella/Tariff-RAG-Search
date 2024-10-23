@@ -1,0 +1,103 @@
+import os
+import config
+from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
+from data_stores.AzureTableObjects import AzureTableObjects as ato
+from flask import url_for, request
+from werkzeug.utils import secure_filename
+from initializers import deletingFuncs as delf
+import concurrent.futures
+
+def allowed_file(filename: str, extension: str):
+    """Checks if filename has allowed extension.
+    ### Example:
+    filename = '28.pdf', extension = 'pdf' will return true
+    """
+    actualExtension = filename.rsplit(".")[-1]
+    return actualExtension == extension
+
+def validateUpload(extension: str) -> tuple[bool, str, str]:
+    # Check if the request has the file part
+    flashMessage = ''
+    redirectMessage = ''
+
+    chapterNumber = request.form.get('chapterNumber')
+    try:
+        int(chapterNumber)
+    except:
+        flashMessage = 'Error with entered chapter number'
+        redirectMessage = url_for('file_management')
+
+    if 'file' not in request.files:
+        flashMessage = 'No file part'
+        redirectMessage = url_for('file_management')
+    
+    file = request.files['file']
+    # If no file was selected
+    if file.filename == '':
+        flashMessage = 'No selected file'
+        redirectMessage = url_for('file_management')
+    
+    if file and not allowed_file(file.filename, extension):
+        flashMessage = 'Incompatible file type or extension.'
+        redirectMessage = url_for('file_management')
+
+    if flashMessage == '': # i.e. if there is no issue
+        return (True, flashMessage, redirectMessage)
+    else:
+        return (False, flashMessage, redirectMessage)
+
+def generateArrayForTableRows():
+    tableRows = []
+    listOfPDFNames = ABO.getListOfFilenamesInContainer(config.pdf_container_name)
+    listOfGeneratedExcelNames = ABO.getListOfFilenamesInContainer(config.generatedExcel_container_name)
+    listOfReviewedExcelNames = ABO.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
+    listOfJSONs = ABO.getListOfFilenamesInContainer(config.json_container_name)
+    for name in listOfPDFNames:
+        chapterNumber = name.rsplit('.')[0]
+        excelName = chapterNumber + '.xlsx'
+        jsonName = chapterNumber + '.json'
+        tableRow = [chapterNumber,name]
+        if excelName in listOfGeneratedExcelNames: tableRow.append(excelName)
+        else: tableRow.append('Nil')
+        if excelName in listOfReviewedExcelNames: tableRow.append(excelName)
+        else: tableRow.append('Nil')
+        if jsonName in listOfJSONs: tableRow.append(jsonName)
+        else: tableRow.append('Nil')
+        entity = ato.get_entity(chapterNumber)
+        status = entity['RecordStatus']
+        tableRow += [status]
+        tableRows.append(tableRow)
+    return tableRows
+
+def saveFile(folderpath: str) -> str:
+    file = request.files['file']
+    chapterNumber = request.form.get('chapterNumber')
+
+    filename = secure_filename(file.filename)
+    filename = filename.rsplit(".")[-1]
+    filename = str(chapterNumber) + '.' + filename
+    filepath = os.path.join(folderpath, filename)
+    file.save(filepath)
+
+    return filepath
+
+def delete_upto_corrected_excel(chapterNumber: int):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(delf.deleteChapterFromCosmos(chapterNumber)), 
+            executor.submit(delf.deleteChapterJsonBlob(chapterNumber)), 
+            executor.submit(delf.deleteChapterReviewedExcelBlob(chapterNumber))
+        ]
+        concurrent.futures.wait(futures)
+    
+
+def delete_upto_pdf(chapterNumber: int):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(delete_upto_corrected_excel(chapterNumber)),
+            executor.submit(delf.deleteChapterDictPickleBlob(chapterNumber)),
+            executor.submit(delf.deleteChapterGeneratedExcelBlob(chapterNumber)),
+            executor.submit(delf.deleteChapterPDFBlob(chapterNumber))
+        ]
+        concurrent.futures.wait(futures)
+    
