@@ -6,7 +6,15 @@ import os
 import config
 
 class CosmosObjects:
-    """Singleton class to hold cosmos objects. (So that wasteful similar calls to cosmos are not made, each time a reference to an object is required)
+    """Singleton class to hold cosmos objects. (So that wasteful similar calls to cosmos are not made, each time a reference to an object is required).
+    
+    Attributes:
+        __cosmosClient: CosmosClient = None
+        __cosmosDatabase: AzureCosmosDatabase.DatabaseProxy = None
+        __cosmosContainer: AzureCosmosContainer.ContainerProxy = None
+
+    Methods:
+        3 Methods to get each of the above attributes
     """
 
     __cosmosClient: CosmosClient = None

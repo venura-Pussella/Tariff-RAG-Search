@@ -5,16 +5,40 @@ import config
 from other_funcs.tokenTracker import TokenTracker as tok
 from other_funcs import getEmbeddings as emb
 import datetime
+import pickle
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from data_stores.AzureTableObjects import AzureTableObjects as ato
+from azure.core import exceptions
 
-
-def createVectorstoreUsingAzureCosmosNoSQL(docs: list): 
-    """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
-    ### Args:
-        docs: list of langchain documents
-    """    
-
+def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutexKey: str): 
+    """Feeds to given langchain documents to the Cosmos DB.
+    Chapter number and mutex key required to update the record.
+    Does not necessarily create the store from scratch despite what the name might suggest
+    """
     embedding = emb.getEmbeddings.getEmbeddings()
-    vectorstore = createBlankCosmosVectorstore(embedding)
+    vectorstore = getLangchainVectorstore() # get vectorstore object
+
+    # get the current cosmos document IDs of the chapter we are attempting to upload
+    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
+    blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
+    try:
+        existing_cosmos_ids_pickle_stream = blob_client.download_blob()
+        cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
+    except exceptions.ResourceNotFoundError:
+        cosmosIDs: list = None
+
+    # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
+    try:
+        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
+        for cosmosID in cosmosIDs:
+            vectorstore.delete_document_by_id(cosmosID)
+            print("Deleted cosmos ID: " + str(cosmosID))
+        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
+        blob_client.delete_blob()
+    except TypeError as e:
+        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+
     
     # Add text to the vectorstore without hitting the embeddings rate limit
     # 120k for Azure OpenAI Embeddings, 1M for OpenAI Embeddings
@@ -29,10 +53,10 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
     allMetaDatas = []
     allIDs = []
 
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
-    print("|||Adding items to cosmos begin: - " + str(ct))
-    print("Total number of line items to be added: " + str(len(docs)))
-    print("Takes about 15 mins to add 3300 line items")
+    print("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
+    print("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(docs)))
 
     while n < len(docs):
         doc: Document = docs[n]
@@ -47,7 +71,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
                 embedding=embedding,
                 metadatas= metadatas, 
             )
-            print("Added "+ str(len(ids)) + " line items.")
+            print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
             # the above process is so slow, that there is no need to worry about hitting the rate limit, so no need to sleep the script
             texts = []
             metadatas = []
@@ -64,25 +88,23 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list):
         embedding=embedding,
         metadatas= metadatas, 
     )
-    print("Added "+ str(len(ids)) + " line items.")
+    print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
     allIDs = allIDs + ids
+
+    allIDs_bytes = pickle.dumps(allIDs)
+    
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)
+    blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.excelUploaded)
+    ato.release_mutex(chapterNumber, mutexKey)
     
     ct = datetime.datetime.now()
-    print("|||Adding items to cosmos end: - " + str(ct))
-    print("Cosmos vectorstore created or overwritten.")
-    #to-do
-    #print number of items in container
+    print("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
 
-
-
-def createBlankCosmosVectorstore(embedding):
-    """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
-    Langchain used for this process, #todo - can remove it and do it directly.
-    ### Args:
-        embedding: pass in embedding here
-    ### Returns:
-        Returns blank vectorstore
+def getLangchainVectorstore():
+    """Simply returns a langchain reference object to our Cosmos DB
     """
+    embedding = emb.getEmbeddings.getEmbeddings()
 
     # policy for vectorstore in cosmos
     indexing_policy = config.indexing_policy
@@ -104,16 +126,8 @@ def createBlankCosmosVectorstore(embedding):
 
     
 
-
-    #delete existing container to avoid adding duplicates to vectorstore
-    print("Deleting existing items in cosmos db to prepare for new items...")
-    database = cosmos_client.create_database_if_not_exists(id=database_name)
-    try: database.delete_container(container=container_name)
-    except exceptions.CosmosHttpResponseError:
-        print("Container has already been deleted or does not exist.")
-
     #create blank vectorstore (or get an already created one)
-    print("Creating blank vector store in cosmos or fetching already exsting one.")
+    print("Getting langchain vectorstore object.")
     vectorstore = AzureCosmosDBNoSqlVectorSearch(
         cosmos_client=cosmos_client,
         database_name=database_name,
@@ -124,7 +138,29 @@ def createBlankCosmosVectorstore(embedding):
         cosmos_database_properties=cosmos_database_properties,
         embedding=embedding,
     )
-    print("Blank vector store returned.")
+    print("Langchain vector store returned.")
     return vectorstore
 
+def deleteChapterFromCosmos(chapterNumber: int):
+    vectorstore = getLangchainVectorstore()
+
+    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
+    blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
+    try:
+        existing_cosmos_ids_pickle_stream = blob_client.download_blob()
+        cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
+    except exceptions.ResourceNotFoundError:
+        cosmosIDs: list = None
+        print("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber))
+        return
+
+    # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
+    try:
+        for cosmosID in cosmosIDs:
+            vectorstore.delete_document_by_id(cosmosID)
+            print("Deleted cosmos ID: " + str(cosmosID))
+        blob_client.delete_blob()
+    except TypeError as e:
+        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
