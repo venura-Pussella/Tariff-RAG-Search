@@ -6,9 +6,9 @@
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv()) # read local .env file
 import sys
+import os
 # sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
 sys.path.append(os.getcwd()) # IMPORTANT: required since we manually run this script from this location itself
-import os
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 import config
