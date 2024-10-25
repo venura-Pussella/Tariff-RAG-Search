@@ -11,11 +11,10 @@ from data_stores.AzureTableObjects import AzureTableObjects as ato
 from azure.core import exceptions
 
 def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutexKey: str): 
-    """Creates vectorstore in Azure Cosmos NoSQL using the passed in list of langchain documents
-    ### Args:
-        docs: list of langchain documents
-    """    
-
+    """Feeds to given langchain documents to the Cosmos DB.
+    Chapter number and mutex key required to update the record.
+    Does not necessarily create the store from scratch despite what the name might suggest
+    """
     embedding = emb.getEmbeddings.getEmbeddings()
     vectorstore = getLangchainVectorstore() # get vectorstore object
 
@@ -102,15 +101,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutex
     ct = datetime.datetime.now()
     print("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
 
-
-
 def getLangchainVectorstore():
-    """Deletes existing container (just in case to stop adding duplicate info). And creates and returns new cosmos vectorstore.
-    Langchain used for this process, #todo - can remove it and do it directly.
-    ### Args:
-        embedding: pass in embedding here
-    ### Returns:
-        Returns blank vectorstore
+    """Simply returns a langchain reference object to our Cosmos DB
     """
     embedding = emb.getEmbeddings.getEmbeddings()
 

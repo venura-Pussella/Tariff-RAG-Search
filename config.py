@@ -1,4 +1,4 @@
-vectorstore = "azure_cosmos_nosql"  # "chroma" or "azure_cosmos_nosql"
+vectorstore = "azure_cosmos_nosql"  # "chroma" or "azure_cosmos_nosql" # chromaDB only partial implementation, not properly wired up
 cosmosNoSQLDBName = "tariff-search-db"
 cosmosNoSQLContainerName = "tariff-search-container"
 embeddings = "AzureOpenAI" # 'OpenAI' or 'AzureOpenAI'

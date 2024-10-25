@@ -22,12 +22,12 @@ from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 
 from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
+load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flash messages
+app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
 
-ds.updateJSONdictsFromAzureBlob()
+ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure blob
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
@@ -64,7 +64,7 @@ def vector_store_search():
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
-        toks.updateTokens(user_query)
+        toks.updateTokens(user_query) # update token count tracker
         print("app.py: user_query for vector_search is: " + user_query)
         itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
     return render_template("vector_store_search.html", results=itemsAndScores, user_query=user_query)
@@ -77,7 +77,7 @@ def chatbot():
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
-        toks.updateTokens_chatbot(user_query)
+        toks.updateTokens_chatbot(user_query) # update token count tracker
         print("app.py: user_query for RAG page is: " + user_query)
         answer = chatBot.getChatBotAnswer(user_query)
         answer_html = markdown.markdown(answer,extensions=['tables'])

@@ -5,7 +5,7 @@ from azure.storage.blob import ContainerClient
 from azure.core.exceptions import ResourceNotFoundError
 
 class DataStores:
-    """Used to hold and manipulate the json dictionaries, and HScode-SCcode mappings.
+    """Used to hold and manipulate the json dictionaries, and HScode-SCcode mappings(depreciated).
     
     Attributes:
         __hsCodeToSCCodeMapping: dict[str,str]: SC Code functionality temporarily removed. This holds an empty dictionary.
@@ -32,7 +32,7 @@ class DataStores:
             chapterNumbers (list[int], Optional, defaults to None): If not none, returns a filtered dictionary, otherwise no filter.
         
         Returns:
-            Dictionary with chapter dictionaries (chapter number maps to chapter dictionary)
+            Dictionary with chapter dictionaries (chapter number maps to individual chapter dictionary)
         """
         if chapterNumbers:
             dicts = {}
@@ -43,13 +43,10 @@ class DataStores:
     
     @classmethod
     def updateJSONdictsFromAzureBlob(cls, chapterNumbers: list[int] = None) -> None:
-        """Updates the class variable containing the dictionary of chapter dictionaries.
+        """Updates the class variable containing the dictionary of chapter dictionaries from Azure storage.
 
         Args:
             chapterNumbers (list[int], Optional, defaults to None): If not none, updates from all chapters found in the blob, else just the ones specified,
-        
-        Returns:
-            Dictionary with chapter dictionaries (chapter number maps to chapter dictionary)
         """
         def updateJSONdictFromAzureBlob(jsonName: str, chapterNumber: int):
             blob_client = container_client.get_blob_client(blob=jsonName)

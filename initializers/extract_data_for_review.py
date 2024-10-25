@@ -1,7 +1,6 @@
-# SCRIPT
+# The convertPDFToExcelForReview() function does exactly what it says (refer its docstring).
+# The rest of the functions are helper functions for convertPDFToExcelForReview().
 
-# Extracts data from the tariff PDFs, converts them into line items and stores them as .json files
-# One .json file per PDF, it includes metadata about the chapter, and an array of line items as json objects
 import pdfplumber
 import pandas as pd
 import pickle
@@ -275,7 +274,7 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, s
     return (filepathForExcel, dictionaryFilePath)
          
 def convertPDFToExcelForReview(pdfFilepath: str, userEnteredChapterNumber: int) -> tuple[str, str] | None:
-    """Converts the pdf in the given filepath to excel
+    """Converts the pdf in the given filepath to excel. This is done so the user can review the data extraction process.
     ### Returns:
         filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
     """

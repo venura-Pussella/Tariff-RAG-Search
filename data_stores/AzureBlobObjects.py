@@ -4,10 +4,7 @@ import config
 from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
 
 class AzureBlobObjects:
-    """Singleton class to hold blob-service-client and container clients. Contains methods to retrieve them.
-
-    Other methods:
-        getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
+    """Singleton class to hold blob-service-client and container clients. Contains methods to retrieve them, and the getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
     """
 
     __blob_service_client = None
@@ -57,11 +54,7 @@ class AzureBlobObjects:
     
     @classmethod
     def upload_blob_file(cls, filepath: str, containerName: str):
-        """Upload file specified in filepath to Azure blob.
-        ### Args:
-            filepath: filepath with file to be uploaded
-        ### Returns: 
-            void
+        """Upload file specified in filepath to the specified container in Azure storage.
         """
         container_client = cls.get_container_client(containerName)
         filename = filepath.rsplit("/")[-1]
@@ -71,11 +64,7 @@ class AzureBlobObjects:
 
     @classmethod
     def download_blob_file(cls, filename: str, containerName: str, savepath: str):
-        """Download file specified in filename from Azure blob to an appropriate local directory.
-        ### Args:
-                filename: filename to be downloaded from Azure blob
-        ### Returns: 
-                void
+        """Download file specified in filename from Azure blob to the specified file path.
         """
         container_client = cls.get_container_client(containerName)
         print("filename about to be downloaded from blob: " + filename)

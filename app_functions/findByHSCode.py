@@ -1,13 +1,14 @@
 from data_stores.DataStores import DataStores
 
 def findByHSCode(query: str) -> list[dict]:
-     """Searches the dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
-     and returns a list of line items
-     ### Args:
-          query: query for a hscode
-          data_dict: dictionary containing all tariff pdf information
-     ### Returns:
-          List of line items
+     """Searches the json dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
+     and returns a list of line items.
+
+     Args:
+         query (str): user query (expects an hs code)
+
+     Returns:
+         list[dict]: list of search results (line items)
      """
      if query == None or query == '': return[]
 
@@ -16,7 +17,7 @@ def findByHSCode(query: str) -> list[dict]:
      results = []
      chapterNumber = 0
 
-     # find the chapter number from the hs code
+     # find the chapter number from the hs code (we restrict the search just to that chapter)
      try:
           dotIndex = query.find('.')
           if dotIndex == -1 and int(query)>=100: # eg: 2800, 200 which correspond to ch.28 and ch.2

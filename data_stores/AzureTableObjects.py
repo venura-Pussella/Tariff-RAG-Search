@@ -10,6 +10,9 @@ class MutexError(Exception):
 
 
 class AzureTableObjects:
+    """Provides singleton method for retrieving table client (and table-service-client also but why would you want this?).
+    Also provides methods to perform CRUD on entities (i.e. a table row (record)), and to claim and release mutex on a row (record).
+    """
 
     __table_service_client = None
     __table_client = None
@@ -72,7 +75,6 @@ class AzureTableObjects:
         table_client = cls.get_table_client()
         table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
 
-    
     @classmethod
     def edit_entity(cls, chapterNumber: int, mutexKey: str, newRecordStatus: str = None, newRecordState = None):
         entity = cls.get_entity(chapterNumber)
