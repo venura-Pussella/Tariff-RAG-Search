@@ -7,7 +7,9 @@
 # 4. Calls a script to upload the langchain documents to the vectorstore specified in the config file.
 
 import sys
-sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
+import os
+# sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
+sys.path.append(os.getcwd()) # IMPORTANT: required since we manually run this script from this location itself
 import config
 from data_stores.DataStores import DataStores
 from langchain_core.documents import Document
