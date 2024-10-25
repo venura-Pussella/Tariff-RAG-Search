@@ -1,5 +1,8 @@
 # SCRIPT
 
+# This script carries out some tasks after the data has been extracted from a pdf for review. 
+# This script is called from the pdf_upload() function in app.py.
+
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv()) # read local .env file
 import sys

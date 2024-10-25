@@ -1,5 +1,10 @@
 # SCRIPT
-# Creates a vectorstore with the extracted data and chosen vectorstore in config.py
+# This script, despite what its name might suggest, does not necessarrily create a vectorstore from scratch.
+# It simply:
+# 1. Takes 2 commandline arguments (for chapter number and mutex key).
+# 2. Retreives json file from Azure storage that corresponds to the chapter number.
+# 3. Turns each line-item in the json file to a langchain document.
+# 4. Calls a script to upload the langchain documents to the vectorstore specified in the config file.
 
 import sys
 sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
@@ -56,7 +61,6 @@ for key,value in json_dicts.items():
 
 
 
-# create vectorstore
 # ......................................... #
 if config.vectorstore == "chroma":
     import initializers.chroma_vectorstore as chr
