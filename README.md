@@ -4,15 +4,11 @@ COSMOS_ENDPOINT
 COSMOS_KEY
 AZURE_OPENAI_ENDPOINT
 AZURE_OPENAI_API_KEY
-OPENAI_API_KEY
 SCM_DO_BUILD_DURING_DEPLOYMENT=true
 AZURE_STORAGE_CONNECTION_STRING
 FLASK_SECRET_KEY
 AZURE_TABLE_CONNECTION_STRING
 
-cosmos - # venura browns - Azure Southeast asia, serverless
-azure openai - # rehanga@live.com Azure South India - hosts text-embedding-ada-002 (v2)
-openai- rehanga@live.com, used for chat completion model
 
 python 3.11
 pywin32 - remove from requirements.txt

@@ -1,10 +1,12 @@
 import config
 import json
+import os
 from langchain.prompts import ChatPromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_community.chat_models import AzureChatOpenAI
 from data_stores.DataStores import DataStores as ds
 from app_functions import vectorstoreSearch as vs
-
+AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION = os.getenv('AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION')
+AZURE_OPENAI_API_VERSION_FOR_CHATCOMPLETION = AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION.rsplit('api-version=')[1]
 
 def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot:str) -> str:
     """A user can ask a very general/complex question from the chat bot. The documents needed to answer the question (RAG) must be fetched from the vectorstore using a similarity search (or similar). For this
@@ -31,8 +33,8 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot:st
 
     prompt_template = ChatPromptTemplate.from_template(template_for_generating_description_search)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot)
-
-    chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
+    
+    chat = AzureChatOpenAI(temperature=0.0, model=config.modelForChatBot, azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION, api_version=AZURE_OPENAI_API_VERSION_FOR_CHATCOMPLETION)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
 
     return response_humaizedQueryForDescSearch.content
@@ -63,7 +65,7 @@ def getChatBotAnswer(userQuery_to_chatBot: str) -> str:
     prompt_template = ChatPromptTemplate.from_template(template_for_answering_userQuery_with_retrieved_docs)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot, docs=lineItemsJSONString)
 
-    chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
+    chat = AzureChatOpenAI(temperature=0.0, model=config.modelForChatBot, azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION, api_version=AZURE_OPENAI_API_VERSION_FOR_CHATCOMPLETION)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
 
     return response_humaizedQueryForDescSearch.content

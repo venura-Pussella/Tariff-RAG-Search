@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv()) # read local .env file
 import markdown
 import platform
 import config
@@ -20,9 +22,6 @@ import subprocess
 from initializers.extract_data_to_json_store import extract_data_to_json_store
 from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
-
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv()) # read local .env file
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user

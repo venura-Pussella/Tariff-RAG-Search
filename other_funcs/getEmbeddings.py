@@ -1,4 +1,5 @@
 import config
+import os
 
 class getEmbeddings():
     """Singleton class with func to return embeddings according to what's defined in config.py
@@ -21,7 +22,8 @@ class getEmbeddings():
                 getEmbeddings.__embeddings = OpenAIEmbeddings()
             elif config.embeddings == "AzureOpenAI":
                 from langchain_openai import AzureOpenAIEmbeddings
-                getEmbeddings.__embeddings = AzureOpenAIEmbeddings()
+                AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS = os.getenv('AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS')
+                getEmbeddings.__embeddings = AzureOpenAIEmbeddings(azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS)
             else:
                 raise ValueError("Embedding to be used not defined in config.py, or is not known")
         
