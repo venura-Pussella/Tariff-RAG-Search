@@ -1,7 +1,7 @@
 import config
 import json
 from langchain.prompts import ChatPromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_community.chat_models import AzureChatOpenAI
 from data_stores.DataStores import DataStores as ds
 from app_functions import vectorstoreSearch as vs
 
@@ -32,7 +32,7 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot:st
     prompt_template = ChatPromptTemplate.from_template(template_for_generating_description_search)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot)
 
-    chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
+    chat = AzureChatOpenAI(temperature=0.0, model=config.modelForChatBot)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
 
     return response_humaizedQueryForDescSearch.content
@@ -63,7 +63,7 @@ def getChatBotAnswer(userQuery_to_chatBot: str) -> str:
     prompt_template = ChatPromptTemplate.from_template(template_for_answering_userQuery_with_retrieved_docs)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot, docs=lineItemsJSONString)
 
-    chat = ChatOpenAI(temperature=0.0, model=config.modelForChatBot)
+    chat = AzureChatOpenAI(temperature=0.0, model=config.modelForChatBot)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
 
     return response_humaizedQueryForDescSearch.content
