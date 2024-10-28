@@ -33,7 +33,7 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot:st
 
     prompt_template = ChatPromptTemplate.from_template(template_for_generating_description_search)
     humanMessage_and_promtTemplate = prompt_template.format_messages(question=userQuery_to_chatBot)
-    
+
     chat = AzureChatOpenAI(temperature=0.0, model=config.modelForChatBot, azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_CHATCOMPLETION, api_version=AZURE_OPENAI_API_VERSION_FOR_CHATCOMPLETION)
     response_humaizedQueryForDescSearch = chat(humanMessage_and_promtTemplate)
 
