@@ -1,6 +1,5 @@
 import config
 import os
-from langchain_core.documents import Document
 import config
 from other_funcs.tokenTracker import TokenTracker as tok
 from other_funcs import getEmbeddings as emb
@@ -9,13 +8,15 @@ import pickle
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 from azure.core import exceptions
+from initializers.Line_Item import Line_Item
+from data_stores.CosmosObjects import CosmosObjects as co
+import uuid
 
-def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutexKey: str): 
+def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str): 
     """Feeds to given langchain documents to the Cosmos DB.
     Chapter number and mutex key required to update the record.
     Does not necessarily create the store from scratch despite what the name might suggest
     """
-    embedding = emb.getEmbeddings.getEmbeddings()
     vectorstore = getLangchainVectorstore() # get vectorstore object
 
     # get the current cosmos document IDs of the chapter we are attempting to upload
@@ -40,56 +41,28 @@ def createVectorstoreUsingAzureCosmosNoSQL(docs: list, chapterNumber: int, mutex
         print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
     
-    # Add text to the vectorstore without hitting the embeddings rate limit
-    # 120k for Azure OpenAI Embeddings, 1M for OpenAI Embeddings
-    rateLimit = 0
-    if config.embeddings == "AzureOpenAI": rateLimit = 120000
-    elif config.embeddings == "OpenAI": rateLimit = 1000000
-
-    n = 0
-    tokenCount = 0
-    texts = []
-    metadatas = []
-    allMetaDatas = []
-    allIDs = []
-
+    # Add the new documents (line items) to the vector-store
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
     print("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
-    print("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(docs)))
+    print("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
+    allIDs = []
 
-    while n < len(docs):
-        doc: Document = docs[n]
-        text = doc.page_content
-        metadata = doc.metadata
-        tokenCount += tok.getTokenCount(text)
-        if (tokenCount >= rateLimit):
-            tokenCount = 0 # reset tokencount
-            n -= 1
-            ids = vectorstore.add_texts(
-                texts = texts,
-                embedding=embedding,
-                metadatas= metadatas, 
-            )
-            print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
-            # the above process is so slow, that there is no need to worry about hitting the rate limit, so no need to sleep the script
-            texts = []
-            metadatas = []
-            allIDs = allIDs + ids
-        else:
-            texts.append(text)
-            metadatas.append(metadata)
-            allMetaDatas.append(metadata)
-        n += 1
+    container = co.getCosmosContainer()
+    for document in documents:
+        text_fields:dict = document.fields_to_embed
+        vector = document.vector
+        metadata = document.metadata_fields
 
-    # add the leftovers also to the vectorstore
-    ids = vectorstore.add_texts(
-        texts = texts,
-        embedding=embedding,
-        metadatas= metadatas, 
-    )
-    print("Chapter " + str(chapterNumber) + " Added "+ str(len(ids)) + " line items.")
-    allIDs = allIDs + ids
+        vector_dict = {"embedding": vector}
+        id = str(uuid.uuid4())
+        final_dict_for_item = {"id": id}
+
+        final_dict_for_item.update(text_fields); final_dict_for_item.update(metadata); final_dict_for_item.update(vector_dict)
+
+        container.create_item(body=final_dict_for_item)
+        allIDs.append(id)
+
 
     allIDs_bytes = pickle.dumps(allIDs)
     
