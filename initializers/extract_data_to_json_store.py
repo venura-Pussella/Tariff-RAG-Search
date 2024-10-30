@@ -47,7 +47,7 @@ def isEmpty(string) -> bool:
         return True
     return False
 
-def standardizeHSCode(hscode) -> str:
+def standardizeHSCode(hscode: str) -> str:
     """ Changes hscodes of the various known formats into a standardized format '####.##.##N'
 
     Args:
@@ -62,6 +62,7 @@ def standardizeHSCode(hscode) -> str:
     elif len(hscode) == 10: # eg: '8202.10.20'
         hscode += 'N'
     elif len(hscode) == 5: # eg: '28.03'
+        hscode = hscode.replace('.','')
         hscode += '.00.00N'
     else:
         errorText = "HS Code of unknown format passed in: {}".format(hscode)
