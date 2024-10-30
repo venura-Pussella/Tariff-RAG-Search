@@ -1,6 +1,6 @@
 vectorstore = "azure_cosmos_nosql"  # "chroma" or "azure_cosmos_nosql" # chromaDB only partial implementation, not properly wired up
 cosmosNoSQLDBName = "tariff-search-db"
-cosmosNoSQLContainerName = "tariff-search-container-opti-test"
+cosmosNoSQLContainerName = "tariff-search-container"
 embeddings = "AzureOpenAI" # 'OpenAI' or 'AzureOpenAI'
 lifetimeTokenLimit = 10000000
 lifetimeTokenLimit_chatbot = 10000000

@@ -10,6 +10,7 @@ from data_stores.AzureTableObjects import AzureTableObjects as ato
 from azure.core import exceptions
 from initializers.Line_Item import Line_Item
 from data_stores.CosmosObjects import CosmosObjects as co
+import concurrent.futures
 import uuid
 
 def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str): 
@@ -49,21 +50,31 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     allIDs = []
 
     container = co.getCosmosContainer()
-    for document in documents:
-        text_fields:dict = document.fields_to_embed
-        vector = document.vector
-        metadata = document.metadata_fields
+    futures = []
 
-        vector_dict = {"embedding": vector}
-        id = str(uuid.uuid4())
-        final_dict_for_item = {"id": id}
+    
 
-        final_dict_for_item.update(text_fields); final_dict_for_item.update(metadata); final_dict_for_item.update(vector_dict)
-
+    def create_cosmos_item(final_dict_for_item):
         container.create_item(body=final_dict_for_item)
-        allIDs.append(id)
+        allIDs.append(final_dict_for_item['id'])
 
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for document in documents:
+            text_fields:dict = document.fields_to_embed
+            vector = document.vector
+            metadata = document.metadata_fields
 
+            vector_dict = {"embedding": vector}
+            id = str(uuid.uuid4())
+            final_dict_for_item = {"id": id}
+
+            final_dict_for_item.update(text_fields); final_dict_for_item.update(metadata); final_dict_for_item.update(vector_dict)
+
+            futures.append(executor.submit(create_cosmos_item, final_dict_for_item))
+
+        concurrent.futures.wait(futures)
+
+    # need to store the cosmos document IDs so we can delete them easily later when needed
     allIDs_bytes = pickle.dumps(allIDs)
     
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)

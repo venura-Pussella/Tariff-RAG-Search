@@ -1,12 +1,8 @@
-from openai import AzureOpenAI
 import numpy as np
 import config
 import os
 import concurrent.futures
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv()) # read local .env file
-AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS = os.getenv('AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS')
-AZURE_OPENAI_API_VERSION_FOR_EMBEDDINGS = AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS.rsplit('api-version=')[1]
+from data_stores.OpenAIObjects import OpenAIObjects
 
 class Line_Item:
     """An object to hold a line item that goes into the cosmos vectorstore.
@@ -32,16 +28,20 @@ class Line_Item:
         """
         vectors = []
         futures = []
-        client = AzureOpenAI(azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS, api_version=AZURE_OPENAI_API_VERSION_FOR_EMBEDDINGS)
+        client = OpenAIObjects.getOpenAIClient()
 
         def get_vector_for_fieldvalue(text):
                 vector = client.embeddings.create(input = text, model=config.embeddingModel).data[0].embedding
-                vectors.append(vector)
+                if len(vector) != 0: vectors.append(vector)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for field,text in self.fields_to_embed.items():
                 futures.append(executor.submit(get_vector_for_fieldvalue, text))
             concurrent.futures.wait(futures)
+
+        if len(vectors) == 0: 
+             self.vector = []
+             return
 
         mean_vector = np.mean(vectors, axis=0)
         self.vector = mean_vector.tolist()
