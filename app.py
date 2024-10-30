@@ -55,20 +55,20 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route("/vector_store_search", methods=["GET", "POST"])
+@app.route("/line_item_search", methods=["GET", "POST"])
 def vector_store_search():
-    print('Request for vector search page received')
+    print('Request for line item search page received')
     user_query = None
     itemsAndScores = None
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query) # update token count tracker
-        print("app.py: user_query for vector_search is: " + user_query)
+        print("app.py: user_query for line_item_search is: " + user_query)
         itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
-    return render_template("vector_store_search.html", results=itemsAndScores, user_query=user_query)
+    return render_template("line_item_search.html", results=itemsAndScores, user_query=user_query)
 
-@app.route("/chatbot", methods=["GET", "POST"])
+@app.route("/rag", methods=["GET", "POST"])
 def chatbot():
     print('Request for RAG page received')
     user_query = None
@@ -80,7 +80,7 @@ def chatbot():
         print("app.py: user_query for RAG page is: " + user_query)
         answer = chatBot.getChatBotAnswer(user_query)
         answer_html = markdown.markdown(answer,extensions=['tables'])
-    return render_template("chatbot.html", results=answer_html, user_query=user_query)
+    return render_template("rag.html", results=answer_html, user_query=user_query)
 
 @app.route('/file_management')
 def file_management():
