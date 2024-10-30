@@ -19,7 +19,7 @@ vector_embedding_policy = {
         {
             "path": "/embedding",
             "dataType": "float32",
-            "distanceFunction": "cosine",
+            "distanceFunction": "dotproduct",
             "dimensions": 1536, # since the ada-002 embedding model returns vectors of 1536 dimensions
         }
     ]

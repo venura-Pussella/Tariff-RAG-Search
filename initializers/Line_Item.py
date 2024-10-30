@@ -44,4 +44,9 @@ class Line_Item:
              return
 
         mean_vector = np.mean(vectors, axis=0)
+
+        # normalize in-case we use dot-product instead of cosine for similarity search, etc.
+        magnitude = np.linalg.norm(mean_vector)
+        mean_vector = mean_vector/magnitude
+
         self.vector = mean_vector.tolist()
