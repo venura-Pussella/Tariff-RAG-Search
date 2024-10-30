@@ -14,7 +14,7 @@ import concurrent.futures
 import uuid
 
 def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str): 
-    """Feeds to given langchain documents to the Cosmos DB.
+    """Feeds to given Line_Item objects to the Cosmos DB.
     Chapter number and mutex key required to update the record.
     Does not necessarily create the store from scratch despite what the name might suggest
     """
