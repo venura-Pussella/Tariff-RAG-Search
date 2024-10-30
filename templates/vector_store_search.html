@@ -56,6 +56,7 @@
                     <th>Excise (SPD)</th>
                     <th>SSCL</th>
                     <th>SCL</th>
+                    <th>PDF</th>
                 </tr>
                  <tr>
                     <th></th>
@@ -82,6 +83,7 @@
                     <th>SG</th>
                     <th>Gen</th>
                     <th>SG</th>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -117,12 +119,39 @@
                     <td>{{ item[0]['Excise SPG'] }}</td>
                     <td>{{ item[0]['SSCL'] }}</td>
                     <td>{{ item[0]['SCL'] }}</td>
+                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="pdfClicked(&#39;{{ item[0]['Chapter Number'] }}&#39;, 'pdf')">{{ item[0]['Chapter Number'] }}.pdf</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% endif %}
 
-     </main>      
+     </main>  
+     <script>
+        function pdfClicked(cellValue, fileType) {
+            // Trigger a POST request to the Flask backend
+            cellValue = cellValue + '.pdf'
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    const downloadUrl = URL.createObjectURL(xhttp.response);
+                    const responseHeaders = xhttp.getAllResponseHeaders()
+                    var filename = responseHeaders.split('filename=')[1]
+                    filename = filename.split('\n')[0]
+                    filename = filename.split('\r')[0] // this stupid thing wasted 10 minutes of my time
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    a.click();
+                }
+            };
+            xhttp.open("POST", "/file_clicked", true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.responseType = "blob";
+            xhttp.send(JSON.stringify({cell_value: cellValue, file_type: fileType}));
+        }
+    </script>    
    </body>
 </html>

@@ -37,6 +37,7 @@ def findByHSCode(query: str) -> list[dict]:
      for item in items:
           # todo: implement binary search
           if query in item["HS Code"]:
+               item["Chapter Number"] = str(chapterNumber) # Adding this because we want a link to the PDF to be displayed with the result
                results.append(item)
      return results
 
