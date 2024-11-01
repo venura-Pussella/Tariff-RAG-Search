@@ -40,7 +40,7 @@ else:
 # create Line_Item objects
 # ......................................... #
 docs = []
-print(f"Creating Line Item objects from json chapter(s)... {datetime.now()}")
+print(f"Creating Line Item objects from json chapter(s)... Chapter number:{chapterNumber}... {datetime.now()}")
 
 for key,value in json_dicts.items():
     json_dict = value
@@ -84,7 +84,7 @@ for key,value in json_dicts.items():
             futures.append(executor.submit(create_line_item, item))
         concurrent.futures.wait(futures)
         
-print(f"END creating Line Item objects from json chapter(s)... {datetime.now()}")
+print(f"END creating Line Item objects from json chapter(s)...Chapter number:{chapterNumber}... {datetime.now()}")
 # ......................................... #
 
 
