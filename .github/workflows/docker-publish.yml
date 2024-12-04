@@ -1,0 +1,26 @@
+name: Build Linux Container Image and Push to ACR
+
+on:
+  workflow_dispatch:  # Manually trigger the workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2 
+    - uses: azure/docker-login@v1
+      with:
+        login-server: banksexchangerates.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}  # ACR username from GitHub Secrets
+        password: ${{ secrets.REGISTRY_PASSWORD }}  # ACR password from GitHub Secrets
+
+    # Build and tag the Docker image
+    - run: |
+        # Set the image tag
+        IMAGE_TAG=banksexchangerates.azurecr.io/tarriff-search:latest
+
+        # Build the Docker image (overwrites existing image with same tag)
+        docker build . -t $IMAGE_TAG
+
+        # Push the Docker image to Azure Container Registry (ACR) (overwrites existing image)
+        docker push $IMAGE_TAG
