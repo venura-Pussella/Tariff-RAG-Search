@@ -10,6 +10,9 @@ COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+# Expose port 80 for Azure
+EXPOSE 80
+
 # Run main.py when the container launches
 CMD ["gunicorn", "--bind=0.0.0.0", "--workers=1", "--threads=4", "app:app"]
 
