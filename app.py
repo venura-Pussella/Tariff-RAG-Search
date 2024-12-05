@@ -103,10 +103,14 @@ def pdf_upload():
 def pdf_upload_batch():
     print('Batch PDF upload request received.')
     files = request.files.getlist("files")
+    filepaths = []
     for file in files:
         filename = str(uuid.uuid4()) + file.filename
         filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
-        subprocess.Popen(["python", "initializers/uploadPDF_script.py", filepath])
+        filepaths.append(filepath)
+    subprocess_args = ["python", "app_functions/pdf_batch_upload.py"]
+    subprocess_args += filepaths
+    subprocess.Popen(subprocess_args)
     return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])
@@ -145,6 +149,7 @@ def excel_upload():
 @app.route('/excel_upload_batch', methods=['POST'])
 def excel_upload_batch():
     print('Batch Excel upload request received.')
+    args = []
     files = request.files.getlist("files")
     for file in files:
         filename = str(uuid.uuid4()) + 'UUIDEND' + file.filename
@@ -177,7 +182,11 @@ def excel_upload_batch():
             flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
             return redirect(url_for('file_management'))
         
-        subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber), mutexKey]) # continue remaining processing in the background
+        args.append(str(chapterNumber))
+        args.append(mutexKey)
+    subprocess_args = ["python", "app_functions/excel_batch_process.py"]
+    subprocess_args += args
+    subprocess.Popen(subprocess_args) # continue remaining processing in the background
     return redirect(url_for('file_management'))
 
 @app.route('/file_clicked', methods=['POST'])
