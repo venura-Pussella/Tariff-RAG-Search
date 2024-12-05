@@ -4,6 +4,7 @@ from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 from flask import url_for, request
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
 from initializers import deletingFuncs as delf
 import concurrent.futures
 
@@ -14,45 +15,22 @@ def allowed_file(filename: str, extension: str) -> bool:
     actualExtension = filename.rsplit(".")[-1]
     return actualExtension == extension
 
-def validateUpload(extension: str) -> tuple[bool, str, str]:
-    """Checks if the document POSTed by the user is a valid file upload.
+def validateUpload(extension: str, file: FileStorage) -> str:
+    """Checks if the document POSTed by the user matches the extension
 
     Args:
-        extension (str): expected extension of the file user is expected to POST
+        extension (str): expected extension of the file user is expected to POST. eg: 'pdf'
 
     Returns:
-        tuple[bool, str, str]: 1st item indicates validity of upload. 2nd item is the message for the flash message to alert the user, 3rd item is url to redirect the user
+        str: errors. Blank string if no error
     """
     
-    flashMessage = ''
-    redirectMessage = ''
-
-    chapterNumber = request.form.get('chapterNumber')
-    try:
-        int(chapterNumber)
-    except:
-        flashMessage = 'Error with entered chapter number'
-        redirectMessage = url_for('file_management')
-
-    # Check if the request has the file part
-    if 'file' not in request.files:
-        flashMessage = 'No file part'
-        redirectMessage = url_for('file_management')
-    
-    file = request.files['file']
-    # If no file was selected
-    if file.filename == '':
-        flashMessage = 'No selected file'
-        redirectMessage = url_for('file_management')
+    errors = ''
     
     if file and not allowed_file(file.filename, extension):
-        flashMessage = 'Incompatible file type or extension.'
-        redirectMessage = url_for('file_management')
+        errors = f'File does not match extension {extension}'
 
-    if flashMessage == '': # i.e. if there is no issue
-        return (True, flashMessage, redirectMessage)
-    else:
-        return (False, flashMessage, redirectMessage)
+    return errors
 
 def generateArrayForTableRows() -> list[list[str]]:
     """Generates the list required to construct the dynamic table in the file management interface.
@@ -83,19 +61,13 @@ def generateArrayForTableRows() -> list[list[str]]:
         tableRows.append(tableRow)
     return tableRows
 
-def saveFile(folderpath: str) -> str:
+def saveFile(folderpath: str, file: FileStorage, filename: str) -> str:
     """Saves the file user has POSTed to the specified folderpath.
     File and Chapter Number from the form is obtained globally thru the Flask requests.
 
     Returns:
         str: final filepath
     """
-    file = request.files['file']
-    chapterNumber = request.form.get('chapterNumber')
-
-    filename = secure_filename(file.filename)
-    filename = filename.rsplit(".")[-1]
-    filename = str(chapterNumber) + '.' + filename
     filepath = os.path.join(folderpath, filename)
     file.save(filepath)
 

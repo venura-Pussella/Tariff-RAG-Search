@@ -222,7 +222,7 @@ def extract_data_to_json_store(chapterNumber: int, excelFilepath: str, mutexKey:
 
     print("Excel converted to json.")
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
-    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name) # Excel uploaded to Azure blob
+    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name, f'{chapterNumber}.xlsx') # Excel uploaded to Azure blob
     print('Excel @ ' + excelFilepath + ' successfully uploaded')
     os.remove(dictPath)
     os.remove(excelFilepath)

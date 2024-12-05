@@ -53,14 +53,15 @@ class AzureBlobObjects:
         return list(blobName_list)
     
     @classmethod
-    def upload_blob_file(cls, filepath: str, containerName: str):
+    def upload_blob_file(cls, filepath: str, containerName: str, file_rename: str = None):
         """Upload file specified in filepath to the specified container in Azure storage.
         """
+        filename = os.path.basename(filepath)
         container_client = cls.get_container_client(containerName)
-        filename = filepath.rsplit("/")[-1]
         print("filename about to be uploaded to blob: " + filename)
         with open(filepath, mode="rb") as data:
-            blob_client = container_client.upload_blob(name=filename, data=data, overwrite=True)
+            if file_rename: container_client.upload_blob(name=file_rename, data=data, overwrite=True)
+            else: container_client.upload_blob(name=filename, data=data, overwrite=True)
 
     @classmethod
     def download_blob_file(cls, filename: str, containerName: str, savepath: str):

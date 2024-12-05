@@ -167,7 +167,7 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, strict=True) -> tuple[str,str]:
+def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int = None, strict=True) -> tuple[str,str,int]:
     """The data ripped from the pdf is persisted to disk for review.
     ### Discussion:
     The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
@@ -177,7 +177,7 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, s
         strict: (defaults to True) whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.
         filepathForReviewDocs: filepath to save documents generated for review
     ### Returns: 
-        filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
+        filepath of the saved excel (position 0), and filepath of the saved dict (position 1), and chapternNumber as a tuple
     """
     
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
@@ -203,8 +203,9 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, s
     chapterName = chapterName.replace("\n"," ")
     # ......................................... #
 
-    if chapterNumber != userEnteredChapterNumber:
-        raise Exception('User entered chapter number does not match that of the PDF')
+    if userEnteredChapterNumber:
+        if chapterNumber != userEnteredChapterNumber:
+            raise Exception('User entered chapter number does not match that of the PDF')
    
     # create a dictionary for creating a json for the whole pdf
     # ......................................... #
@@ -272,12 +273,12 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int, s
 
     filepathForExcel = config.temp_folderpath_for_data_to_review + '{}.xlsx'.format(chapterNumber)
     df.to_excel(filepathForExcel, engine='openpyxl')  
-    return (filepathForExcel, dictionaryFilePath)
+    return (filepathForExcel, dictionaryFilePath, chapterNumber)
          
-def convertPDFToExcelForReview(pdfFilepath: str, userEnteredChapterNumber: int) -> tuple[str, str] | None:
+def convertPDFToExcelForReview(pdfFilepath: str, userEnteredChapterNumber: int = None) -> tuple[str, str] | None:
     """Converts the pdf in the given filepath to excel. This is done so the user can review the data extraction process.
     ### Returns:
-        filepath of the saved excel (position 0), and filepath of the saved dict (position 1) as a tuple
+        filepath of the saved excel (position 0), and filepath of the saved dict (position 1), and identified chapter number as a tuple
     """
     reviewFilepaths = None
     try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath, userEnteredChapterNumber)

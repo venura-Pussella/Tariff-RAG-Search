@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tariff Document Management</title>
+    <title>Tariff Document Management 20241205</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
@@ -20,8 +20,6 @@
         </ul>       
     </nav>
     <div class="ui container" style="margin-top: 50px;">
-        <h2 class="ui header">Upload PDF</h2>
-        
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="ui positive message">
@@ -33,6 +31,8 @@
                 </div>
             {% endif %}
         {% endwith %}
+
+        <h2 class="ui header">Upload PDF</h2>
         
         <form class="ui form" action="{{ url_for('pdf_upload') }}" method="POST" enctype="multipart/form-data">
             <div class="field">
@@ -124,6 +124,26 @@
                 <input type="file" name="file" required>
             </div>
             <button class="ui button primary" type="submit">Generate</button>
+        </form>
+
+        <h2 class="ui header">PDF Batch Upload</h2>
+        
+        <form class="ui form" action="{{ url_for('pdf_upload_batch') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Select Files</label>
+                <input type="file" name="files" multiple="multiple" required>
+            </div>
+            <button class="ui button primary" type="submit">Upload</button>
+        </form>
+
+        <h2 class="ui header">Reviewed Excel Batch Upload</h2>
+        
+        <form class="ui form" action="{{ url_for('excel_upload_batch') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Select Files</label>
+                <input type="file" name="files" multiple="multiple" required>
+            </div>
+            <button class="ui button primary" type="submit">Upload</button>
         </form>
         
 

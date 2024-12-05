@@ -22,6 +22,7 @@ import subprocess
 from initializers.extract_data_to_json_store import extract_data_to_json_store
 from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+import uuid
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -91,51 +92,31 @@ def file_management():
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
     print('PDF upload request received.')
-    chapterNumber = int(request.form.get('chapterNumber'))
+    chapterNumber = request.form.get('chapterNumber')
+    file = request.files['file']
+    filename = str(uuid.uuid4()) + file.filename
+    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
+    subprocess.Popen(["python", "initializers/uploadPDF_script.py", filepath, chapterNumber])
+    return redirect(url_for('file_management'))
 
-    result = fm.validateUpload(extension='pdf')
-    if result[0] == False:
-        flash(result[1]) 
-        return redirect(result[2])
-
-    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
-    reviewFilepaths = convertPDFToExcelForReview(filepath, int(chapterNumber))
-    if not reviewFilepaths: # i.e. an exception was raised when trying to extract data from the pdf
-        flash('Error with pdf or entered chapter number')
-        return redirect(url_for('file_management'))
-    
-    try: ato.create_new_blank_entity(chapterNumber)
-    except ResourceExistsError: 
-        flash(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
-        return redirect(url_for('file_management'))
-    
-    mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
-    except MutexError as e:
-        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-            os.remove(filepath)
-        flash(e.__str__())
-        return redirect(url_for('file_management'))
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPDF)
-    abo.upload_blob_file(filepath, config.pdf_container_name) # PDF uploaded to azure blob
-    print('PDF @ ' + filepath + ' successfully uploaded')
-    flash('PDF successfully uploaded')
-
-    subprocess.Popen(["python", "initializers/post_PDF_dataExtraction_tasks.py", reviewFilepaths[0], reviewFilepaths[1], filepath, mutexKey, str(chapterNumber)]) # continue PDF processing in background
+@app.route('/pdf_upload_batch', methods=['POST'])
+def pdf_upload_batch():
+    print('Batch PDF upload request received.')
+    files = request.files.getlist("files")
+    for file in files:
+        filename = str(uuid.uuid4()) + file.filename
+        filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
+        subprocess.Popen(["python", "initializers/uploadPDF_script.py", filepath])
     return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])
 def excel_upload():
     print('Excel upload request received.')
-    
-    result = fm.validateUpload(extension='xlsx')
-    if result[0] == False:
-        flash(result[1]) 
-        return redirect(result[2])
-    
     chapterNumber = request.form.get('chapterNumber')
-    excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
-    
+    file = request.files['file']
+    filename = str(uuid.uuid4()) + file.filename
+    excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
+
     mutexKey = secrets.token_hex()
     try: ato.claim_mutex(chapterNumber, mutexKey)
     except MutexError as e:
@@ -150,6 +131,8 @@ def excel_upload():
         return redirect(url_for('file_management'))
 
     isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
+    # Code upto here must be executed on main program (bcuz need to keep in-memory JSON store updated)
+
     if isSuccess:
         flash('Excel and generated json successfully uploaded.')
     else:
@@ -157,6 +140,44 @@ def excel_upload():
         return redirect(url_for('file_management'))
     
     subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber), mutexKey]) # continue remaining processing in the background
+    return redirect(url_for('file_management'))
+
+@app.route('/excel_upload_batch', methods=['POST'])
+def excel_upload_batch():
+    print('Batch Excel upload request received.')
+    files = request.files.getlist("files")
+    for file in files:
+        filename = str(uuid.uuid4()) + 'UUIDEND' + file.filename
+        excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
+        try:
+            chapterNumber = int(file.filename.rsplit('.')[0])
+        except: 
+            print(f'Failed to extract chapter number from filename for {file.filename}')
+            continue
+
+        mutexKey = secrets.token_hex()
+        try: ato.claim_mutex(chapterNumber, mutexKey)
+        except MutexError as e:
+            if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+                os.remove(excelFilepath)
+            flash(e.__str__())
+            return redirect(url_for('file_management'))
+        except ResourceNotFoundError:
+            if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
+                os.remove(excelFilepath)
+            flash('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
+            return redirect(url_for('file_management'))
+
+        isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
+        # Code upto here must be executed on main program (bcuz need to keep in-memory JSON store updated)
+
+        if isSuccess:
+            flash('Excel and generated json successfully uploaded.')
+        else:
+            flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
+            return redirect(url_for('file_management'))
+        
+        subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber), mutexKey]) # continue remaining processing in the background
     return redirect(url_for('file_management'))
 
 @app.route('/file_clicked', methods=['POST'])
