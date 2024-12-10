@@ -18,7 +18,6 @@ from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.DataStores import DataStores as ds
 from initializers.extract_data_for_review import convertPDFToExcelForReview
-import subprocess
 from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 import uuid
@@ -202,18 +201,10 @@ def file_clicked():
         'correctedExcel':config.reviewedExcel_container_name,
         'json':config.json_container_name
     }
-    fileTypeToFolderpathMapping = {
-        'pdf':config.temp_folderpath_for_pdf_and_json_downloads,
-        'genExcel':config.temp_folderpath_for_genExcel_downloads,
-        'correctedExcel':config.temp_folderpath_for_reviewedExcel_downloads,
-        'json':config.temp_folderpath_for_pdf_and_json_downloads
-    }
     containerName = fileTypeToContainerNameMapping[filetype]
-    savepath = fileTypeToFolderpathMapping[filetype] + filename
-    abo.download_blob_file(filename, containerName, savepath)
-    response = send_file(savepath, as_attachment=True, download_name=filename)
-    if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-        os.remove(savepath)
+    filestream = abo.download_blob_file_to_stream(filename, containerName)
+    filestream.seek(0)
+    response = send_file(filestream, as_attachment=True, download_name=filename)
     return response
 
 @app.route('/delete_till_corrected_excel', methods=['POST'])
@@ -267,26 +258,30 @@ def delete_till_pdf():
 @app.route('/generate_excel_for_review', methods=['POST'])
 def generate_excel_for_review():
     print('Request to generate excel received.')
+    # Get the data POSTED to the server
     chapterNumber = request.form.get('chapterNumber')
+    file = request.files['file']
+    filename = file.filename
+    try: chapterNumber = int(chapterNumber)
+    except ValueError: chapterNumber = None
 
-    result = fm.validateUpload(extension='pdf')
-    if result[0] == False:
-        flash(result[1]) 
-        return redirect(result[2])
-    
-    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads) # User uploaded pdf has been renamed with chapter number and saved to temporary location
-    reviewFilepaths = convertPDFToExcelForReview(filepath, int(chapterNumber))
-
-    if not reviewFilepaths: # i.e. an exception was raised when trying to extract data from the pdf
-        flash('Error with pdf or entered chapter number')
+    # Validate
+    errors = fm.validateUpload('pdf', file)
+    if errors != '':
+        print(f'Uploaded file with name {file.filename} error. {errors}')
         return redirect(url_for('file_management'))
     
-    filename = reviewFilepaths[0].rsplit("/")[-1]
-    response = send_file(reviewFilepaths[0], as_attachment=True, download_name=filename)
-    if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-        os.remove(filepath)
-        os.remove(reviewFilepaths[0])
-        os.remove(reviewFilepaths[1])
+    # Process (generate the excel)
+    file_stream = BytesIO(file.stream.read())
+    file_stream.seek(0)
+    _, excel_stream, chapterNumber = convertPDFToExcelForReview(file_stream,chapterNumber,filename)
+    if not excel_stream: # i.e. an exception was raised when trying to extract data from the pdf
+        flash('Error with pdf or entered chapter number')
+        return redirect(url_for('file_management'))
+    ## change filename to same filename with xlsx extension
+    filename = filename.replace('.pdf','.xlsx')
+
+    response = send_file(excel_stream, as_attachment=True, download_name=filename)
     return response
 
 if __name__ == '__main__':
