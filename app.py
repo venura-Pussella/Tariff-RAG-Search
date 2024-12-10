@@ -19,7 +19,6 @@ from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.DataStores import DataStores as ds
 from initializers.extract_data_for_review import convertPDFToExcelForReview
 import subprocess
-from initializers.extract_data_to_json_store import extract_data_to_json_store
 from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 import uuid
@@ -98,6 +97,8 @@ def pdf_upload():
     chapterNumber = request.form.get('chapterNumber')
     file = request.files['file']
     filename = file.filename
+    try: chapterNumber = int(chapterNumber)
+    except ValueError: chapterNumber = None
 
     # Validate
     errors = fm.validateUpload('pdf', file)
@@ -140,77 +141,51 @@ def pdf_upload_batch():
 @app.route('/excel_upload', methods=['POST'])
 def excel_upload():
     print('Excel upload request received.')
+    # Get the data POSTED to the server
     chapterNumber = request.form.get('chapterNumber')
     file = request.files['file']
-    filename = str(uuid.uuid4()) + file.filename
-    excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
+    filename = file.filename
+    try: chapterNumber = int(chapterNumber)
+    except ValueError: chapterNumber = None
 
-    mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
-    except MutexError as e:
-        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-            os.remove(excelFilepath)
-        flash(e.__str__())
-        return redirect(url_for('file_management'))
-    except ResourceNotFoundError:
-        if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-            os.remove(excelFilepath)
-        flash('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
-        return redirect(url_for('file_management'))
-
-    isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
-    # Code upto here must be executed on main program (bcuz need to keep in-memory JSON store updated)
-
-    if isSuccess:
-        flash('Excel and generated json successfully uploaded.')
-    else:
-        flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
+    # Validate
+    errors = fm.validateUpload('xlsx', file)
+    if errors != '':
+        print(f'Uploaded file with name {file.filename} error. {errors}')
         return redirect(url_for('file_management'))
     
-    subprocess.Popen(["python", "initializers/create_vectorstore.py", str(chapterNumber), mutexKey]) # continue remaining processing in the background
+    # Process upload sequence
+    file_stream = BytesIO(file.stream.read())
+    file_stream.seek(0)
+    executor = concurrent.futures.ThreadPoolExecutor()
+    executor.submit(fm.upload_excel,file_stream,filename,chapterNumber)
+    executor.shutdown(wait=False)
+    print('RETURNED')
     return redirect(url_for('file_management'))
+
 
 @app.route('/excel_upload_batch', methods=['POST'])
 def excel_upload_batch():
     print('Batch Excel upload request received.')
-    args = []
     files = request.files.getlist("files")
+
+    # Validate and add OK files to an array
+    file_streams: list[BytesIO] = []
+    filenames: list[str] = []
     for file in files:
-        filename = str(uuid.uuid4()) + 'UUIDEND' + file.filename
-        excelFilepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
-        try:
-            chapterNumber = int(file.filename.rsplit('.')[0])
-        except: 
-            print(f'Failed to extract chapter number from filename for {file.filename}')
-            continue
-
-        mutexKey = secrets.token_hex()
-        try: ato.claim_mutex(chapterNumber, mutexKey)
-        except MutexError as e:
-            if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-                os.remove(excelFilepath)
-            flash(e.__str__())
-            return redirect(url_for('file_management'))
-        except ResourceNotFoundError:
-            if platform.system() != 'Windows': # had issues with Windows (at least the Browns laptop) where the file was still 'in-use' even after the response was created. Shouldn't be an issue in deployment because we are using an Azure linux app service.
-                os.remove(excelFilepath)
-            flash('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
-            return redirect(url_for('file_management'))
-
-        isSuccess = extract_data_to_json_store(int(chapterNumber), excelFilepath, mutexKey)
-        # Code upto here must be executed on main program (bcuz need to keep in-memory JSON store updated)
-
-        if isSuccess:
-            flash('Excel and generated json successfully uploaded.')
+        errors = fm.validateUpload('xlsx', file)
+        if errors != '':
+            print(f'Uploaded file with filename {file.filename} has error: {errors}')
         else:
-            flash('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
-            return redirect(url_for('file_management'))
-        
-        args.append(str(chapterNumber))
-        args.append(mutexKey)
-    subprocess_args = ["python", "app_functions/excel_batch_process.py"]
-    subprocess_args += args
-    subprocess.Popen(subprocess_args) # continue remaining processing in the background
+            file_stream = BytesIO(file.stream.read())
+            file_stream.seek(0)
+            file_streams.append(file_stream)
+            filenames.append(file.filename)
+    executor = concurrent.futures.ThreadPoolExecutor()
+    executor.submit(fm.batch_upload_excels,file_streams,filenames)
+    executor.shutdown(wait=False)
+    print('RETURNED')
+    
     return redirect(url_for('file_management'))
 
 @app.route('/file_clicked', methods=['POST'])

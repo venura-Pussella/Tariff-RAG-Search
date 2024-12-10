@@ -7,10 +7,12 @@ from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from werkzeug.datastructures import FileStorage
 from initializers import deletingFuncs as delf
 from initializers import extract_data_for_review
-from azure.core.exceptions import ResourceExistsError
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from data_stores.AzureTableObjects import MutexError
 import concurrent.futures
 from io import BytesIO
+from initializers.extract_data_to_json_store import extract_data_to_json_store
+from initializers.create_vectorstore import update_vectorstore
 
 def allowed_file(filename: str, extension: str) -> bool:
     """Checks if filename has allowed extension.
@@ -144,3 +146,38 @@ def batch_upload_pdfs(pdffiles: list[BytesIO], filenames: list[str] = None):
     for i,pdffile in enumerate(pdffiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
         filename = filenames[i]
         upload_pdf(pdffile,filename=filename)
+
+def upload_excel(excelfile: BytesIO, filename: str, user_entered_chapter_number: int = None):
+    # if user has entered the chapter number, that is taken as the chapterNumber, otherwise it's taken from the filename
+    if user_entered_chapter_number: chapterNumber = user_entered_chapter_number
+    else: 
+        chapterNumber = filename.rsplit('.')[0]
+        try: chapterNumber = int(chapterNumber)
+        except ValueError: 
+            print('Cannot identify the chapter number the excel refers to')
+            return
+
+    mutexKey = secrets.token_hex()
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        print(e.__str__())
+        return
+    except ResourceNotFoundError:
+        print('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
+        return
+
+    isSuccess = extract_data_to_json_store(excelfile, mutexKey, chapterNumber)
+    if isSuccess:
+        print('Excel and generated json successfully uploaded.')
+    else:
+        print('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
+        ato.release_mutex(chapterNumber, mutexKey)
+        return
+    
+    update_vectorstore(chapterNumber, mutexKey)
+
+def batch_upload_excels(excelfiles: list[BytesIO], filenames: list[str] = None):
+    for i,excelfile in enumerate(excelfiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
+        filename = filenames[i]
+        upload_excel(excelfile,filename=filename)
+    
