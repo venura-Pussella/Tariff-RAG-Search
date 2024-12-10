@@ -23,17 +23,13 @@ from azure.core.exceptions import ResourceNotFoundError
 import concurrent.futures
 from io import BytesIO
 import logging
+import log_handling
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
 app.config['MAX_CONTENT_LENGTH'] = config.flask_max_accepted_file_size # Max accepted file size by Flask app
 
-# set basic logging levels and config   
-format_string = "[%(asctime)s: %(levelname)s: %(module)s: %(message)s]"
-logging.basicConfig(level=logging.INFO, format=format_string) # flask (so we can get them in Azure app service when running from a docker container)
-logging.addLevelName(25,'USER')
-logging.addLevelName(15,'LLM')
-logging.getLogger('azure').setLevel('WARNING') # otherwise Azure info logs are too numerous
+log_handling.configure_logging()
 
 ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure blob
 
@@ -322,6 +318,13 @@ def download_uncommitted_excels():
     response = send_file(zip_buffer, as_attachment=True, download_name='excels_for_review.zip')
     return response
 
+@app.route('/logs', methods=['GET'])
+def print_logs():
+    print('LOGS:')
+    for log in log_handling.log_messages:
+        print(log)
+    print('LOGS END')
+    return render_template('logs.html')
 
 if __name__ == '__main__':
    app.run()
