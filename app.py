@@ -23,6 +23,7 @@ from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 import uuid
 import concurrent.futures
 from io import BytesIO
+import logging
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -32,12 +33,12 @@ ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure b
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
-    print('Request for hscode_search page received')
+    logging.info('Request for hscode_search page received')
     results = None
     user_query = None
     if request.method == "POST":
         user_query = request.form.get("query")
-        print("app.py: user_query for hscode_search is: " + user_query)
+        logging.info("app.py: user_query for hscode_search is: " + user_query)
         results = findByHSCode.findByHSCode(user_query)
     return render_template("hscode_search.html", results=results, user_query=user_query)
 
