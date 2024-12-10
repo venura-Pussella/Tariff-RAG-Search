@@ -5,6 +5,7 @@ import markdown
 import platform
 import config
 import secrets
+import zipfile
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
@@ -288,6 +289,31 @@ def generate_excel_for_review():
 
     response = send_file(excel_stream, as_attachment=True, download_name=filename)
     return response
+
+@app.route('/download_uncommitted_excels', methods=['GET'])
+def download_uncommitted_excels():
+    print('Request to download uncommitted excels received')
+    chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded)
+
+    # download the excel-to-review for each chapter
+    excels: list[tuple[str,BytesIO]] = []
+    for chapter in chapters:
+        filename = str(chapter) + '.xlsx'
+        excel = abo.download_blob_file_to_stream(filename, config.generatedExcel_container_name)
+        excel.seek(0)
+        excels.append((filename,excel))
+
+    # zip them
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for name, file in excels:
+            zip_file.writestr(name, file.getvalue())
+    zip_buffer.seek(0)
+
+    # return the zip as a response
+    response = send_file(zip_buffer, as_attachment=True, download_name='excels_for_review.zip')
+    return response
+
 
 if __name__ == '__main__':
    app.run()

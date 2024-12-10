@@ -145,6 +145,12 @@
             </div>
             <button class="ui button primary" type="submit">Upload</button>
         </form>
+
+        <h2 class="ui header">Download Uncommitted Excels</h2>
+        
+        <form class="ui form" action="{{ url_for('download_uncommitted_excels') }}" method="GET" enctype="multipart/form-data">
+            <button class="ui button primary" type="submit">Download</button>
+        </form>
         
 
     </div>

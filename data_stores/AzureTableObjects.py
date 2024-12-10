@@ -95,3 +95,16 @@ class AzureTableObjects:
 
         table_client = cls.get_table_client()
         table_client.delete_entity(partition_key=config.azureStorageTablePartitionKeyValue, row_key=str(chapterNumber))
+
+    @classmethod
+    def get_all_entities(cls) -> list[TableEntity]:
+        table_client = cls.get_table_client()
+        return list(table_client.list_entities())
+    
+    @classmethod
+    def search_entities(cls, field: str, content: str) -> list[int]:
+        entities = cls.get_all_entities()
+        chapters: list[int] = []
+        for entity in entities:
+            if entity[field] == content: chapters.append(int(entity['RowKey']))
+        return chapters
