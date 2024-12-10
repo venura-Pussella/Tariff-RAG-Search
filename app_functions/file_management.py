@@ -1,12 +1,16 @@
 import os
 import config
+import secrets
 from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
 from data_stores.AzureTableObjects import AzureTableObjects as ato
-from flask import url_for, request
-from werkzeug.utils import secure_filename
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from werkzeug.datastructures import FileStorage
 from initializers import deletingFuncs as delf
+from initializers import extract_data_for_review
+from azure.core.exceptions import ResourceExistsError
+from data_stores.AzureTableObjects import MutexError
 import concurrent.futures
+from io import BytesIO
 
 def allowed_file(filename: str, extension: str) -> bool:
     """Checks if filename has allowed extension.
@@ -98,3 +102,41 @@ def delete_upto_pdf(chapterNumber: int):
         ]
         concurrent.futures.wait(futures)
     
+def upload_pdf(pdffile: BytesIO, user_entered_chapter_number: int = None, filename: str = None):
+    print('UPLOAD PDF CALLED')
+    
+    # convert the PDF into the dictionary, excel and identified chapter number
+    dictionary_pkl_stream, excel_stream, chapterNumber = extract_data_for_review.convertPDFToExcelForReview(pdffile,user_entered_chapter_number,filename)
+    if not dictionary_pkl_stream: # i.e. an exception was raised when trying to extract data from the pdf
+        print('Error with pdf or entered chapter number')
+        return
+    print('PASSED CONVERSION')
+    
+    try: ato.create_new_blank_entity(chapterNumber)
+    except ResourceExistsError: 
+        print(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
+        return
+    print('MADE TABLE ENTRY')
+
+    mutexKey = secrets.token_hex()
+    print('MADE MUTEX KEY')
+    try: ato.claim_mutex(chapterNumber, mutexKey)
+    except MutexError as e:
+        print(e.__str__())
+        return
+    print('CLAIMED MUTEX')
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPDF)
+    print('GOING TO UPLOAD PDF')
+    pdffile.seek(0)
+    abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{chapterNumber}.pdf') # PDF uploaded to azure blob
+    print('UPLOADED PDF')
+    print(f'{chapterNumber}.pdf' + ' successfully uploaded')
+
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
+    abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{chapterNumber}.pkl') # upload generated excel to azure blob
+    abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{chapterNumber}.xlsx') # upload dictionary pickle to azure blob
+    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.release_mutex(chapterNumber, mutexKey)
+      
+
+    print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")

@@ -23,6 +23,8 @@ from initializers.extract_data_to_json_store import extract_data_to_json_store
 from data_stores.AzureTableObjects import MutexError
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 import uuid
+import concurrent.futures
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -92,11 +94,24 @@ def file_management():
 @app.route('/pdf_upload', methods=['POST'])
 def pdf_upload():
     print('PDF upload request received.')
+    # Get the data POSTED to the server
     chapterNumber = request.form.get('chapterNumber')
     file = request.files['file']
-    filename = str(uuid.uuid4()) + file.filename
-    filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
-    subprocess.Popen(["python", "initializers/uploadPDF_script.py", filepath, chapterNumber])
+    filename = file.filename
+
+    # Validate
+    errors = fm.validateUpload('pdf', file)
+    if errors != '':
+        print(f'Uploaded file error. {errors}')
+        return redirect(url_for('file_management'))
+    
+    # Process upload sequence
+    file_stream = BytesIO(file.stream.read())
+    file_stream.seek(0)
+    executor = concurrent.futures.ThreadPoolExecutor()
+    executor.submit(fm.upload_pdf,file_stream,int(chapterNumber),filename)
+    executor.shutdown(wait=False)
+    print('RETURNED')
     return redirect(url_for('file_management'))
 
 @app.route('/pdf_upload_batch', methods=['POST'])
