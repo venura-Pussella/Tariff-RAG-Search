@@ -138,5 +138,9 @@ def upload_pdf(pdffile: BytesIO, user_entered_chapter_number: int = None, filena
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
     ato.release_mutex(chapterNumber, mutexKey)
       
-
     print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
+
+def batch_upload_pdfs(pdffiles: list[BytesIO], filenames: list[str] = None):
+    for i,pdffile in enumerate(pdffiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
+        filename = filenames[i]
+        upload_pdf(pdffile,filename=filename)

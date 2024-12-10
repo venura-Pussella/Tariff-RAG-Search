@@ -102,7 +102,7 @@ def pdf_upload():
     # Validate
     errors = fm.validateUpload('pdf', file)
     if errors != '':
-        print(f'Uploaded file error. {errors}')
+        print(f'Uploaded file with name {file.filename} error. {errors}')
         return redirect(url_for('file_management'))
     
     # Process upload sequence
@@ -118,14 +118,23 @@ def pdf_upload():
 def pdf_upload_batch():
     print('Batch PDF upload request received.')
     files = request.files.getlist("files")
-    filepaths = []
+
+    # Validate and add OK files to an array
+    file_streams: list[BytesIO] = []
+    filenames: list[str] = []
     for file in files:
-        filename = str(uuid.uuid4()) + file.filename
-        filepath = fm.saveFile(config.temp_folderpath_for_pdf_and_excel_uploads ,file, filename)
-        filepaths.append(filepath)
-    subprocess_args = ["python", "app_functions/pdf_batch_upload.py"]
-    subprocess_args += filepaths
-    subprocess.Popen(subprocess_args)
+        errors = fm.validateUpload('pdf', file)
+        if errors != '':
+            print(f'Uploaded file with filename {file.filename} has error: {errors}')
+        else:
+            file_stream = BytesIO(file.stream.read())
+            file_stream.seek(0)
+            file_streams.append(file_stream)
+            filenames.append(file.filename)
+    executor = concurrent.futures.ThreadPoolExecutor()
+    executor.submit(fm.batch_upload_pdfs,file_streams,filenames)
+    executor.shutdown(wait=False)
+    print('RETURNED')
     return redirect(url_for('file_management'))
 
 @app.route('/excel_upload', methods=['POST'])
