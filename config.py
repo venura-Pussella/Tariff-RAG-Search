@@ -32,13 +32,6 @@ reviewedExcel_container_name = "reviewedexcel-container"
 json_container_name = "json-container"
 cosmos_ids_container_name = "cosmos-ids-container"
 
-temp_folderpath_for_pdf_and_excel_uploads = 'files/pdfExcelUploads/'
-temp_folderpath_for_pdf_and_json_downloads = 'files/pdfJsonDownloads/'
-temp_folderpath_for_genExcel_downloads = 'files/genExcelDownloads/'
-temp_folderpath_for_reviewedExcel_downloads = 'files/reviewedExcelDownloads/'
-temp_folderpath_for_data_to_review = 'files/review_data/'
-temp_folderpath_for_reviewed_data = 'files/reviewed_data/'
-
 azureStorageTableName = 'chaptertracker12345'
 azureStorageTablePartitionKeyValue = 'a'
 

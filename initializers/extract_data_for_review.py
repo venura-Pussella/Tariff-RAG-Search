@@ -4,6 +4,9 @@
 import pdfplumber
 import pandas as pd
 import pickle
+from werkzeug.datastructures import FileStorage
+from io import BytesIO
+
 import config
 
 
@@ -83,27 +86,25 @@ def standardizeHSCode(hscode: str) -> str:
         raise ValueError("HS Code of unknown format passed in: {}".format(hscode))
     return hscode
 
-def extractTableAndTextFromPDF(filepath):
-    """Extracts table and pre-table text from the pdf given in the filepath.
-    ### Discussion:
-        Use pdf plumber to extract the data from the pdfs
-        All the text that comes before the table are saved in the allText array (one item is a page)
-        The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
-    ### Args:
-        filepath: filepath with the pdf
-    ### Returns:
-        df,allText: tuple - 
-            df: Pandas dataframe containing the table
-            allText: list[str] containing the textual data that comes before the table
+def extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
+    """Extracts the table from the tariff PDF and the text that comes before the table.
 
+    Uses pdf plumber to extract the data from the pdfs
+    All the text that comes before the table are saved in the allText array (one item is a page)
+    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+
+    Args:
+        file (FileStorage): the PDF file
+
+    Returns:
+        tuple[pd.DataFrame,list[str]]: table as pandas dataframe, text (one item is a page)
     """
-    
-
+    print('extractTableAndTextFromPDF called')
     allText = []
     rows = []
     tableReached = False
 
-    pdf = pdfplumber.open(filepath)
+    pdf = pdfplumber.open(file)
 
     for page in pdf.pages:
         if tableReached: # if table has already been reached, continue to extract table, no need to find more text due to the document structure having all required text before the table
@@ -134,24 +135,24 @@ def extractTableAndTextFromPDF(filepath):
 
     return df, allText
 
-def extractTableAndTextFromPDFNonStrictly(filepath):
-    """Extracts table and pre-table text from the pdf given in the filepath.
-    ### Discussion:
-        Use pdf plumber to extract the data from the pdfs
-        All the text that comes before the table are saved in the allText array (one item is a page)
-        The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
-    ### Args:
-        filepath: filepath with the pdf
-    ### Returns:
-        df,allText: tuple - 
-            df: Pandas dataframe containing the table 
-            allText: list[str] containing the textual data that comes before the table
+def extractTableAndTextFromPDFNonStrictly(file: BytesIO):
+    """Extracts the table from the tariff PDF and text on the first page.
+
+    Uses pdf plumber to extract the data from the pdfs
+    The text of the first page is saved in the allText array (one item is a page)
+    The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
+
+    Args:
+        file (FileStorage): the PDF file
+
+    Returns:
+        tuple[pd.DataFrame,list[str]]: table as pandas dataframe, text (one item is a page)
     """
 
     allText = []
     rows = []
 
-    pdf = pdfplumber.open(filepath)
+    pdf = pdfplumber.open(file)
 
     allText.append(pdf.pages[0].extract_text())
 
@@ -167,42 +168,48 @@ def extractTableAndTextFromPDFNonStrictly(filepath):
 
     return df, allText
 
-def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int = None, strict=True) -> tuple[str,str,int]:
-    """The data ripped from the pdf is persisted to disk for review.
-    ### Discussion:
-    The text and other data (basically data other than the table), are persisted as a dictionary on disk as a pickle binary.
-    The table which is extracted as a pandas dataframe is saved as an excel file, for easy reviewing and editing.
-    ### Args:
-        filepath: the filepath with the PDFs
-        strict: (defaults to True) whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.
-        filepathForReviewDocs: filepath to save documents generated for review
-    ### Returns: 
-        filepath of the saved excel (position 0), and filepath of the saved dict (position 1), and chapternNumber as a tuple
-    """
-    
+def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: int = None, filename: str = None, strict=True) -> tuple[BytesIO,BytesIO,int]:
+    """Data is ripped from the PDF to excel (and a dictionary), so that user will eventually review the excel.
+
+    The text and other data (basically data other than the table), are saved to a dictionary as a pickle binary.
+    The table which is extracted as a pandas dataframe is extracted in the form of an excel file, for easy reviewing and editing.
+    Args:
+        file (FileStorage): the pdf file
+        userEnteredChapterNumber (int, optional): If availalbe, used to verify is this matches the chapter number in the PDF. Defaults to None.
+        filename (str, optional): If available, used to handle cases where the chapter number extraction of the PDF must be hardcoded due to issues in the PDF. Defaults to None.
+        strict (bool, optional): whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.. Defaults to True.
+
+    Raises:
+        Exception: 'User entered chapter number does not match that of the PDF'
+
+    Returns:
+        tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
+    """   
+    print('get_excel_and_dictionary_from_pdf called') 
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
 
     if strict:
-        df, allText = extractTableAndTextFromPDF(filepath)
+        df, allText = extractTableAndTextFromPDF(file)
     else:
-        df, allText = extractTableAndTextFromPDFNonStrictly(filepath)
+        df, allText = extractTableAndTextFromPDFNonStrictly(file)
     df['LineItem?'] = None   
     removeNewLineCharactersFromDataframe(df)
-
-    # isolate chapter number and name
+    print('reached here')
+    # isolate chapter number and name from the PDF text
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
-    if filepath[-12:] == "63 Final.pdf" or filepath[-6:] == "63.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
-        chapterNumber = 63
-    else:
-        chapterNumber = int(allText[0][7:firstLineEndIndex])
+    try:
+        if filename[-12:] == "63 Final.pdf" or filename[-6:] == "63.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
+            chapterNumber = 63
+        else:
+            chapterNumber = int(allText[0][7:firstLineEndIndex])
+    except IndexError: chapterNumber = int(allText[0][7:firstLineEndIndex])
     startOfNotesIndex = allText[0].find('Notes.')
     if startOfNotesIndex == -1:
         startOfNotesIndex = allText[0].find('Note.')
     chapterName = allText[0][firstLineEndIndex+1:startOfNotesIndex]
     chapterName = chapterName.replace("\n"," ")
     # ......................................... #
-
     if userEnteredChapterNumber:
         if chapterNumber != userEnteredChapterNumber:
             raise Exception('User entered chapter number does not match that of the PDF')
@@ -218,9 +225,9 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int = 
         preTableNotes += text
     dictionaryForThisPDF["Pre-Table Notes"] = preTableNotes
 
-    dictionaryFilePath = config.temp_folderpath_for_data_to_review + '{}.pkl'.format(chapterNumber)
-    with open(dictionaryFilePath, 'wb') as f:
-        pickle.dump(dictionaryForThisPDF, f)
+    dictionary_stream = BytesIO()
+    pickle.dump(dictionaryForThisPDF, dictionary_stream)
+    dictionary_stream.seek(0)
     # ......................................... #
 
     
@@ -270,25 +277,33 @@ def savePdfToExcelAndStringsForReview(filepath, userEnteredChapterNumber: int = 
             current_description_uppercase = current_description.upper()
             if "OTHER" in current_description_uppercase:
                 ongoing_prefix = "" # reset on-going prefix since we have reached "other" description
-
-    filepathForExcel = config.temp_folderpath_for_data_to_review + '{}.xlsx'.format(chapterNumber)
-    df.to_excel(filepathForExcel, engine='openpyxl')  
-    return (filepathForExcel, dictionaryFilePath, chapterNumber)
+    excel_stream = BytesIO()
+    df.to_excel(excel_stream, engine='openpyxl')
+    excel_stream.seek(0)
+    return (dictionary_stream, excel_stream, chapterNumber)
          
-def convertPDFToExcelForReview(pdfFilepath: str, userEnteredChapterNumber: int = None) -> tuple[str, str] | None:
-    """Converts the pdf in the given filepath to excel. This is done so the user can review the data extraction process.
-    ### Returns:
-        filepath of the saved excel (position 0), and filepath of the saved dict (position 1), and identified chapter number as a tuple
+def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = None, filename: str = None) -> tuple[BytesIO,BytesIO,int]:
+    """Converts the pdf to excel (and dictionary pickle). This is done so the user can review the data extraction process.
+
+    Args:
+        file (FileStorage): _description_
+        userEnteredChapterNumber (int, optional): _description_. Defaults to None.
+        filename (str, optional): Used for hardcoding in cases where the chapter number cannot be extracted from the top of the PDF because of pdf structure/identification issues. Defaults to None.
+
+    Returns:
+        tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
     """
-    reviewFilepaths = None
-    try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath, userEnteredChapterNumber)
+    results = None
+    print('convertPDFToExcelForReview called')
+    try: results = get_excel_and_dictionary_from_pdf(file, userEnteredChapterNumber, filename)
     except Exception as e:
-        print("Error processing file @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
+        print("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e))
         print("Using non-strict extraction")
-        try: reviewFilepaths = savePdfToExcelAndStringsForReview(pdfFilepath,userEnteredChapterNumber,strict=False)
+        try: results = get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
         except Exception as e:
-            print("Error processing file non-strictly @ " + pdfFilepath + " Error: " + str(type(e)) + ": " + str(e))
-    return reviewFilepaths
+            print("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
+    print('convertPDFToExcelForReview returns')
+    return results
 
 
 

@@ -7,6 +7,7 @@ import os
 from data_stores.DataStores import DataStores as ds
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
+from io import BytesIO
 
 
 def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
@@ -76,7 +77,7 @@ def doesHSCodeMatchChapterNumber(hscode: str, chapterNumber: int) -> bool:
     if int(chapterNumberPart) == chapterNumber: return True
     else: return False
 
-def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, userEnteredChapterNumber: int) -> str:
+def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumber: int) -> str:
     """ Reads a single excel file from the specified filepath (and the persisted corresponding pickle dictionary), 
     and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     ### Args:
@@ -92,11 +93,8 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, user
     hsToSCMapping = DataStores.getHSCodeToSCCodeMapping()
    
 
-    df = pd.read_excel(excelFilePath, na_filter=False, dtype=str)
-    dictionaryForThisPDF = {}
-    print(dictFilepath)
-    with open(dictFilepath, 'rb') as f:
-        dictionaryForThisPDF = pickle.load(f)
+    df = pd.read_excel(excelFile, na_filter=False, dtype=str)
+    dictionaryForThisPDF: dict = pickle.load(dictStream)
 
 
     del df[df.columns[0]]
@@ -164,7 +162,7 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, user
                 continue # skip this row
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
 
-            if not doesHSCodeMatchChapterNumber(current_hscode, userEnteredChapterNumber):
+            if not doesHSCodeMatchChapterNumber(current_hscode, chapterNumber):
                 raise Exception("User entered chapter number does not match at least one of the valid HS codes in the excel file")
 
             standardizedHSCode2 = standardizedHSCode[:-3] + "00N"
@@ -201,34 +199,27 @@ def saveExcelAndDictToJSON2(excelFilePath, dictFilepath, targetPathForJSON, user
     dictionaryForThisPDF["Items"] = items
 
     json_string = json.dumps(dictionaryForThisPDF)
-    with open(targetPathForJSON,'w') as file:
-        file.write(json_string)
-
     return json_string
     # ......................................... #
 
-def extract_data_to_json_store(chapterNumber: int, excelFilepath: str, mutexKey: str) -> bool:
+def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber: int) -> bool:
     dictFileName = str(chapterNumber) + '.pkl'
-    dictPath = config.temp_folderpath_for_reviewed_data + dictFileName
-    abo.download_blob_file(dictFileName, config.generatedDict_container_name, dictPath)
-    jsonPath = config.temp_folderpath_for_reviewed_data + str(chapterNumber) + '.json'
+    dictStream = abo.download_blob_file_to_stream(dictFileName, config.generatedDict_container_name)
     try:
-        json_string = saveExcelAndDictToJSON2(excelFilepath,dictPath,jsonPath, chapterNumber)
+        json_string = saveExcelAndDictToJSON2(excelfile, dictStream, chapterNumber)
     except Exception as e:
         print(e)
-        os.remove(dictPath)
-        os.remove(excelFilepath)
         return False
+
+    json_stream = BytesIO(json_string.encode('utf-8')) 
+    json_stream.seek(0); dictStream.seek(0); excelfile.seek(0)
 
     print("Excel converted to json.")
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
-    abo.upload_blob_file(excelFilepath, config.reviewedExcel_container_name, f'{chapterNumber}.xlsx') # Excel uploaded to Azure blob
-    print('Excel @ ' + excelFilepath + ' successfully uploaded')
-    os.remove(dictPath)
-    os.remove(excelFilepath)
+    abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{chapterNumber}.xlsx') # Excel uploaded to Azure blob
+    print('Excel @ ' + f'{chapterNumber}.xlsx' + ' successfully uploaded')
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingJson)
-    abo.upload_blob_file(jsonPath,config.json_container_name)    
+    abo.upload_to_blob_from_stream(json_stream, config.json_container_name,  f'{chapterNumber}.json') # Json uploaded to Azure blob
     ds.insertNewJSONDictManually(json_string, int(chapterNumber))
-    os.remove(jsonPath)
     print("Uploaded json")
     return True

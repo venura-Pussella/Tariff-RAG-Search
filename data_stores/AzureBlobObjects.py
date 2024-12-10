@@ -2,6 +2,7 @@ import os
 from azure.storage.blob import BlobServiceClient
 import config
 from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
+from io import BytesIO
 
 class AzureBlobObjects:
     """Singleton class to hold blob-service-client and container clients. Contains methods to retrieve them, and the getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
@@ -64,6 +65,16 @@ class AzureBlobObjects:
             else: container_client.upload_blob(name=filename, data=data, overwrite=True)
 
     @classmethod
+    def upload_to_blob_from_stream(cls, filestream: BytesIO, containerName: str, file_name: str):
+        """Upload file specified in filepath to the specified container in Azure storage.
+        """
+        cls.get_container_client(containerName) # this will creates container if it doesn't exist already
+        blob_service_client = cls.get_blob_service_client()
+        blob_client = blob_service_client.get_blob_client(container=containerName, blob=file_name)
+        print("file about to be uploaded to blob from stream with given filename: " + file_name)
+        blob_client.upload_blob(filestream, blob_type="BlockBlob")
+
+    @classmethod
     def download_blob_file(cls, filename: str, containerName: str, savepath: str):
         """Download file specified in filename from Azure blob to the specified file path.
         """
@@ -76,3 +87,18 @@ class AzureBlobObjects:
                 data.write(download_stream.readall())
             except ResourceNotFoundError:
                 print("The file was not found, maybe user clicked on a Nil cell")
+
+    @classmethod
+    def download_blob_file_to_stream(cls, filename: str, containerName: str) -> BytesIO:
+        """Download file specified in filename from Azure blob to the specified file path.
+        """
+        container_client = cls.get_container_client(containerName)
+        print("filename about to be downloaded from blob: " + filename)
+        blob_client = container_client.get_blob_client(blob=filename)
+        stream = BytesIO()
+        try: 
+            blob_client.download_blob().readinto(stream)
+            stream.seek(0)
+        except ResourceNotFoundError:
+            print("The file was not found, maybe user clicked on a Nil cell")
+        return stream
