@@ -4,6 +4,7 @@ import config
 from other_funcs.tokenTracker import TokenTracker as tok
 from other_funcs import getEmbeddings as emb
 import datetime
+import logging
 import pickle
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
@@ -35,18 +36,18 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
         ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
-            print("Deleted cosmos ID: " + str(cosmosID))
+            logging.info("Deleted cosmos ID: " + str(cosmosID))
         ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
         blob_client.delete_blob()
     except TypeError as e:
-        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+        logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
     
     # Add the new documents (line items) to the vector-store
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
-    print("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
-    print("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
+    logging.info("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
+    logging.info("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
     allIDs = []
 
     container = co.getCosmosContainer()
@@ -83,7 +84,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     ato.release_mutex(chapterNumber, mutexKey)
     
     ct = datetime.datetime.now()
-    print("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
+    logging.info("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
 
 def getLangchainVectorstore():
     """Simply returns a langchain reference object to our Cosmos DB
@@ -111,7 +112,7 @@ def getLangchainVectorstore():
     
 
     #create blank vectorstore (or get an already created one)
-    print("Getting langchain vectorstore object.")
+    logging.info("Getting langchain vectorstore object.")
     vectorstore = AzureCosmosDBNoSqlVectorSearch(
         cosmos_client=cosmos_client,
         database_name=database_name,
@@ -122,7 +123,7 @@ def getLangchainVectorstore():
         cosmos_database_properties=cosmos_database_properties,
         embedding=embedding,
     )
-    print("Langchain vector store returned.")
+    logging.info("Langchain vector store returned.")
     return vectorstore
 
 def deleteChapterFromCosmos(chapterNumber: int):
@@ -136,15 +137,15 @@ def deleteChapterFromCosmos(chapterNumber: int):
         cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
     except exceptions.ResourceNotFoundError:
         cosmosIDs: list = None
-        print("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber))
+        logging.error("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber))
         return
 
     # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
     try:
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
-            print("Deleted cosmos ID: " + str(cosmosID))
+            logging.info("Deleted cosmos ID: " + str(cosmosID))
         blob_client.delete_blob()
     except TypeError as e:
-        print("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+        logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 

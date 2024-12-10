@@ -1,6 +1,7 @@
 import config
 import json
 import os
+import logging
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.chat_models import AzureChatOpenAI
 from data_stores.DataStores import DataStores as ds
@@ -49,9 +50,11 @@ def getChatBotAnswer(userQuery_to_chatBot: str) -> str:
         str: llm generated answer
     """
     descriptionSearchQuery = generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot)
+    logging.log(15,f'descriptionSearchQuery: {descriptionSearchQuery}')
     resultsAndScores = vs.vectorStoreSearch(descriptionSearchQuery)
     lineItems = resultsAndScores[0]
     lineItemsJSONString = json.dumps(lineItems)
+    logging.log(15,f'line items retrieved: {lineItemsJSONString}')
 
     template_for_answering_userQuery_with_retrieved_docs = """You are a help desk agent at a logistics company. \
     A user has given you a question regarding tariffs of a certain item or a range of items. \

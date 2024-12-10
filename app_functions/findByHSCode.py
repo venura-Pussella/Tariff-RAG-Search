@@ -1,3 +1,5 @@
+import logging
+
 from data_stores.DataStores import DataStores
 
 def findByHSCode(query: str) -> list[dict]:
@@ -27,8 +29,8 @@ def findByHSCode(query: str) -> list[dict]:
           else: # eg: 2802, 2802.10
                chapterNumber = int(query[:dotIndex]) // 100
      except ValueError as e:
-          print("Value error raised, user must have enterted text or an unexpected format")
-          print(e)
+          logging.error("Value error raised, user must have enterted text or an unexpected format")
+          logging.error(e)
           return []
 
      if not (chapterNumber in data_dict): return []

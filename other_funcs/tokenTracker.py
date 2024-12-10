@@ -1,4 +1,5 @@
 import config
+import logging
 
 class TokenTracker:
 
@@ -14,9 +15,9 @@ class TokenTracker:
 
         numOfTokens = TokenTracker.getTokenCount(text)
         TokenTracker.lifetimeTokens += numOfTokens
-        print("Lifetime tokens: " + str(TokenTracker.lifetimeTokens))
+        logging.info("Lifetime tokens: " + str(TokenTracker.lifetimeTokens))
         if TokenTracker.lifetimeTokens > config.lifetimeTokenLimit:
-            print("Hit Lifetime token limit. Exiting!")
+            logging.warning("Hit Lifetime token limit. Exiting!")
             exit()
 
     @classmethod
@@ -28,9 +29,9 @@ class TokenTracker:
 
         numOfTokens = TokenTracker.getTokenCount(text)
         TokenTracker.lifetimeTokens_chatbot += numOfTokens
-        print("Lifetime tokens of chatbot: " + str(TokenTracker.lifetimeTokens_chatbot))
+        logging.info("Lifetime tokens of chatbot: " + str(TokenTracker.lifetimeTokens_chatbot))
         if TokenTracker.lifetimeTokens_chatbot > config.lifetimeTokenLimit_chatbot:
-            print("Hit Lifetime token limit of chatbot. Exiting!")
+            logging.warning("Hit Lifetime token limit of chatbot. Exiting!")
             exit()
 
 

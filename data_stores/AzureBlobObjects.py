@@ -1,4 +1,5 @@
 import os
+import logging
 from azure.storage.blob import BlobServiceClient
 import config
 from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
@@ -43,7 +44,7 @@ class AzureBlobObjects:
                 if not relevantPrivateContainerClient.exists():
                     relevantPrivateContainerClient = blob_service_client.create_container(name=containerName)
         except ServiceRequestError:
-            print('Service Request Error. Also check if the server is connected to the internet.')
+            logging.error('Service Request Error. Also check if the server is connected to the internet.')
 
         return relevantPrivateContainerClient
     
@@ -59,7 +60,7 @@ class AzureBlobObjects:
         """
         filename = os.path.basename(filepath)
         container_client = cls.get_container_client(containerName)
-        print("filename about to be uploaded to blob: " + filename)
+        logging.info("filename about to be uploaded to blob: " + filename)
         with open(filepath, mode="rb") as data:
             if file_rename: container_client.upload_blob(name=file_rename, data=data, overwrite=True)
             else: container_client.upload_blob(name=filename, data=data, overwrite=True)
@@ -71,7 +72,7 @@ class AzureBlobObjects:
         cls.get_container_client(containerName) # this will creates container if it doesn't exist already
         blob_service_client = cls.get_blob_service_client()
         blob_client = blob_service_client.get_blob_client(container=containerName, blob=file_name)
-        print("file about to be uploaded to blob from stream with given filename: " + file_name)
+        logging.info("file about to be uploaded to blob from stream with given filename: " + file_name)
         blob_client.upload_blob(filestream, blob_type="BlockBlob")
 
     @classmethod
@@ -79,26 +80,26 @@ class AzureBlobObjects:
         """Download file specified in filename from Azure blob to the specified file path.
         """
         container_client = cls.get_container_client(containerName)
-        print("filename about to be downloaded from blob: " + filename)
+        logging.info("filename about to be downloaded from blob: " + filename)
         blob_client = container_client.get_blob_client(blob=filename)
         with open(savepath, mode="wb") as data:
             try: 
                 download_stream = blob_client.download_blob()
                 data.write(download_stream.readall())
             except ResourceNotFoundError:
-                print("The file was not found, maybe user clicked on a Nil cell")
+                logging.error(f"The file was not found, maybe user clicked on a Nil cell. Filename received:{filename}")
 
     @classmethod
     def download_blob_file_to_stream(cls, filename: str, containerName: str) -> BytesIO:
         """Download file specified in filename from Azure blob to the specified file path.
         """
         container_client = cls.get_container_client(containerName)
-        print("filename about to be downloaded from blob: " + filename)
+        logging.info("filename about to be downloaded from blob: " + filename)
         blob_client = container_client.get_blob_client(blob=filename)
         stream = BytesIO()
         try: 
             blob_client.download_blob().readinto(stream)
             stream.seek(0)
         except ResourceNotFoundError:
-            print("The file was not found, maybe user clicked on a Nil cell")
+            logging.error(f"The file was not found, maybe user clicked on a Nil cell. Filename received:{filename}")
         return stream

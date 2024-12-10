@@ -1,5 +1,6 @@
 import os
 import config
+import logging
 from azure.data.tables import TableServiceClient, TableEntity, UpdateMode
 
 class MutexError(Exception):
@@ -23,6 +24,7 @@ class AzureTableObjects:
         if cls.__table_service_client == None:
             connection_string = os.getenv("AZURE_TABLE_CONNECTION_STRING")
             cls.__table_service_client = TableServiceClient.from_connection_string(connection_string)
+            logging.info('table_service_client created')
         return cls.__table_service_client
     
     @classmethod
@@ -30,6 +32,7 @@ class AzureTableObjects:
         if cls.__table_client == None:
             table_service_client = cls.get_table_service_client()
             cls.__table_client = table_service_client.create_table_if_not_exists(table_name=config.azureStorageTableName)
+            logging.info('table_client created')
         return cls.__table_client
     
 

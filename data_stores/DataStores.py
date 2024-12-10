@@ -1,4 +1,5 @@
 import json
+import logging
 import config
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from azure.storage.blob import ContainerClient
@@ -71,7 +72,7 @@ class DataStores:
             for jsonName in jsonNameList:
                 chapterNumber = int(jsonName.rsplit('.')[0])
                 updateJSONdictFromAzureBlob(jsonName, chapterNumber)
-        print("Loading jsons from Azure Blob into memory completed.")
+        logging.info("Loading jsons from Azure Blob into memory completed.")
 
     @classmethod
     def insertNewJSONDictManually(cls, json_string: str, chapterNumber: int) -> None:

@@ -1,3 +1,5 @@
+import logging
+
 from other_funcs.getEmbeddings import getEmbeddings
 from app_functions import findByHSCode as fhsc
 from data_stores.CosmosObjects import CosmosObjects
@@ -17,7 +19,7 @@ def vectorStoreSearch(question: str) -> list[dict]:
     # print("|||VectorStoreSearch Called - " + str(ct))
 
 
-    print("Vector store search called")
+    logging.info("Vector store search called")
     results = []
 
     embeddings = getEmbeddings.getEmbeddings()
@@ -41,7 +43,7 @@ def convertHSCodeToItem(hscode: str) -> dict:
     item = {}
     resultList = fhsc.findByHSCode(hscode)
     try: item = resultList[0] # came across one case where a line item had been created without an hs code because there was a row without a line item but with a unit
-    except Exception as e: print(e)
+    except Exception as e: logging.error(e)
 
     return item   
 

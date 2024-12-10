@@ -1,6 +1,6 @@
-import os
 import config
 import secrets
+import logging
 from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
@@ -67,27 +67,15 @@ def generateArrayForTableRows() -> list[list[str]]:
         tableRows.append(tableRow)
     return tableRows
 
-def saveFile(folderpath: str, file: FileStorage, filename: str) -> str:
-    """Saves the file user has POSTed to the specified folderpath.
-    File and Chapter Number from the form is obtained globally thru the Flask requests.
-
-    Returns:
-        str: final filepath
-    """
-    filepath = os.path.join(folderpath, filename)
-    file.save(filepath)
-
-    return filepath
-
 def delete_upto_corrected_excel(chapterNumber: int):
     """Deletes a file record upto and including the corrected excel.
 
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(delf.deleteChapterFromCosmos(chapterNumber)), 
-            executor.submit(delf.deleteChapterJsonBlob(chapterNumber)), 
-            executor.submit(delf.deleteChapterReviewedExcelBlob(chapterNumber))
+            executor.submit(delf.deleteChapterFromCosmos, chapterNumber), 
+            executor.submit(delf.deleteChapterJsonBlob, chapterNumber), 
+            executor.submit(delf.deleteChapterReviewedExcelBlob, chapterNumber)
         ]
         concurrent.futures.wait(futures)
     
@@ -97,42 +85,40 @@ def delete_upto_pdf(chapterNumber: int):
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(delete_upto_corrected_excel(chapterNumber)),
-            executor.submit(delf.deleteChapterDictPickleBlob(chapterNumber)),
-            executor.submit(delf.deleteChapterGeneratedExcelBlob(chapterNumber)),
-            executor.submit(delf.deleteChapterPDFBlob(chapterNumber))
+            executor.submit(delete_upto_corrected_excel, chapterNumber),
+            executor.submit(delf.deleteChapterDictPickleBlob, chapterNumber),
+            executor.submit(delf.deleteChapterGeneratedExcelBlob, chapterNumber),
+            executor.submit(delf.deleteChapterPDFBlob, chapterNumber)
         ]
         concurrent.futures.wait(futures)
     
 def upload_pdf(pdffile: BytesIO, user_entered_chapter_number: int = None, filename: str = None):
-    print('UPLOAD PDF CALLED')
-    
+   
     # convert the PDF into the dictionary, excel and identified chapter number
     dictionary_pkl_stream, excel_stream, chapterNumber = extract_data_for_review.convertPDFToExcelForReview(pdffile,user_entered_chapter_number,filename)
     if not dictionary_pkl_stream: # i.e. an exception was raised when trying to extract data from the pdf
-        print('Error with pdf or entered chapter number')
+        if user_entered_chapter_number:
+            logging.error(f'Error with pdf or entered chapter number. User entered chapter number: {user_entered_chapter_number}')
+        elif filename:
+            logging.error(f"Error with pdf or entered chapter number. User uploaded file's filename: {filename}")
+        elif chapterNumber:
+            logging.error(f"Error with pdf or entered chapter number. Filename and user_entered_chapter_number not received. Identified chapter number: {str(chapterNumber)}")
         return
-    print('PASSED CONVERSION')
     
     try: ato.create_new_blank_entity(chapterNumber)
     except ResourceExistsError: 
-        print(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
+        logging.error(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
         return
-    print('MADE TABLE ENTRY')
 
     mutexKey = secrets.token_hex()
-    print('MADE MUTEX KEY')
     try: ato.claim_mutex(chapterNumber, mutexKey)
     except MutexError as e:
-        print(e.__str__())
+        logging.error(e.__str__())
         return
-    print('CLAIMED MUTEX')
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPDF)
-    print('GOING TO UPLOAD PDF')
     pdffile.seek(0)
     abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{chapterNumber}.pdf') # PDF uploaded to azure blob
-    print('UPLOADED PDF')
-    print(f'{chapterNumber}.pdf' + ' successfully uploaded')
+    logging.log(25,f'{chapterNumber}.pdf' + ' successfully uploaded')
 
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
     abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{chapterNumber}.pkl') # upload generated excel to azure blob
@@ -140,7 +126,7 @@ def upload_pdf(pdffile: BytesIO, user_entered_chapter_number: int = None, filena
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
     ato.release_mutex(chapterNumber, mutexKey)
       
-    print("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
+    logging.info("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
 def batch_upload_pdfs(pdffiles: list[BytesIO], filenames: list[str] = None):
     for i,pdffile in enumerate(pdffiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
@@ -154,23 +140,23 @@ def upload_excel(excelfile: BytesIO, filename: str, user_entered_chapter_number:
         chapterNumber = filename.rsplit('.')[0]
         try: chapterNumber = int(chapterNumber)
         except ValueError: 
-            print('Cannot identify the chapter number the excel refers to')
+            logging.error(f'Cannot identify the chapter number the excel {filename} refers to')
             return
 
     mutexKey = secrets.token_hex()
     try: ato.claim_mutex(chapterNumber, mutexKey)
     except MutexError as e:
-        print(e.__str__())
+        logging.error(e.__str__())
         return
     except ResourceNotFoundError:
-        print('The chapter was not found. Perhaps you must create the chapter record by uploading a PDF.')
+        logging.error(f'The chapter was not found. Perhaps you must create the chapter record by uploading a PDF. Excel: {filename}')
         return
 
     isSuccess = extract_data_to_json_store(excelfile, mutexKey, chapterNumber)
     if isSuccess:
-        print('Excel and generated json successfully uploaded.')
+        logging.log(25,'Excel and generated json successfully uploaded.')
     else:
-        print('Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number.')
+        logging.error(f'Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number. Excel: {filename}')
         ato.release_mutex(chapterNumber, mutexKey)
         return
     

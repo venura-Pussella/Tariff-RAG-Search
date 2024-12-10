@@ -8,6 +8,7 @@
 
 import sys
 import os
+import logging
 # sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
 sys.path.append(os.getcwd()) # IMPORTANT: required since we manually run this script from this location itself
 import config
@@ -19,11 +20,11 @@ import concurrent.futures
 from datetime import datetime
 
 def update_vectorstore(chapterNumber: int, mutexKey: str):
-    print(f"Starting addition to vectorstore... chapter {chapterNumber}")
+    logging.info(f"Starting addition to vectorstore... chapter {chapterNumber}")
 
     # load the extracted json data into a dictionary
     # ......................................... #
-    print("Loading json files into memory...")
+    logging.info("Loading json files into memory...")
     DataStores.updateJSONdictsFromAzureBlob([chapterNumber])
     if chapterNumber:
         json_dicts = DataStores.getJson_dicts([chapterNumber])
@@ -35,7 +36,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str):
     # create Line_Item objects
     # ......................................... #
     docs = []
-    print(f"Creating Line Item objects from json chapter(s)... Chapter number:{chapterNumber}... {datetime.now()}")
+    logging.info(f"Creating Line Item objects from json chapter(s)... Chapter number:{chapterNumber}... {datetime.now()}")
 
     for key,value in json_dicts.items():
         json_dict = value
@@ -79,7 +80,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str):
                 futures.append(executor.submit(create_line_item, item))
             concurrent.futures.wait(futures)
             
-    print(f"END creating Line Item objects from json chapter(s)...Chapter number:{chapterNumber}... {datetime.now()}")
+    logging.info(f"END creating Line Item objects from json chapter(s)...Chapter number:{chapterNumber}... {datetime.now()}")
     # ......................................... #
 
 
@@ -92,7 +93,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str):
         import initializers.az_cosmos_nosql_vectorstore as azcn
         azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber, mutexKey)
     else:
-        print("Type of vectorstore to be created/overwritten not specified in config.py")
+        logging.error("Type of vectorstore to be created/overwritten not specified in config.py")
 
 
 

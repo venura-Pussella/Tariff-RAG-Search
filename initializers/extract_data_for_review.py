@@ -6,6 +6,7 @@ import pandas as pd
 import pickle
 from werkzeug.datastructures import FileStorage
 from io import BytesIO
+import logging
 
 import config
 
@@ -99,7 +100,6 @@ def extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
     Returns:
         tuple[pd.DataFrame,list[str]]: table as pandas dataframe, text (one item is a page)
     """
-    print('extractTableAndTextFromPDF called')
     allText = []
     rows = []
     tableReached = False
@@ -185,7 +185,6 @@ def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: i
     Returns:
         tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
     """   
-    print('get_excel_and_dictionary_from_pdf called') 
     headerNumber = getDataframeHeadernameToColumnNumberMapping()
 
     if strict:
@@ -194,7 +193,6 @@ def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: i
         df, allText = extractTableAndTextFromPDFNonStrictly(file)
     df['LineItem?'] = None   
     removeNewLineCharactersFromDataframe(df)
-    print('reached here')
     # isolate chapter number and name from the PDF text
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
@@ -269,9 +267,9 @@ def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: i
             try: standardizeHSCode(current_hscode)
             except Exception as e: 
                 df.loc[n, 'LineItem?'] = 'hscode error'
-                print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
-                print(type(e))
-                print(e)
+                logging.error("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
+                logging.error(type(e))
+                logging.error(e)
 
             #if description contains "other", reset prefix
             current_description_uppercase = current_description.upper()
@@ -294,15 +292,13 @@ def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = No
         tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
     """
     results = None
-    print('convertPDFToExcelForReview called')
     try: results = get_excel_and_dictionary_from_pdf(file, userEnteredChapterNumber, filename)
     except Exception as e:
-        print("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e))
-        print("Using non-strict extraction")
+        logging.error("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e))
+        logging.error("Using non-strict extraction")
         try: results = get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
         except Exception as e:
-            print("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
-    print('convertPDFToExcelForReview returns')
+            logging.error("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
     return results
 
 

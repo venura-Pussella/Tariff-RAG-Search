@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import logging
 import pickle 
 from data_stores.DataStores import DataStores
 import config
@@ -67,7 +68,7 @@ def standardizeHSCode(hscode: str) -> str:
         hscode += '.00.00N'
     else:
         errorText = "HS Code of unknown format passed in: {}".format(hscode)
-        print(errorText)
+        logging.error(errorText)
         raise ValueError()
     return hscode
           
@@ -155,10 +156,10 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
             try: standardizedHSCode = standardizeHSCode(current_hscode)
             except Exception as e: 
                 standardizedHSCode = current_hscode
-                print(current_hscode)
-                print("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
-                print(type(e))
-                print(e)
+                logging.error(current_hscode)
+                logging.error("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
+                logging.error(type(e))
+                logging.error(e)
                 continue # skip this row
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
 
@@ -208,18 +209,18 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     try:
         json_string = saveExcelAndDictToJSON2(excelfile, dictStream, chapterNumber)
     except Exception as e:
-        print(e)
+        logging.error(e)
         return False
 
     json_stream = BytesIO(json_string.encode('utf-8')) 
     json_stream.seek(0); dictStream.seek(0); excelfile.seek(0)
 
-    print("Excel converted to json.")
+    logging.info("Excel converted to json.")
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
     abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{chapterNumber}.xlsx') # Excel uploaded to Azure blob
-    print('Excel @ ' + f'{chapterNumber}.xlsx' + ' successfully uploaded')
+    logging.info('Excel @ ' + f'{chapterNumber}.xlsx' + ' successfully uploaded')
     ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingJson)
     abo.upload_to_blob_from_stream(json_stream, config.json_container_name,  f'{chapterNumber}.json') # Json uploaded to Azure blob
     ds.insertNewJSONDictManually(json_string, int(chapterNumber))
-    print("Uploaded json")
+    logging.info(f"Uploaded json for chapternumber {chapterNumber}")
     return True
