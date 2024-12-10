@@ -30,8 +30,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
 app.config['MAX_CONTENT_LENGTH'] = config.flask_max_accepted_file_size # Max accepted file size by Flask app
 
-# set basic logging level of Flask app to info, so we can get these from Azure
-logging.basicConfig(level=logging.INFO)
+# set basic logging levels
+logging.basicConfig(level=logging.INFO) # flask (so we can get them in Azure app service when running from a docker container)
+logging.getLogger('azure').setLevel('WARNING') # otherwise Azure info logs are too numerous
 
 ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure blob
 
