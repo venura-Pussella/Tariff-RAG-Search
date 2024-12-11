@@ -3,9 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logs</title>
+    <title>Tariff Document Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+        <ul class="navbar-nav ">
+          <li class="nav-item "><a class="nav-link" href="{{ url_for('hscode_search')}}">Search by HS Code</a> </li>    
+          <li class="nav-item "><a class="nav-link" href="{{ url_for('sccode_search')}}">Search by SC Code</a></li>
+          <li class="nav-item"><a  class="nav-link" href="{{ url_for('vector_store_search')}}">Line Item Search</a></li>   
+          <li class="nav-item "><a class="nav-link" href="{{ url_for('chatbot')}}">RAG (Beta)</a></li>      
+          <li class="nav-item "><a class="nav-link" href="{{ url_for('file_management')}}">File Management</a></li>  
+          <li class="nav-item active"><a style="color: black;" class="nav-link" href="{{ url_for('print_logs')}}">Logs</a></li>  
+        </ul>       
+    </nav>
+
+    <h3 class="ui header">Select Minimum Log Level</h3>
+    <div class="ui container" style="width: 20%; margin: auto"></div>
+        <form class="ui form" action="{{ url_for('print_logs') }}" method="POST">
+            <select class="ui fluid dropdown" name="loglevelfilter">
+                <option value="Debug">Debug</option>
+                <option value="LLM">LLM</option>
+                <option value="Info">Info</option>
+                <option value="User">User</option>
+                <option value="Warning">Warning</option>
+                <option value="Error">Error</option>
+            </select>
+            <button class="ui button primary" type="submit">Filter</button>
+        </form>
+    </div>
+
+    <table class="ui celled table">
+        <thead>
+            <tr>
+                <th>Datetime Stamp</th>
+                <th>Level</th>
+                <th>Module</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+
+        {% if tableRows %}
+        <tbody>
+            {% for tableRow in tableRows %}
+            <tr>
+                <td>{{ tableRow[0] }}</td>
+                <td>{{ tableRow[1] }}</td>
+                <td>{{ tableRow[2] }}</td>
+                <td>{{ tableRow[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% endif %}
+    </table>
 </body>
-</html>

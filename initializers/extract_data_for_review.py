@@ -303,5 +303,3 @@ def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = No
 
 
 
-
-

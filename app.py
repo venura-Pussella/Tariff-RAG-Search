@@ -24,6 +24,7 @@ import concurrent.futures
 from io import BytesIO
 import logging
 import log_handling
+from app_functions import logs as l
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -318,13 +319,15 @@ def download_uncommitted_excels():
     response = send_file(zip_buffer, as_attachment=True, download_name='excels_for_review.zip')
     return response
 
-@app.route('/logs', methods=['GET'])
+@app.route('/logs', methods=['GET', 'POST'])
 def print_logs():
-    print('LOGS:')
-    for log in log_handling.log_messages:
-        print(log)
-    print('LOGS END')
-    return render_template('logs.html')
+    logging.info('Request for logs page received')
+    tableRows = l.generate_array_for_log_tablerows()
+    if request.method == "POST":
+        loglevelfilter = request.form.get("loglevelfilter")
+        tableRows = l.get_filtered_logs(tableRows, loglevelfilter)
+    tableRows.reverse() # show most recent logs first
+    return render_template('logs.html', tableRows= tableRows)
 
 if __name__ == '__main__':
    app.run()

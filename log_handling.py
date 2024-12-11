@@ -1,7 +1,7 @@
 import logging
 import sys
 
-log_messages = []
+log_messages: list[str] = []
 
 def configure_logging():
     # otherwise Azure info logs are too numerous
