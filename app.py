@@ -174,6 +174,7 @@ def excel_upload():
 def excel_upload_batch():
     logging.info('Batch Excel upload request received.')
     files = request.files.getlist("files")
+    release = request.form.get('release')
 
     # Validate and add OK files to an array
     file_streams: list[BytesIO] = []
@@ -188,7 +189,7 @@ def excel_upload_batch():
             file_streams.append(file_stream)
             filenames.append(file.filename)
     executor = concurrent.futures.ThreadPoolExecutor()
-    executor.submit(fm.batch_upload_excels,file_streams,filenames)
+    executor.submit(fm.batch_upload_excels,file_streams,release,filenames)
     executor.shutdown(wait=False)
     
     return redirect(url_for('file_management'))

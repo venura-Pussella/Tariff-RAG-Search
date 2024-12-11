@@ -163,8 +163,8 @@ def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_ente
     
     update_vectorstore(chapterNumber, mutexKey, release_date)
 
-def batch_upload_excels(excelfiles: list[BytesIO], filenames: list[str] = None):
+def batch_upload_excels(excelfiles: list[BytesIO], release_date: str, filenames: list[str] = None):
     for i,excelfile in enumerate(excelfiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
         filename = filenames[i]
-        upload_excel(excelfile,filename=filename)
+        upload_excel(excelfile,filename,release_date)
     
