@@ -6,13 +6,15 @@ def generate_array_for_log_tablerows():
         log = log[1:-1] # get rid of the square brackets surrounding the log message
         splits = log.rsplit(':')
         timestamp = splits[0] + splits[1] + splits[2]
-        level = splits[3]
+        name = splits[3]
         module = splits[4]
+        level = splits[5]
+        
         message = ''
-        for remaining in splits[5:]:
+        for remaining in splits[6:]:
             message += remaining + ':'
         message = message[:-1] # get rid of last colon
-        row = [timestamp, level, module, message]
+        row = [timestamp, name, module, level, message]
         tableRows.append(row)
     return tableRows
 

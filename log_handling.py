@@ -23,7 +23,7 @@ def configure_logging():
             log_entry = self.format(record)
             log_messages.append(log_entry)
 
-    format_string = "[%(asctime)s: %(levelname)s: %(module)s: %(message)s]"
+    format_string = "[%(asctime)s: %(name)s: %(module)s: %(levelname)s: %(message)s]"
     list_handler = ListHandler()
 
 
