@@ -12,9 +12,9 @@ def __deleteChapterBlob(chapterNumber: int, file_extension: str, container_name:
     except ResourceNotFoundError:
         logging.error(f'Blob to be deleted not found. Perhaps it was already deleted or never existed. chapterNumber: {chapterNumber}, file_extension:{file_extension}, container_name:{container_name}')
 
-def deleteChapterJsonBlob(chapterNumber: int):
+def deleteChapterJsonBlob(chapterNumber: int, release_date: str):
     __deleteChapterBlob(chapterNumber, 'json', config.json_container_name)
-    ds.updateJSONdictsFromAzureBlob([chapterNumber])
+    ds.updateJSONdictsFromAzureBlob([(chapterNumber,release_date)])
 
 def deleteChapterReviewedExcelBlob(chapterNumber: int):
     __deleteChapterBlob(chapterNumber, 'xlsx', config.reviewedExcel_container_name)

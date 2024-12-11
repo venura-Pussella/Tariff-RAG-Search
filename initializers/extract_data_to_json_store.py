@@ -203,8 +203,8 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
     return json_string
     # ......................................... #
 
-def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber: int) -> bool:
-    dictFileName = str(chapterNumber) + '.pkl'
+def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber: int, release_date: str) -> bool:
+    dictFileName = release_date + '/' + str(chapterNumber) + '.pkl'
     dictStream = abo.download_blob_file_to_stream(dictFileName, config.generatedDict_container_name)
     try:
         json_string = saveExcelAndDictToJSON2(excelfile, dictStream, chapterNumber)
@@ -216,11 +216,11 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     json_stream.seek(0); dictStream.seek(0); excelfile.seek(0)
 
     logging.info("Excel converted to json.")
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
-    abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{chapterNumber}.xlsx') # Excel uploaded to Azure blob
-    logging.info('Excel @ ' + f'{chapterNumber}.xlsx' + ' successfully uploaded')
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingJson)
-    abo.upload_to_blob_from_stream(json_stream, config.json_container_name,  f'{chapterNumber}.json') # Json uploaded to Azure blob
-    ds.insertNewJSONDictManually(json_string, int(chapterNumber))
-    logging.info(f"Uploaded json for chapternumber {chapterNumber}")
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
+    abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{release_date}/{chapterNumber}.xlsx') # Excel uploaded to Azure blob
+    logging.info('Excel @ ' + f'{release_date}/{chapterNumber}.xlsx' + ' successfully uploaded')
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingJson)
+    abo.upload_to_blob_from_stream(json_stream, config.json_container_name,  f'{release_date}/{chapterNumber}.json') # Json uploaded to Azure blob
+    ds.insertNewJSONDictManually(json_string, int(chapterNumber), release_date)
+    logging.info(f"Uploaded json for chapternumber {chapterNumber} of release {release_date}")
     return True

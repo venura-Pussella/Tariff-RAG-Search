@@ -118,12 +118,12 @@ def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: 
         return
     ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingPDF)
     pdffile.seek(0)
-    abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{chapterNumber}.pdf', release_date) # PDF uploaded to azure blob
+    abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{release_date}/{chapterNumber}.pdf') # PDF uploaded to azure blob
     logging.log(25,f'{chapterNumber}.pdf' + f' of release {release_date} ' + ' successfully uploaded')
 
     ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
-    abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{chapterNumber}.pkl', release_date) # upload generated excel to azure blob
-    abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{chapterNumber}.xlsx', release_date) # upload dictionary pickle to azure blob
+    abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{release_date}/{chapterNumber}.pkl') # upload generated excel to azure blob
+    abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{release_date}/{chapterNumber}.xlsx') # upload dictionary pickle to azure blob
     ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
     ato.release_mutex(chapterNumber, mutexKey, release_date)
       
@@ -134,34 +134,34 @@ def batch_upload_pdfs(pdffiles: list[BytesIO], release_date: str, filenames: lis
         filename = filenames[i]
         upload_pdf(pdffile,release_date,filename=filename)
 
-def upload_excel(excelfile: BytesIO, filename: str, user_entered_chapter_number: int = None):
+def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_entered_chapter_number: int = None):
     # if user has entered the chapter number, that is taken as the chapterNumber, otherwise it's taken from the filename
     if user_entered_chapter_number: chapterNumber = user_entered_chapter_number
     else: 
         chapterNumber = filename.rsplit('.')[0]
         try: chapterNumber = int(chapterNumber)
         except ValueError: 
-            logging.error(f'Cannot identify the chapter number the excel {filename} refers to')
+            logging.error(f'Cannot identify the chapter number the excel {filename} of release {release_date} refers to')
             return
 
     mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
+    try: ato.claim_mutex(chapterNumber, mutexKey, release_date)
     except MutexError as e:
         logging.error(e.__str__())
         return
     except ResourceNotFoundError:
-        logging.error(f'The chapter was not found. Perhaps you must create the chapter record by uploading a PDF. Excel: {filename}')
+        logging.error(f'The chapter was not found. Perhaps you must create the chapter record by uploading a PDF. Excel: {filename}. Release: {release_date}')
         return
 
-    isSuccess = extract_data_to_json_store(excelfile, mutexKey, chapterNumber)
+    isSuccess = extract_data_to_json_store(excelfile, mutexKey, chapterNumber, release_date)
     if isSuccess:
         logging.log(25,'Excel and generated json successfully uploaded.')
     else:
-        logging.error(f'Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number. Excel: {filename}')
-        ato.release_mutex(chapterNumber, mutexKey)
+        logging.error(f'Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number. Excel: {filename}. Release: {release_date}')
+        ato.release_mutex(chapterNumber, mutexKey, release_date)
         return
     
-    update_vectorstore(chapterNumber, mutexKey)
+    update_vectorstore(chapterNumber, mutexKey, release_date)
 
 def batch_upload_excels(excelfiles: list[BytesIO], filenames: list[str] = None):
     for i,excelfile in enumerate(excelfiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved

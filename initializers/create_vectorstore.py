@@ -19,19 +19,18 @@ from initializers.Line_Item import Line_Item
 import concurrent.futures
 from datetime import datetime
 
-def update_vectorstore(chapterNumber: int, mutexKey: str):
+def update_vectorstore(chapterNumber: int, mutexKey: str, release_date: str):
     logging.info(f"Starting addition to vectorstore... chapter {chapterNumber}")
 
     # load the extracted json data into a dictionary
     # ......................................... #
     logging.info("Loading json files into memory...")
-    DataStores.updateJSONdictsFromAzureBlob([chapterNumber])
+    DataStores.updateJSONdictsFromAzureBlob([(chapterNumber,release_date)])
     if chapterNumber:
-        json_dicts = DataStores.getJson_dicts([chapterNumber])
+        json_dicts = DataStores.getJson_dicts([(chapterNumber,release_date)])
     else:
         json_dicts = DataStores.getJson_dicts()
     # ......................................... #
-
 
     # create Line_Item objects
     # ......................................... #
@@ -91,7 +90,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str):
         chr.createVectorstoreUsingChroma(docs)
     elif config.vectorstore == "azure_cosmos_nosql":
         import initializers.az_cosmos_nosql_vectorstore as azcn
-        azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber, mutexKey)
+        azcn.createVectorstoreUsingAzureCosmosNoSQL(docs, chapterNumber, mutexKey, release_date)
     else:
         logging.error("Type of vectorstore to be created/overwritten not specified in config.py")
 

@@ -14,7 +14,7 @@ from data_stores.CosmosObjects import CosmosObjects as co
 import concurrent.futures
 import uuid
 
-def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str): 
+def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str, release_date: str): 
     """Feeds to given Line_Item objects to the Cosmos DB.
     Chapter number and mutex key required to update the record.
     Does not necessarily create the store from scratch despite what the name might suggest
@@ -33,18 +33,18 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
 
     # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
     try:
-        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
+        ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
             logging.info("Deleted cosmos ID: " + str(cosmosID))
-        ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
+        ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
         blob_client.delete_blob()
     except TypeError as e:
         logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
     
     # Add the new documents (line items) to the vector-store
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
     logging.info("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
     logging.info("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
@@ -78,10 +78,10 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     # need to store the cosmos document IDs so we can delete them easily later when needed
     allIDs_bytes = pickle.dumps(allIDs)
     
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)
+    ato.edit_entity(chapterNumber, mutexKey,release_date, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)
     blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.excelUploaded)
-    ato.release_mutex(chapterNumber, mutexKey)
+    ato.edit_entity(chapterNumber, mutexKey,release_date, newRecordStatus='', newRecordState=config.RecordState.excelUploaded)
+    ato.release_mutex(chapterNumber, mutexKey, release_date)
     
     ct = datetime.datetime.now()
     logging.info("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))

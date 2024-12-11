@@ -151,20 +151,21 @@ def excel_upload():
     chapterNumber = request.form.get('chapterNumber')
     file = request.files['file']
     filename = file.filename
+    release = request.form.get('release')
     try: chapterNumber = int(chapterNumber)
     except ValueError: chapterNumber = None
 
     # Validate
     errors = fm.validateUpload('xlsx', file)
     if errors != '':
-        logging.error(f'Uploaded file with name {file.filename} error. {errors}')
+        logging.error(f'Uploaded file with name {file.filename} (of release {release}) error. {errors}')
         return redirect(url_for('file_management'))
     
     # Process upload sequence
     file_stream = BytesIO(file.stream.read())
     file_stream.seek(0)
     executor = concurrent.futures.ThreadPoolExecutor()
-    executor.submit(fm.upload_excel,file_stream,filename,chapterNumber)
+    executor.submit(fm.upload_excel,file_stream,filename,release,chapterNumber)
     executor.shutdown(wait=False)
     return redirect(url_for('file_management'))
 

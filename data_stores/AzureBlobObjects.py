@@ -66,14 +66,13 @@ class AzureBlobObjects:
             else: container_client.upload_blob(name=filename, data=data, overwrite=True)
 
     @classmethod
-    def upload_to_blob_from_stream(cls, filestream: BytesIO, containerName: str, file_name: str, release_date: str):
+    def upload_to_blob_from_stream(cls, filestream: BytesIO, containerName: str, file_name: str):
         """Upload file specified in filepath to the specified container in Azure storage.
         """
-        final_filename = release_date + '/' + file_name
         cls.get_container_client(containerName) # this will creates container if it doesn't exist already
         blob_service_client = cls.get_blob_service_client()
-        blob_client = blob_service_client.get_blob_client(container=containerName, blob=final_filename)
-        logging.info("file about to be uploaded to blob from stream with given filename: " + final_filename)
+        blob_client = blob_service_client.get_blob_client(container=containerName, blob=file_name)
+        logging.info("file about to be uploaded to blob from stream with given filename: " + file_name)
         blob_client.upload_blob(filestream, blob_type="BlockBlob")
 
     @classmethod

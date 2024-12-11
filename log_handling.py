@@ -4,8 +4,11 @@ import sys
 log_messages: list[str] = []
 
 def configure_logging():
-    # otherwise Azure info logs are too numerous
-    logging.getLogger('azure').setLevel('WARNING')
+    # only the root app logger is set to DEBUG level, others are set to WARNING level
+    loggers = logging.Logger.manager.loggerDict
+    for logger in loggers:
+        logging.getLogger(logger).setLevel('WARNING')
+    logging.getLogger('root').setLevel('DEBUG')
 
     # remaining lines are to configure the flask logging - we can get them in Azure app service when running from a docker container)
     
