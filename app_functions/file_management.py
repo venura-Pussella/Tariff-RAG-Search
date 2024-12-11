@@ -51,17 +51,18 @@ def generateArrayForTableRows() -> list[list[str]]:
     listOfReviewedExcelNames = ABO.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
     listOfJSONs = ABO.getListOfFilenamesInContainer(config.json_container_name)
     for name in listOfPDFNames:
-        chapterNumber = name.rsplit('.')[0]
+        release_date = name.rsplit('/')[0]
+        chapterNumber = name.rsplit('/')[1].rsplit('.')[0]
         excelName = chapterNumber + '.xlsx'
         jsonName = chapterNumber + '.json'
-        tableRow = [chapterNumber,name]
-        if excelName in listOfGeneratedExcelNames: tableRow.append(excelName)
+        tableRow = [release_date,chapterNumber,f'{chapterNumber}.pdf']
+        if f'{release_date}/{excelName}' in listOfGeneratedExcelNames: tableRow.append(excelName)
         else: tableRow.append('Nil')
-        if excelName in listOfReviewedExcelNames: tableRow.append(excelName)
+        if f'{release_date}/{excelName}' in listOfReviewedExcelNames: tableRow.append(excelName)
         else: tableRow.append('Nil')
-        if jsonName in listOfJSONs: tableRow.append(jsonName)
+        if f'{release_date}/{jsonName}' in listOfJSONs: tableRow.append(jsonName)
         else: tableRow.append('Nil')
-        entity = ato.get_entity(chapterNumber)
+        entity = ato.get_entity(chapterNumber, release_date)
         status = entity['RecordStatus']
         tableRow += [status]
         tableRows.append(tableRow)
@@ -92,46 +93,46 @@ def delete_upto_pdf(chapterNumber: int):
         ]
         concurrent.futures.wait(futures)
     
-def upload_pdf(pdffile: BytesIO, user_entered_chapter_number: int = None, filename: str = None):
+def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: int = None, filename: str = None):
    
     # convert the PDF into the dictionary, excel and identified chapter number
     dictionary_pkl_stream, excel_stream, chapterNumber = extract_data_for_review.convertPDFToExcelForReview(pdffile,user_entered_chapter_number,filename)
     if not dictionary_pkl_stream: # i.e. an exception was raised when trying to extract data from the pdf
         if user_entered_chapter_number:
-            logging.error(f'Error with pdf or entered chapter number. User entered chapter number: {user_entered_chapter_number}')
+            logging.error(f'Error with pdf or entered chapter number. User entered chapter number: {user_entered_chapter_number}. Release {release_date}')
         elif filename:
-            logging.error(f"Error with pdf or entered chapter number. User uploaded file's filename: {filename}")
+            logging.error(f"Error with pdf or entered chapter number. User uploaded file's filename: {filename}. Release {release_date}")
         elif chapterNumber:
-            logging.error(f"Error with pdf or entered chapter number. Filename and user_entered_chapter_number not received. Identified chapter number: {str(chapterNumber)}")
+            logging.error(f"Error with pdf or entered chapter number. Filename and user_entered_chapter_number not received. Identified chapter number: {str(chapterNumber)}. Release {release_date}")
         return
     
-    try: ato.create_new_blank_entity(chapterNumber)
+    try: ato.create_new_blank_entity(chapterNumber, release_date)
     except ResourceExistsError: 
-        logging.error(f'A record for chapter {chapterNumber} already exists. Delete it if you want to upload a new PDF.')
+        logging.error(f'A record for chapter {chapterNumber} (release {release_date}) already exists. Delete it if you want to upload a new PDF.')
         return
 
     mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
+    try: ato.claim_mutex(chapterNumber, mutexKey, release_date)
     except MutexError as e:
         logging.error(e.__str__())
         return
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingPDF)
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingPDF)
     pdffile.seek(0)
-    abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{chapterNumber}.pdf') # PDF uploaded to azure blob
-    logging.log(25,f'{chapterNumber}.pdf' + ' successfully uploaded')
+    abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{chapterNumber}.pdf', release_date) # PDF uploaded to azure blob
+    logging.log(25,f'{chapterNumber}.pdf' + f' of release {release_date} ' + ' successfully uploaded')
 
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
-    abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{chapterNumber}.pkl') # upload generated excel to azure blob
-    abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{chapterNumber}.xlsx') # upload dictionary pickle to azure blob
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
-    ato.release_mutex(chapterNumber, mutexKey)
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
+    abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{chapterNumber}.pkl', release_date) # upload generated excel to azure blob
+    abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{chapterNumber}.xlsx', release_date) # upload dictionary pickle to azure blob
+    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.release_mutex(chapterNumber, mutexKey, release_date)
       
     logging.info("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
 
-def batch_upload_pdfs(pdffiles: list[BytesIO], filenames: list[str] = None):
+def batch_upload_pdfs(pdffiles: list[BytesIO], release_date: str, filenames: list[str] = None):
     for i,pdffile in enumerate(pdffiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
         filename = filenames[i]
-        upload_pdf(pdffile,filename=filename)
+        upload_pdf(pdffile,release_date,filename=filename)
 
 def upload_excel(excelfile: BytesIO, filename: str, user_entered_chapter_number: int = None):
     # if user has entered the chapter number, that is taken as the chapterNumber, otherwise it's taken from the filename

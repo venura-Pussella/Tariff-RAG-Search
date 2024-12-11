@@ -38,10 +38,11 @@ class AzureTableObjects:
 
     
     @classmethod
-    def create_new_blank_entity(cls, chapterNumber: int):
+    def create_new_blank_entity(cls, chapterNumber: int, release_date: str):
+        rowkey = release_date + ':' + str(chapterNumber)
         entity = {
             'PartitionKey': config.azureStorageTablePartitionKeyValue,
-            'RowKey': str(chapterNumber), # it seems the rowkey cannot be an int
+            'RowKey': rowkey, # note rowkey cannot be an int, even tho other fields can be of any data type
             'RecordStatus': '',
             'RecordState': '',
             'MutexKey': '',
@@ -51,13 +52,14 @@ class AzureTableObjects:
         table_client.create_entity(entity)
 
     @classmethod
-    def get_entity(cls, chapterNumber: int) -> TableEntity:
+    def get_entity(cls, chapterNumber: int, release_date: str) -> TableEntity:
+        rowkey = release_date + ':' + str(chapterNumber)
         table_client = cls.get_table_client()
-        return table_client.get_entity(partition_key= config.azureStorageTablePartitionKeyValue, row_key= str(chapterNumber))
+        return table_client.get_entity(partition_key= config.azureStorageTablePartitionKeyValue, row_key= rowkey)
     
     @classmethod
-    def claim_mutex(cls, chapterNumber: int, mutexKey: str):
-        entity = cls.get_entity(chapterNumber)
+    def claim_mutex(cls, chapterNumber: int, mutexKey: str, release_date: str):
+        entity = cls.get_entity(chapterNumber, release_date)
         if entity['MutexLock'] == False:
             entity['MutexLock'] = True
             entity['MutexKey'] = mutexKey
@@ -68,8 +70,8 @@ class AzureTableObjects:
         table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
 
     @classmethod
-    def release_mutex(cls, chapterNumber: int, mutexKey: str):
-        entity = cls.get_entity(chapterNumber)
+    def release_mutex(cls, chapterNumber: int, mutexKey: str, release_date: str):
+        entity = cls.get_entity(chapterNumber, release_date)
         if entity['MutexKey'] == mutexKey:
             entity['MutexLock'] = False
             entity['MutexKey'] = ''
@@ -79,8 +81,8 @@ class AzureTableObjects:
         table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
 
     @classmethod
-    def edit_entity(cls, chapterNumber: int, mutexKey: str, newRecordStatus: str = None, newRecordState = None):
-        entity = cls.get_entity(chapterNumber)
+    def edit_entity(cls, chapterNumber: int, mutexKey: str, release_date: str, newRecordStatus: str = None, newRecordState = None):
+        entity = cls.get_entity(chapterNumber, release_date)
         if entity['MutexKey'] != mutexKey: raise MutexError(chapterNumber)
 
         if newRecordStatus != None:
@@ -92,8 +94,8 @@ class AzureTableObjects:
         table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
 
     @classmethod
-    def delete_entity(cls, chapterNumber: int, mutexKey: str):
-        entity = cls.get_entity(chapterNumber)
+    def delete_entity(cls, chapterNumber: int, mutexKey: str, release_date: str):
+        entity = cls.get_entity(chapterNumber, release_date)
         if entity['MutexKey'] != mutexKey: raise MutexError(chapterNumber)
 
         table_client = cls.get_table_client()
@@ -105,9 +107,11 @@ class AzureTableObjects:
         return list(table_client.list_entities())
     
     @classmethod
-    def search_entities(cls, field: str, content: str) -> list[int]:
+    def search_entities(cls, field: str, content: str, release_date: str) -> list[int]:
         entities = cls.get_all_entities()
         chapters: list[int] = []
         for entity in entities:
-            if entity[field] == content: chapters.append(int(entity['RowKey']))
+            rowkey = entity['RowKey']
+            entity_release_date = rowkey.rsplit(':')[0]
+            if entity_release_date==release_date and entity[field] == content: chapters.append(int(entity['RowKey']))
         return chapters

@@ -41,6 +41,9 @@
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
             </div>
             <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
+            <div class="field">
                 <label>Select File</label>
                 <input type="file" name="file" required>
             </div>
@@ -55,6 +58,9 @@
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
             </div>
             <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
+            <div class="field">
                 <label>Select File</label>
                 <input type="file" name="file" required>
             </div>
@@ -66,6 +72,7 @@
         <table class="ui celled table">
             <thead>
                 <tr>
+                    <th>Release</th>
                     <th>Chapter Number</th>
                     <th>PDF</th>
                     <th>Generated Excel</th>
@@ -80,11 +87,12 @@
                 {% for tableRow in tableRows %}
                 <tr>
                     <td>{{ tableRow[0] }}</td>
-                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[1] }}', 'pdf')">{{ tableRow[1] }}</span></td>
-                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[2] }}', 'genExcel')">{{ tableRow[2] }}</span></td>
-                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[3] }}', 'correctedExcel')">{{ tableRow[3] }}</span></td>
-                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[4] }}', 'json')">{{ tableRow[4] }}</span></td>
-                    <td>{{ tableRow[5] }}</td>
+                    <td>{{ tableRow[1] }}</td>
+                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[2] }}', 'pdf', '{{ tableRow[0] }}')">{{ tableRow[2] }}</span></td>
+                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[3] }}', 'genExcel', '{{ tableRow[0] }}')">{{ tableRow[3] }}</span></td>
+                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[4] }}', 'correctedExcel', '{{ tableRow[0] }}')">{{ tableRow[4] }}</span></td>
+                    <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked('{{ tableRow[5] }}', 'json', '{{ tableRow[0] }}')">{{ tableRow[5] }}</span></td>
+                    <td>{{ tableRow[6] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -99,6 +107,9 @@
                 <label>Chapter Number</label>
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
             </div>
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
             <button class="ui button primary" type="submit">Delete</button>
         </form>
 
@@ -109,6 +120,9 @@
             <div class="field">
                 <label>Chapter Number</label>
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
+            </div>
+            <div class="field">
+                <input type="date" id="release" name="release">
             </div>
             <button class="ui button primary" type="submit">Delete</button>
         </form>
@@ -134,6 +148,9 @@
                 <label>Select Files</label>
                 <input type="file" name="files" multiple="multiple" required>
             </div>
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
             <button class="ui button primary" type="submit">Upload</button>
         </form>
 
@@ -144,12 +161,18 @@
                 <label>Select Files</label>
                 <input type="file" name="files" multiple="multiple" required>
             </div>
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
             <button class="ui button primary" type="submit">Upload</button>
         </form>
 
         <h2 class="ui header">Download Uncommitted Excels</h2>
         
         <form class="ui form" action="{{ url_for('download_uncommitted_excels') }}" method="GET" enctype="multipart/form-data">
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
             <button class="ui button primary" type="submit">Download</button>
         </form>
         
@@ -157,7 +180,7 @@
     </div>
 
     <script>
-        function fileClicked(cellValue, fileType) {
+        function fileClicked(cellValue, fileType, releaseDate) {
             // Trigger a POST request to the Flask backend
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -178,7 +201,7 @@
             xhttp.open("POST", "/file_clicked", true);
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.responseType = "blob";
-            xhttp.send(JSON.stringify({cell_value: cellValue, file_type: fileType}));
+            xhttp.send(JSON.stringify({cell_value: cellValue, file_type: fileType, release_date: releaseDate}));
         }
     </script>
 </body>

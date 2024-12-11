@@ -101,6 +101,7 @@ def pdf_upload():
     logging.info('PDF upload request received.')
     # Get the data POSTED to the server
     chapterNumber = request.form.get('chapterNumber')
+    release = request.form.get('release')
     file = request.files['file']
     filename = file.filename
     try: chapterNumber = int(chapterNumber)
@@ -116,7 +117,7 @@ def pdf_upload():
     file_stream = BytesIO(file.stream.read())
     file_stream.seek(0)
     executor = concurrent.futures.ThreadPoolExecutor()
-    executor.submit(fm.upload_pdf,file_stream,int(chapterNumber),filename)
+    executor.submit(fm.upload_pdf,file_stream,release,int(chapterNumber),filename)
     executor.shutdown(wait=False)
     return redirect(url_for('file_management'))
 
@@ -124,6 +125,7 @@ def pdf_upload():
 def pdf_upload_batch():
     logging.info('Batch PDF upload request received.')
     files = request.files.getlist("files")
+    release = request.form.get('release')
 
     # Validate and add OK files to an array
     file_streams: list[BytesIO] = []
@@ -131,14 +133,14 @@ def pdf_upload_batch():
     for file in files:
         errors = fm.validateUpload('pdf', file)
         if errors != '':
-            logging.error(f'Uploaded file with filename {file.filename} has error: {errors}')
+            logging.error(f'Uploaded file with filename {file.filename} (release: {release}) has error: {errors}')
         else:
             file_stream = BytesIO(file.stream.read())
             file_stream.seek(0)
             file_streams.append(file_stream)
             filenames.append(file.filename)
     executor = concurrent.futures.ThreadPoolExecutor()
-    executor.submit(fm.batch_upload_pdfs,file_streams,filenames)
+    executor.submit(fm.batch_upload_pdfs,file_streams,release,filenames)
     executor.shutdown(wait=False)
     return redirect(url_for('file_management'))
 
@@ -196,7 +198,8 @@ def file_clicked():
     filename = request.json['cell_value']
     filename = secure_filename(filename)
     filetype = request.json['file_type']
-    logging.info(f"Cell clicked with value: {filename}, of type {filetype}")
+    release_date = request.json['release_date']
+    logging.info(f"Cell clicked with value: {filename}, of type {filetype}, of release date {release_date}")
     containerName = None
     fileTypeToContainerNameMapping = {
         'pdf':config.pdf_container_name,
@@ -205,7 +208,7 @@ def file_clicked():
         'json':config.json_container_name
     }
     containerName = fileTypeToContainerNameMapping[filetype]
-    filestream = abo.download_blob_file_to_stream(filename, containerName)
+    filestream = abo.download_blob_file_to_stream(f'{release_date}/{filename}', containerName)
     filestream.seek(0)
     response = send_file(filestream, as_attachment=True, download_name=filename)
     return response
