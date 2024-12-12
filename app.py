@@ -218,56 +218,58 @@ def file_clicked():
 @app.route('/delete_till_corrected_excel', methods=['POST'])
 def delete_till_corrected_excel():
     chapterNumber = request.form.get('chapterNumber')
-    logging.info(f'Request to delete_till_corrected_excel - chapter {chapterNumber} received.')
+    release = request.form.get('release')
+    logging.info(f'Request to delete_till_corrected_excel - chapter {chapterNumber} of release {release} received.')
 
-    try: entity = ato.get_entity(chapterNumber)
+    try: entity = ato.get_entity(chapterNumber, release)
     except ResourceNotFoundError:
-        logging.error(f'The chapter {chapterNumber} was not found.')
+        logging.error(f'The chapter {chapterNumber} of release {release} was not found.')
         flash('The chapter was not found.')
         return redirect(url_for('file_management'))
     if entity['RecordState'] != config.RecordState.excelUploaded:
-        logging.error(f'Nothing to delete yet.(till corrected excel) Chapter {chapterNumber}')
+        logging.error(f'Nothing to delete yet.(till corrected excel) Chapter {chapterNumber} of release {release}')
         flash('Nothing to delete yet.')
         return redirect(url_for('file_management'))
     
 
     mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
+    try: ato.claim_mutex(chapterNumber, mutexKey, release)
     except MutexError as e:
         logging.error(e.__str__())
         flash(e.__str__())
         return redirect(url_for('file_management'))
     
 
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeleteExcel)
-    fm.delete_upto_corrected_excel(int(chapterNumber))
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
-    ato.release_mutex(chapterNumber, mutexKey)
-    logging.log(25, 'Deleted upto corrected excel - chapter ' + str(chapterNumber))
-    flash('Deleted upto corrected excel - chapter ' + str(chapterNumber))
+    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteExcel)
+    fm.delete_upto_corrected_excel(int(chapterNumber), release)
+    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.release_mutex(chapterNumber, mutexKey, release)
+    logging.log(25, f'Deleted upto corrected excel - chapter {str(chapterNumber)}, release {release}')
+    flash(f'Deleted upto corrected excel - chapter {str(chapterNumber)} of release {release}')
     return redirect(url_for('file_management'))
 
 @app.route('/delete_till_pdf', methods=['POST'])
 def delete_till_pdf():
     chapterNumber = request.form.get('chapterNumber')
-    logging.info(f'Request to delete_till_pdf - chapter {chapterNumber} received.')
+    release = request.form.get('release')
+    logging.info(f'Request to delete_till_pdf - chapter {chapterNumber} of release {release} received.')
 
     mutexKey = secrets.token_hex()
-    try: ato.claim_mutex(chapterNumber, mutexKey)
+    try: ato.claim_mutex(chapterNumber, mutexKey, release)
     except MutexError as e:
         logging.error(e.__str__())
         flash(e.__str__())
         return redirect(url_for('file_management'))
     except ResourceNotFoundError:
-        logging.error(f'The chapter {chapterNumber} was not found.')
+        logging.error(f'The chapter {chapterNumber} of release {release} was not found.')
         flash('The chapter was not found.')
         return redirect(url_for('file_management'))
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeletePDF)
-    fm.delete_upto_pdf(int(chapterNumber))
-    ato.edit_entity(chapterNumber, mutexKey, newRecordStatus=config.RecordStatus.beginDeleteEntity)
-    ato.delete_entity(chapterNumber, mutexKey)
-    logging.log(25,'Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
-    flash('Deleted upto pdf (i.e. all) - chapter ' + str(chapterNumber))
+    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeletePDF)
+    fm.delete_upto_pdf(int(chapterNumber), release)
+    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteEntity)
+    ato.delete_entity(chapterNumber, mutexKey, release)
+    logging.log(25,f'Deleted upto pdf (i.e. all) - chapter {str(chapterNumber)} of release {release}')
+    flash(f'Deleted upto pdf (i.e. all) - chapter {str(chapterNumber)} of release {release}')
     return redirect(url_for('file_management'))
 
 @app.route('/generate_excel_for_review', methods=['POST'])

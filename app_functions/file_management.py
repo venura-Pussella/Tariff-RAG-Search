@@ -68,28 +68,28 @@ def generateArrayForTableRows() -> list[list[str]]:
         tableRows.append(tableRow)
     return tableRows
 
-def delete_upto_corrected_excel(chapterNumber: int):
+def delete_upto_corrected_excel(chapterNumber: int, release: str):
     """Deletes a file record upto and including the corrected excel.
 
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(delf.deleteChapterFromCosmos, chapterNumber), 
-            executor.submit(delf.deleteChapterJsonBlob, chapterNumber), 
-            executor.submit(delf.deleteChapterReviewedExcelBlob, chapterNumber)
+            executor.submit(delf.deleteChapterFromCosmos, chapterNumber, release), 
+            executor.submit(delf.deleteChapterJsonBlob, chapterNumber, release), 
+            executor.submit(delf.deleteChapterReviewedExcelBlob, chapterNumber, release)
         ]
         concurrent.futures.wait(futures)
     
-def delete_upto_pdf(chapterNumber: int):
+def delete_upto_pdf(chapterNumber: int, release: str):
     """Deletes the entire file record.
 
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(delete_upto_corrected_excel, chapterNumber),
-            executor.submit(delf.deleteChapterDictPickleBlob, chapterNumber),
-            executor.submit(delf.deleteChapterGeneratedExcelBlob, chapterNumber),
-            executor.submit(delf.deleteChapterPDFBlob, chapterNumber)
+            executor.submit(delete_upto_corrected_excel, chapterNumber, release),
+            executor.submit(delf.deleteChapterDictPickleBlob, chapterNumber, release),
+            executor.submit(delf.deleteChapterGeneratedExcelBlob, chapterNumber, release),
+            executor.submit(delf.deleteChapterPDFBlob, chapterNumber, release)
         ]
         concurrent.futures.wait(futures)
     

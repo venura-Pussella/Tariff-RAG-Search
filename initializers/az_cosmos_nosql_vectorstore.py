@@ -126,10 +126,10 @@ def getLangchainVectorstore(release: str):
     logging.info("Langchain vector store returned.")
     return vectorstore
 
-def deleteChapterFromCosmos(chapterNumber: int):
-    vectorstore = getLangchainVectorstore()
+def deleteChapterFromCosmos(chapterNumber: int, release_date: str):
+    vectorstore = getLangchainVectorstore(release_date)
 
-    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_filename = release_date + '/' + str(chapterNumber) + '.pkl'
     cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
     blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
     try:
@@ -147,5 +147,5 @@ def deleteChapterFromCosmos(chapterNumber: int):
             logging.info("Deleted cosmos ID: " + str(cosmosID))
         blob_client.delete_blob()
     except TypeError as e:
-        logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+        logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ f'release" {release_date}'+ 'Error: '+ str(e))
 
