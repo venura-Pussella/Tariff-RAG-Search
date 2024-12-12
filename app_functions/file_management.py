@@ -183,10 +183,7 @@ def add_release(release: str):
     abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)
 
 def remove_release(release: str):
-    existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
-    existing_streamed.seek(0)
-    existing_text = existing_streamed.getvalue().decode('utf-8')
-    existing_releases = existing_text.rsplit('\n')
+    existing_releases = get_stored_releases()
     for i in range(0,len(existing_releases)):
         existing_release = existing_releases[i]
         _release = release.strip()
@@ -197,7 +194,16 @@ def remove_release(release: str):
             break
     new_text = ''
     for each in existing_releases:
+        if each.strip() == '': continue
         new_text += each + '\n'
     new_streamed = BytesIO(new_text.encode('utf-8'))
     new_streamed.seek(0)
     abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)
+
+def get_stored_releases() -> list[str]:
+    existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
+    existing_streamed.seek(0)
+    existing_text = existing_streamed.getvalue().decode('utf-8')
+    existing_releases = existing_text.rsplit('\n')
+    existing_releases=existing_releases[:-1] # last line is blank
+    return existing_releases

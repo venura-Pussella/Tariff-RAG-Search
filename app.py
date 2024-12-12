@@ -66,13 +66,14 @@ def vector_store_search():
     logging.info('Request for line item search page received')
     user_query = None
     itemsAndScores = None
+    release_options = fm.get_stored_releases()
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
         toks.updateTokens(user_query) # update token count tracker
         logging.info("app.py: user_query for line_item_search is: " + user_query)
         itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
-    return render_template("line_item_search.html", results=itemsAndScores, user_query=user_query)
+    return render_template("line_item_search.html", results=itemsAndScores, user_query=user_query, release_options=release_options)
 
 @app.route("/rag", methods=["GET", "POST"])
 def chatbot():
