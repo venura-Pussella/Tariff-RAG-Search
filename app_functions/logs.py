@@ -28,7 +28,7 @@ def get_filtered_logs(tableRows: list[list[str]], filter: str) -> list[list[str]
     elif filter == 'Warning': filters = filters[4:]
     else: filters = filters[5:]
     for row in tableRows:
-        level = row[1].strip() # lol this is actually needed
+        level = row[3].strip() # lol this is actually needed
         if level in filters: 
             filtered_tableRows.append(row)
     return filtered_tableRows
