@@ -20,10 +20,10 @@ class CosmosObjects:
 
     __cosmosClient: CosmosClient = None
     __cosmosDatabase: AzureCosmosDatabase.DatabaseProxy = None
-    __cosmosContainer: AzureCosmosContainer.ContainerProxy = None
+    __cosmosContainers: dict[str,AzureCosmosContainer.ContainerProxy] = {}
     
     @classmethod
-    def getCosmosClient(cls) -> CosmosClient:
+    def __getCosmosClient(cls) -> CosmosClient:
         """Singleton method to return a Cosmos object"""
         if CosmosObjects.__cosmosClient == None:
             ENDPOINT = os.environ["COSMOS_ENDPOINT"]
@@ -35,11 +35,11 @@ class CosmosObjects:
 
 
     @classmethod
-    def getCosmosDatabase(cls) -> AzureCosmosDatabase.DatabaseProxy:
+    def __getCosmosDatabase(cls) -> AzureCosmosDatabase.DatabaseProxy:
         """Singleton method to return a Cosmos object"""
         if CosmosObjects.__cosmosDatabase == None:
             try:
-                cosmosClient = CosmosObjects.getCosmosClient()
+                cosmosClient = CosmosObjects.__getCosmosClient()
                 CosmosObjects.__cosmosDatabase = cosmosClient.create_database_if_not_exists(id=config.cosmosNoSQLDBName)
                 logging.info(f"Database created or returned: {CosmosObjects.__cosmosDatabase.id}")
 
@@ -50,23 +50,24 @@ class CosmosObjects:
     
 
     @classmethod
-    def getCosmosContainer(cls) -> AzureCosmosContainer.ContainerProxy:
+    def getCosmosContainer(cls, release: str) -> AzureCosmosContainer.ContainerProxy:
         """Singleton method to return a Cosmos object"""
-        if CosmosObjects.__cosmosContainer == None:
+        print(f'Release: {release}')
+        if release not in cls.__cosmosContainers:
             try:
                 partition_key_path = PartitionKey(path="/categoryId")
-                database = CosmosObjects.getCosmosDatabase()
-                CosmosObjects.__cosmosContainer = database.create_container_if_not_exists(
-                    id=config.cosmosNoSQLContainerName,
+                database = CosmosObjects.__getCosmosDatabase()
+                cls.__cosmosContainers[release] = database.create_container_if_not_exists(
+                    id=release,
                     partition_key=partition_key_path,
                     offer_throughput=400,
                 )
-                logging.info(f"Container created or returned: {CosmosObjects.__cosmosContainer.id}")
+                logging.info(f"Container created or returned: {CosmosObjects.__cosmosContainers[release].id}")
 
             except AzureCosmosExceptions.CosmosHttpResponseError:
                 logging.error("Request to the Azure Cosmos database service failed.")
 
-        return CosmosObjects.__cosmosContainer
+        return cls.__cosmosContainers[release]
     
 
     

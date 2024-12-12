@@ -6,11 +6,7 @@
 # 3. Turns each line-item in the json file to a Line_Item object.
 # 4. Calls a script to upload the Line_Item objects with vector embeddings to the vectorstore specified in the config file.
 
-import sys
-import os
 import logging
-# sys.path.append('../tariff-search') # IMPORTANT: required since we manually run this script from this location itself
-sys.path.append(os.getcwd()) # IMPORTANT: required since we manually run this script from this location itself
 import config
 from data_stores.DataStores import DataStores
 from dotenv import load_dotenv, find_dotenv

@@ -15,6 +15,6 @@ class OpenAIObjects:
             AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS = os.getenv('AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS')
             AZURE_OPENAI_API_VERSION_FOR_EMBEDDINGS = AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS.rsplit('api-version=')[1]
             cls.__open_ai_client = AzureOpenAI(azure_endpoint=AZURE_OPENAI_ENDPOINT_FOR_EMBEDDINGS, api_version=AZURE_OPENAI_API_VERSION_FOR_EMBEDDINGS)
-            logging.info("Open AI client created")
+            logging.info("Open AI client (for embeddings) created")
 
         return cls.__open_ai_client

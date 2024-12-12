@@ -19,10 +19,10 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     Chapter number and mutex key required to update the record.
     Does not necessarily create the store from scratch despite what the name might suggest
     """
-    vectorstore = getLangchainVectorstore() # get vectorstore object
+    vectorstore = getLangchainVectorstore(release_date) # get vectorstore object
 
     # get the current cosmos document IDs of the chapter we are attempting to upload
-    cosmos_ids_filename = str(chapterNumber) + '.pkl'
+    cosmos_ids_filename = release_date + '/' + str(chapterNumber) + '.pkl'
     cosmos_ids_container_client = abo.get_container_client(config.cosmos_ids_container_name)
     blob_client = cosmos_ids_container_client.get_blob_client(cosmos_ids_filename)
     try:
@@ -50,7 +50,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     logging.info("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
     allIDs = []
 
-    container = co.getCosmosContainer()
+    container = co.getCosmosContainer(release_date)
     futures = []
 
     
@@ -86,7 +86,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     ct = datetime.datetime.now()
     logging.info("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
 
-def getLangchainVectorstore():
+def getLangchainVectorstore(release: str):
     """Simply returns a langchain reference object to our Cosmos DB
     """
     embedding = emb.getEmbeddings.getEmbeddings()
@@ -104,7 +104,7 @@ def getLangchainVectorstore():
     KEY = os.environ["COSMOS_KEY"]
     cosmos_client = CosmosClient(HOST, KEY)
     database_name = config.cosmosNoSQLDBName
-    container_name = config.cosmosNoSQLContainerName
+    container_name = release
     partition_key = PartitionKey(path="/id")
     cosmos_container_properties = {"partition_key": partition_key}
     cosmos_database_properties = {"id": database_name}
