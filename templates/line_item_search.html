@@ -33,7 +33,7 @@
                     <!-- Checkboxes for multiple selection -->
                     {% for option in release_options %}
                     <div>
-                        <input type="checkbox" id="option1" name="options" value="option1">
+                        <input type="checkbox" id="option1" name="options" value="{{ option }}">
                         <label for="option1">{{ option }}</label>
                     </div>
                     {% endfor %}
@@ -54,6 +54,7 @@
             <thead>
                 <tr>
                     <th>Score</th>
+                    <th>Release</th>
                     <th>HS Hdg Name</th>
                     <th>HS Code</th>
                     <td>SC Code</td>
@@ -72,6 +73,7 @@
                     <th>PDF</th>
                 </tr>
                  <tr>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -106,6 +108,7 @@
                 {% for item in results %}
                 <tr>
                     <td>{{ item[1] }}</td>
+                    <td>{{ item[0]['Release'] }}</td>
                     <td>{{ item[0]['HS Hdg Name'] }}</td>
                     <td>{{ item[0]['HS Code'] }}</td>
                     <td>{{ item[0]['SC Code'] }}</td>

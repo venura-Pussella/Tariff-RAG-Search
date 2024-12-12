@@ -70,9 +70,10 @@ def vector_store_search():
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
+        selected_releases = request.form.getlist('options')
         toks.updateTokens(user_query) # update token count tracker
         logging.info("app.py: user_query for line_item_search is: " + user_query)
-        itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query)
+        itemsAndScores = vectorstoreSearch.vectorStoreSearch(user_query, selected_releases)
     return render_template("line_item_search.html", results=itemsAndScores, user_query=user_query, release_options=release_options)
 
 @app.route("/rag", methods=["GET", "POST"])

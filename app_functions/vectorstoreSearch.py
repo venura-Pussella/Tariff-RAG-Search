@@ -4,7 +4,7 @@ from other_funcs.getEmbeddings import getEmbeddings
 from app_functions import findByHSCode as fhsc
 from data_stores.CosmosObjects import CosmosObjects
 
-def vectorStoreSearch(question: str) -> list[dict]:
+def vectorStoreSearch(question: str, releases: list[str]) -> list[dict]:
     """Searches text fields of a line-item for matches with the user's query.
     Works by embedding the user's question and getting a vector, and comparing it with the vectors in Cosmos DB (vector similarity search).
     The top k results from Cosmos have HS code as a metadata, so now we use this to carry out a regular HS code search.
@@ -20,34 +20,29 @@ def vectorStoreSearch(question: str) -> list[dict]:
 
 
     logging.info("Vector store search called")
-    results = []
 
     embeddings = getEmbeddings.getEmbeddings()
     embeddedQuestion = embeddings.embed_query(question)
 
-    resultingHSCodesAndScores = similarity_search_with_score(embeddedQuestion, k=30)
-
-
     search_results = []
-    for resultingHSCodeAndScore in resultingHSCodesAndScores:
-        hscode = resultingHSCodeAndScore[0]
-        score = resultingHSCodeAndScore[1]
-        item = convertHSCodeToItem(hscode)
-        search_results.append((item, score))
+    for release in releases:
 
-    return search_results
+        resultingHSCodesAndScores = similarity_search_with_score(embeddedQuestion, release, k=10)
 
-def convertHSCodeToItem(hscode: str) -> dict:
-    """Gets the json line item that corresponds to the HS code.
-    """
-    item = {}
-    resultList = fhsc.findByHSCode(hscode)
-    try: item = resultList[0] # came across one case where a line item had been created without an hs code because there was a row without a line item but with a unit
-    except Exception as e: logging.error(e)
+        for resultingHSCodeAndScore in resultingHSCodesAndScores:
+            hscode = resultingHSCodeAndScore[0]
+            score = resultingHSCodeAndScore[1]
+            results = fhsc.findByHSCode(hscode)
+            for result in results:
+                if result['Release'] == release:
+                    search_results.append((result, score))
+    print('SEARCH RESULTS')
+    print(search_results) 
+    sorted_search_results = sorted(search_results, key=lambda x: x[1], reverse=True)  
+    return sorted_search_results
+ 
 
-    return item   
-
-def similarity_search_with_score(queryEmbeddings: list[float], k: int = 4) -> list[tuple[str, float]]:
+def similarity_search_with_score(queryEmbeddings: list[float], release: str, k: int = 4) -> list[tuple[str, float]]:
     """Performs a similarity search vectorsearch against Cosmos.
 
     Args:
@@ -67,7 +62,7 @@ def similarity_search_with_score(queryEmbeddings: list[float], k: int = 4) -> li
     hscodesAndScores = []
 
     items = list(
-        CosmosObjects.getCosmosContainer().query_items(query=query, enable_cross_partition_query=True)
+        CosmosObjects.getCosmosContainer(release).query_items(query=query, enable_cross_partition_query=True)
     )
     for item in items:
         hscode = item["HS Code"]

@@ -15,7 +15,6 @@ def findByHSCode(query: str) -> list[dict]:
      if query == None or query == '': return[]
 
      data_dict = DataStores.getJson_dicts()
-     print(f'data_dict: {data_dict}')
      
      results = []
      chapterNumber = 0
