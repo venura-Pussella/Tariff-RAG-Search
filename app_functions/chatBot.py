@@ -40,7 +40,7 @@ def generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot:st
 
     return response_humaizedQueryForDescSearch.content
 
-def getChatBotAnswer(userQuery_to_chatBot: str) -> str:
+def getChatBotAnswer(userQuery_to_chatBot: str, release: str) -> str:
     """Takes a user's query, retrieves suitable documents using vector search and returns an answer.
 
     Args:
@@ -51,7 +51,7 @@ def getChatBotAnswer(userQuery_to_chatBot: str) -> str:
     """
     descriptionSearchQuery = generateDescriptionSearchQueryFromUserQueryToChatBot(userQuery_to_chatBot)
     logging.log(15,f'descriptionSearchQuery: {descriptionSearchQuery}')
-    resultsAndScores = vs.vectorStoreSearch(descriptionSearchQuery)
+    resultsAndScores = vs.vectorStoreSearch(descriptionSearchQuery, [release])
     lineItems = resultsAndScores[0]
     lineItemsJSONString = json.dumps(lineItems)
     logging.log(15,f'line items retrieved: {lineItemsJSONString}')

@@ -91,7 +91,7 @@ def chatbot():
         toks.updateTokens_chatbot(user_query) # update token count tracker
         logging.info("app.py: user_query for RAG page is: " + user_query)
         logging.log(15,"app.py: user_query for RAG page is: " + user_query)
-        answer = chatBot.getChatBotAnswer(user_query)
+        answer = chatBot.getChatBotAnswer(user_query, option)
         answer_html = markdown.markdown(answer,extensions=['tables'])
         logging.log(15,'LLM Final answer: \n' + answer + '\n' + answer_html)
     return render_template("rag.html", results=answer_html, user_query=user_query, release_options=release_options)
