@@ -16,6 +16,7 @@ class AzureBlobObjects:
     __reviewedExcel_container_client = None
     __json_container_client = None
     __cosmos_ids_container_client = None
+    __release_holder_container_client = None
 
     containerClientToNameMapping = {
         config.pdf_container_name: __pdf_container_client,
@@ -23,7 +24,8 @@ class AzureBlobObjects:
         config.generatedDict_container_name: __generatedDict_container_client,
         config.reviewedExcel_container_name: __reviewedExcel_container_client,
         config.json_container_name: __json_container_client,
-        config.cosmos_ids_container_name: __cosmos_ids_container_client
+        config.cosmos_ids_container_name: __cosmos_ids_container_client,
+        config.release_holder_container_name: __release_holder_container_client
     }
 
     @classmethod
@@ -73,7 +75,7 @@ class AzureBlobObjects:
         blob_service_client = cls.get_blob_service_client()
         blob_client = blob_service_client.get_blob_client(container=containerName, blob=file_name)
         logging.info("file about to be uploaded to blob from stream with given filename: " + file_name)
-        blob_client.upload_blob(filestream, blob_type="BlockBlob")
+        blob_client.upload_blob(filestream, blob_type="BlockBlob", overwrite=True)
 
     @classmethod
     def download_blob_file(cls, filename: str, containerName: str, savepath: str):

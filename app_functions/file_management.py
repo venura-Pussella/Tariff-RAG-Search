@@ -168,3 +168,36 @@ def batch_upload_excels(excelfiles: list[BytesIO], release_date: str, filenames:
         filename = filenames[i]
         upload_excel(excelfile,filename,release_date)
     
+def add_release(release: str):
+    existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
+    existing_streamed.seek(0)
+    existing_text = existing_streamed.getvalue().decode('utf-8')
+    existing_releases = existing_text.rsplit('\n')
+    for existing_release in existing_releases:
+        _existing_release = existing_release.rstrip()
+        _release = release.rstrip()
+        if _existing_release == _release: return
+    new_text = existing_text + release + '\n'
+    new_streamed = BytesIO(new_text.encode('utf-8'))
+    new_streamed.seek(0)
+    abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)
+
+def remove_release(release: str):
+    existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
+    existing_streamed.seek(0)
+    existing_text = existing_streamed.getvalue().decode('utf-8')
+    existing_releases = existing_text.rsplit('\n')
+    for i in range(0,len(existing_releases)):
+        existing_release = existing_releases[i]
+        _release = release.strip()
+        _existing_release = existing_release.strip()
+        if _release == _existing_release:
+            logging.info(f'Release {release} removed.') 
+            existing_releases.pop(i)
+            break
+    new_text = ''
+    for each in existing_releases:
+        new_text += each + '\n'
+    new_streamed = BytesIO(new_text.encode('utf-8'))
+    new_streamed.seek(0)
+    abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)

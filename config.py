@@ -30,6 +30,8 @@ generatedDict_container_name = "generatedict-container"
 reviewedExcel_container_name = "reviewedexcel-container"
 json_container_name = "json-container"
 cosmos_ids_container_name = "cosmos-ids-container"
+release_holder_container_name = "release-holder"
+release_holder_filename = "releases.txt"
 
 azureStorageTableName = 'chaptertracker12345'
 azureStorageTablePartitionKeyValue = 'a'

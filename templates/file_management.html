@@ -175,6 +175,26 @@
             </div>
             <button class="ui button primary" type="submit">Download</button>
         </form>
+
+        <h1 class="ui header">Remove and Declare Releases</h1>
+
+        <h2 class="ui header">Add Release</h2>
+        
+        <form class="ui form" action="{{ url_for('add_release') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
+            <button class="ui button primary" type="submit">Declare</button>
+        </form>
+
+        <h2 class="ui header">Remove Release</h2>
+        
+        <form class="ui form" action="{{ url_for('del_release') }}" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <input type="date" id="release" name="release">
+            </div>
+            <button class="ui button primary" type="submit">Remove</button>
+        </form>
         
 
     </div>

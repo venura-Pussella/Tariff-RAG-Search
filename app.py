@@ -337,5 +337,19 @@ def print_logs():
     tableRows.reverse() # show most recent logs first
     return render_template('logs.html', tableRows= tableRows)
 
+@app.route('/add_releases', methods=['POST'])
+def add_release():
+    release = request.form.get('release')
+    logging.info(f'Request to add release {release}')
+    fm.add_release(release)
+    return redirect(url_for('file_management'))
+
+@app.route('/del_releases', methods=['POST'])
+def del_release():
+    release = request.form.get('release')
+    logging.info(f'Request to remove release {release}')
+    fm.remove_release(release)
+    return redirect(url_for('file_management'))
+
 if __name__ == '__main__':
    app.run()
