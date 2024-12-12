@@ -25,6 +25,7 @@ from io import BytesIO
 import logging
 import log_handling
 from app_functions import logs as l
+from app_functions import compare as comp
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -174,7 +175,6 @@ def excel_upload():
     executor.submit(fm.upload_excel,file_stream,filename,release,chapterNumber)
     executor.shutdown(wait=False)
     return redirect(url_for('file_management'))
-
 
 @app.route('/excel_upload_batch', methods=['POST'])
 def excel_upload_batch():
@@ -356,6 +356,24 @@ def del_release():
     logging.info(f'Request to remove release {release}')
     fm.remove_release(release)
     return redirect(url_for('file_management'))
+
+@app.route('/comparison', methods=['GET','POST'])
+def comparison():
+    logging.info('Request for comparison page received.')
+    changed = None
+    new = None
+    removed = None
+    if request.method == "POST":
+        chapterNumber = request.form.get("chapterNumber")
+        release1 = request.form.get('release1')
+        release2 = request.form.get('release2')
+        hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes = comp.compare_releases(int(chapterNumber),release1,release2)
+        changed1 = comp.get_lineitems_for_display_from_hscodes(hscodes_with_change,release1)
+        changed2 = comp.get_lineitems_for_display_from_hscodes(hscodes_with_change,release2)
+        changed = [item for pair in zip(changed1, changed2) for item in pair]
+        new = comp.get_lineitems_for_display_from_hscodes(new_hscodes,release2)
+        removed = comp.get_lineitems_for_display_from_hscodes(removed_hscodes,release1)
+    return render_template('version_comparison.html', changed=changed,new=new,removed=removed)
 
 if __name__ == '__main__':
    app.run()

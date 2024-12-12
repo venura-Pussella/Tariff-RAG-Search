@@ -2,7 +2,7 @@ import logging
 
 from data_stores.DataStores import DataStores
 
-def findByHSCode(query: str) -> list[dict]:
+def findByHSCode(query: str, whitelist_releases: list[str] = None) -> list[dict]:
      """Searches the json dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
      and returns a list of line items.
 
@@ -39,6 +39,8 @@ def findByHSCode(query: str) -> list[dict]:
      if len(keys) == 0: return []
      
      for key in keys:
+          if whitelist_releases:
+               if key[1] not in whitelist_releases: continue
           items = data_dict[key]["Items"]
           for item in items:
                # todo: implement binary search
