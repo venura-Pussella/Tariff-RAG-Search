@@ -36,8 +36,6 @@ def vectorStoreSearch(question: str, releases: list[str]) -> list[dict]:
             for result in results:
                 if result['Release'] == release:
                     search_results.append((result, score))
-    print('SEARCH RESULTS')
-    print(search_results) 
     sorted_search_results = sorted(search_results, key=lambda x: x[1], reverse=True)  
     return sorted_search_results
  
