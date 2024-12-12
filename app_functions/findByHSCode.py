@@ -15,6 +15,7 @@ def findByHSCode(query: str) -> list[dict]:
      if query == None or query == '': return[]
 
      data_dict = DataStores.getJson_dicts()
+     print(f'data_dict: {data_dict}')
      
      results = []
      chapterNumber = 0
@@ -33,13 +34,19 @@ def findByHSCode(query: str) -> list[dict]:
           logging.error(e)
           return []
 
-     if not (chapterNumber in data_dict): return []
+     keys = []
+     for key in data_dict.keys():
+          if key[0] == chapterNumber: keys.append(key)
+     if len(keys) == 0: return []
      
-     items = data_dict[chapterNumber]["Items"]
-     for item in items:
-          # todo: implement binary search
-          if query in item["HS Code"]:
-               item["Chapter Number"] = str(chapterNumber) # Adding this because we want a link to the PDF to be displayed with the result
-               results.append(item)
+     for key in keys:
+          items = data_dict[key]["Items"]
+          for item in items:
+               # todo: implement binary search
+               if query in item["HS Code"]:
+                    item["Release"] = key[1] # Adding this because we want a link to the PDF to be displayed with the result
+                    item["Chapter Number"] = str(chapterNumber) # Adding this because we want a link to the PDF to be displayed with the result
+                    results.append(item)
+
      return results
 

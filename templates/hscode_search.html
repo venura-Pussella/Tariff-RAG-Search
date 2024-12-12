@@ -41,6 +41,7 @@
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
+                    <th>Release</th>
                     <th>HS Hdg Name</th>
                     <th>HS Code</th>
                     <th>SC Code</th>
@@ -58,6 +59,7 @@
                     <th>SCL</th>
                 </tr>
                  <tr>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -89,6 +91,7 @@
             <tbody>
                 {% for item in results %}
                 <tr>
+                    <td>{{ item['Release'] }}</td>
                     <td>{{ item['HS Hdg Name'] }}</td>
                     <td>{{ item['HS Code'] }}</td>
                     <td>{{ item['SC Code'] }}</td>
