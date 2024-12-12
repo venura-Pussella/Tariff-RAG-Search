@@ -89,7 +89,7 @@ class AzureBlobObjects:
                 download_stream = blob_client.download_blob()
                 data.write(download_stream.readall())
             except ResourceNotFoundError:
-                logging.error(f"The file was not found, maybe user clicked on a Nil cell. Filename received:{filename}")
+                logging.error(f"The file was not found. Filename received:{filename}")
 
     @classmethod
     def download_blob_file_to_stream(cls, filename: str, containerName: str) -> BytesIO:
@@ -103,5 +103,5 @@ class AzureBlobObjects:
             blob_client.download_blob().readinto(stream)
             stream.seek(0)
         except ResourceNotFoundError:
-            logging.error(f"The file was not found, maybe user clicked on a Nil cell. Filename received:{filename}")
+            logging.error(f"The file was not found. Filename received:{filename}")
         return stream
