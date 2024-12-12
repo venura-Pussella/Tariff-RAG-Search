@@ -48,5 +48,6 @@ def findByHSCode(query: str) -> list[dict]:
                     item["Chapter Number"] = str(chapterNumber) # Adding this because we want a link to the PDF to be displayed with the result
                     results.append(item)
 
-     return results
+     sorted_results = sorted(results, key=lambda x: (x["HS Code"], x["Release"]))
+     return sorted_results
 
