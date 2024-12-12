@@ -302,15 +302,16 @@ def generate_excel_for_review():
     response = send_file(excel_stream, as_attachment=True, download_name=filename)
     return response
 
-@app.route('/download_uncommitted_excels', methods=['GET'])
+@app.route('/download_uncommitted_excels', methods=['POST'])
 def download_uncommitted_excels():
     logging.info('Request to download uncommitted excels received')
-    chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded)
+    release = request.form.get('release')
+    chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded, release)
 
     # download the excel-to-review for each chapter
     excels: list[tuple[str,BytesIO]] = []
     for chapter in chapters:
-        filename = str(chapter) + '.xlsx'
+        filename = release + '/' + str(chapter) + '.xlsx'
         excel = abo.download_blob_file_to_stream(filename, config.generatedExcel_container_name)
         excel.seek(0)
         excels.append((filename,excel))

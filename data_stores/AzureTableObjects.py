@@ -113,5 +113,5 @@ class AzureTableObjects:
         for entity in entities:
             rowkey = entity['RowKey']
             entity_release_date = rowkey.rsplit(':')[0]
-            if entity_release_date==release_date and entity[field] == content: chapters.append(int(entity['RowKey']))
+            if entity_release_date==release_date and entity[field] == content: chapters.append(int(rowkey.rsplit(':')[1]))
         return chapters
