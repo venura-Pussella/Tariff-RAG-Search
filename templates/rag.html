@@ -26,7 +26,19 @@
             <div class="col-md-6 mx-auto text-center">
                 <label for="name" class="form-label fw-bold fs-5">Enter Query</label>
 
-                <!-- <p class="lead mb-2">Could you please tell me your name?</p> -->
+                <label class="form-label fw-bold">Releases:</label>
+                {% if release_options %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center align-items-center my-1">
+                    <!-- Checkboxes for multiple selection -->
+                    {% for option in release_options %}
+                    <div>
+                        <input type="radio" id="option1" name="options" value="{{ option }}" required="required">
+                        <label for="option1">{{ option }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center align-items-center my-1">
                     <input type="text" class="form-control" id="query" name="query" style="max-width: 256px;">
                   </div>            

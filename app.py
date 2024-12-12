@@ -81,16 +81,20 @@ def chatbot():
     logging.info('Request for RAG page received')
     user_query = None
     answer_html = None
+    release_options = fm.get_stored_releases()
+    option = None
     if request.method == "POST":
         user_query = request.form.get("query")
         user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
+        option = request.form.get('options')
+        if option == None: return render_template("rag.html", results=answer_html, user_query=user_query, release_options=release_options)
         toks.updateTokens_chatbot(user_query) # update token count tracker
         logging.info("app.py: user_query for RAG page is: " + user_query)
         logging.log(15,"app.py: user_query for RAG page is: " + user_query)
         answer = chatBot.getChatBotAnswer(user_query)
         answer_html = markdown.markdown(answer,extensions=['tables'])
         logging.log(15,'LLM Final answer: \n' + answer + '\n' + answer_html)
-    return render_template("rag.html", results=answer_html, user_query=user_query)
+    return render_template("rag.html", results=answer_html, user_query=user_query, release_options=release_options)
 
 @app.route('/file_management')
 def file_management():
