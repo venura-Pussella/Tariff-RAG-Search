@@ -2,12 +2,17 @@ import os
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv()) # read local .env file
 import markdown
-import config
 import secrets
 import zipfile
+import concurrent.futures
+from io import BytesIO
+import logging
+
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, flash, send_file)
 from werkzeug.utils import secure_filename
+from azure.core.exceptions import ResourceNotFoundError
+
 from app_functions import findByHSCode
 from app_functions import findBySCCode
 import app_functions.chatBot as chatBot
@@ -19,13 +24,10 @@ from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.DataStores import DataStores as ds
 from initializers.extract_data_for_review import convertPDFToExcelForReview
 from data_stores.AzureTableObjects import MutexError
-from azure.core.exceptions import ResourceNotFoundError
-import concurrent.futures
-from io import BytesIO
-import logging
 import log_handling
 from app_functions import logs as l
 from app_functions import compare as comp
+import config
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -33,7 +35,10 @@ app.config['MAX_CONTENT_LENGTH'] = config.flask_max_accepted_file_size # Max acc
 
 log_handling.configure_logging()
 
-ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure blob
+try: ds.updateJSONdictsFromAzureBlob() # update the on-memory json-store from Azure blob
+except Exception as e: logging.error(f'Cannot run updateJSONdictsFromAzureBlob at app launch: {e}')
+
+# If any of these functions run into an error, exception handling is automatically done by Flask itself. App does not crash and error is logged.
 
 @app.route("/", methods=["GET", "POST"])
 def hscode_search():
@@ -310,6 +315,7 @@ def generate_excel_for_review():
 
 @app.route('/download_uncommitted_excels', methods=['POST'])
 def download_uncommitted_excels():
+    """Downloads generated excel files from records that are still in the uploadPDF stage (see dev guide section 3.1.3)"""
     logging.info('Request to download uncommitted excels received')
     release = request.form.get('release')
     chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded, release)

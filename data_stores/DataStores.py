@@ -11,29 +11,22 @@ class DataStores:
     Attributes:
         __hsCodeToSCCodeMapping: dict[str,str]: SC Code functionality temporarily removed. This holds an empty dictionary.
         __scCodeToHSCodeMapping: dict[str,str]: SC Code functionality temporarily removed. This holds an empty dictionary.
-        __json_dicts: dict[int,str]: Maps chapter number with the chapter dictionary.
-
-    Methods:
-        getJson_dicts(cls, chapterNumbers: list[int] = None) -> dict[int,str]: Returns the class variable containing the dictionary of chapter dictionaries.
-        updateJSONdictsFromAzureBlob(cls, chapterNumbers: list[int] = None) -> None: Updates the class variable containing the dictionary of chapter dictionaries.
-        insertNewJSONDictManually(cls, json_string: str, chapterNumber: int) -> None: Inserts a dictionary for a specified chapter number in the dictionary of chapter dictionaries.
-        getHSCodeToSCCodeMapping(cls) -> dict[str,str]: SC Code functionality temporarily removed. This just returns an empty dictionary.
-        getSCCodeToHSCodeMapping(cls) -> dict[str,list[str]]: SC Code functionality temporarily removed. This just returns an empty dictionary.
+        __json_dicts: dict[int,str]: Maps chapter_number-release_date with the chapter dictionary (a json string).
     """
 
     __hsCodeToSCCodeMapping: dict[str,str] = {}
-    __json_dicts: dict[tuple[str,int],str] = {}
+    __json_dicts: dict[tuple[str,int],str] = {} # Maps chapter_number-release_date with the chapter dictionary (a json string).
     __scCodeToHSCodeMapping: dict[str,list[str]] = {}
 
     @classmethod
-    def getJson_dicts(cls, chapterNumber_releaseDate_combos: list[tuple[int,str]] = None) -> dict[int,str]:
-        """Returns the class variable containing the dictionary of chapter dictionaries. Make sure to update this using updateJSONdictsFromAzureBlob if required.
+    def getJson_dicts(cls, chapterNumber_releaseDate_combos: list[tuple[int,str]] = None) -> dict[tuple[str,int],str]:
+        """Returns the singleton object containing the dictionary of chapter dictionaries (mapping chapter_number-release_date with the chapter dictionary (a json string)). Make sure to update this using updateJSONdictsFromAzureBlob if required.
 
         Args:
-            chapterNumbers (list[int], Optional, defaults to None): If not none, returns a filtered dictionary, otherwise no filter.
-        
+            chapterNumber_releaseDate_combos (list[tuple[int,str]], optional): If specified, filters the returned dictionary to these combos. Defaults to None.
+
         Returns:
-            Dictionary with chapter dictionaries (chapter number maps to individual chapter dictionary)
+            dict[tuple[str,int],str]: Dictionary mapping a chapter_number-release_date to its json string.
         """
         if chapterNumber_releaseDate_combos:
             dicts = {}
@@ -44,12 +37,14 @@ class DataStores:
     
     @classmethod
     def updateJSONdictsFromAzureBlob(cls, chapterNumber_releaseDate_combos: list[tuple[int,str]] = None) -> None:
-        """Updates the class variable containing the dictionary of chapter dictionaries from Azure storage.
+        """Updates the singleton object containing the dictionary of chapter-release dictionaries from Azure storage.
 
         Args:
-            chapterNumbers (list[int], Optional, defaults to None): If not none, updates from all chapters found in the blob, else just the ones specified,
+            chapterNumber_releaseDate_combos (list[tuple[int,str]], optional): If specified, only updates the items matching this filter. Defaults to None.
         """
         def updateJSONdictFromAzureBlob(_jsonName: str, _chapterNumber: int, _release_date: str):
+            """Helper method for updateJSONdictsFromAzureBlob parent function.
+            """
             blob_client = container_client.get_blob_client(blob=_jsonName)
             try:
                 downloader = blob_client.download_blob(max_concurrency=1, encoding='UTF-8')
@@ -79,14 +74,8 @@ class DataStores:
 
     @classmethod
     def insertNewJSONDictManually(cls, json_string: str, chapterNumber: int, release_date: str) -> None:
-        """Inserts a dictionary for a specified chapter number in the dictionary of chapter dictionaries.
-
-        Args:
-            json_string: (str) the json formatted string from which to create the dictionary for the specified chapter number
-            chapterNumber: (int)
-
-        Returns: 
-            void
+        """Inserts a dictionary for a specified chapter_number-release_date in the singleton object 
+        holding all of the chapter_number-release_date to json string mapping.
         """
         new_json_dict = json.loads(json_string)
         cls.__json_dicts[(chapterNumber, release_date)] = new_json_dict

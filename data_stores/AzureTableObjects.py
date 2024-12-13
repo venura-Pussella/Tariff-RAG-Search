@@ -13,6 +13,10 @@ class MutexError(Exception):
 class AzureTableObjects:
     """Provides singleton method for retrieving table client (and table-service-client also but why would you want this?).
     Also provides methods to perform CRUD on entities (i.e. a table row (record)), and to claim and release mutex on a row (record).
+    https://learn.microsoft.com/en-us/python/api/overview/azure/data-tables-readme?view=azure-python
+
+    The Azure table is used to track the RecordState and Status of a record (a record is a chapter_number-release_date combo).
+    It is also used to manage mutex rights.
     """
 
     __table_service_client = None
@@ -108,6 +112,17 @@ class AzureTableObjects:
     
     @classmethod
     def search_entities(cls, field: str, content: str, release_date: str) -> list[int]:
+        """Searches all chapters for a given release that match your filter for a specified field.
+        Returns the list of chapter numbers that match the filter.
+
+        Args:
+            field (str): field to search in
+            content (str): Search filter
+            release_date (str): Release
+
+        Returns:
+            list[int]: chapter numbers
+        """
         entities = cls.get_all_entities()
         chapters: list[int] = []
         for entity in entities:

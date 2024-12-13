@@ -11,6 +11,7 @@ def vectorStoreSearch(question: str, releases: list[str]) -> list[dict]:
 
     Args:
         question (str): user's question
+        releases (list[str]): list of releases whose vectorstores to check
 
     Returns:
         list[dict]: list of search results (line items)

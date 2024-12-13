@@ -4,19 +4,19 @@ import logging
 
 class getEmbeddings():
     """Singleton class with func to return embeddings according to what's defined in config.py
-    ### Methods
-    ------
-        getEmbeddings(): returns embeddings
     """
 
     __embeddings = None
 
     def getEmbeddings():
-        """Returns embedding according to config.py
-        ### Raises:
-            ValueError: If Embedding to be used not defined in config.py, or is not known
-        """
+        """Returns embedding object according to config.py
 
+        Raises:
+            ValueError:  If Embedding to be used not defined in config.py, or is not known
+
+        Returns:
+            _type_: embedding object
+        """
         if getEmbeddings.__embeddings == None:
             if config.embeddings == 'OpenAI':
                 from langchain_community.embeddings import OpenAIEmbeddings

@@ -6,7 +6,9 @@ from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
 from io import BytesIO
 
 class AzureBlobObjects:
-    """Singleton class to hold blob-service-client and container clients. Contains methods to retrieve them, and the getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
+    """Singleton class to hold blob-service-client and container clients. Contains methods to use them.
+    https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python?tabs=managed-identity%2Croles-azure-portal%2Csign-in-azure-cli&pivots=blob-storage-quickstart-scratch
+    https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-python-get-started?tabs=azure-ad
     """
 
     __blob_service_client = None
@@ -59,6 +61,7 @@ class AzureBlobObjects:
     @classmethod
     def upload_blob_file(cls, filepath: str, containerName: str, file_rename: str = None):
         """Upload file specified in filepath to the specified container in Azure storage.
+        Can specifiy file_rename if the file should be with a different name in Azure storage.
         """
         filename = os.path.basename(filepath)
         container_client = cls.get_container_client(containerName)

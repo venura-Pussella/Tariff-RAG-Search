@@ -4,6 +4,7 @@ import sys
 log_messages: list[str] = []
 
 def configure_logging():
+
     # only the root app logger is set to DEBUG level, others are set to WARNING level
     loggers = logging.Logger.manager.loggerDict
     for logger in loggers:
@@ -22,6 +23,7 @@ def configure_logging():
         def emit(self, record):
             log_entry = self.format(record)
             log_messages.append(log_entry)
+            
 
     format_string = "[%(asctime)s: %(name)s: %(module)s: %(levelname)s: %(message)s]"
     list_handler = ListHandler()

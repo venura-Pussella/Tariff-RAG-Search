@@ -45,6 +45,7 @@ def getChatBotAnswer(userQuery_to_chatBot: str, release: str) -> str:
 
     Args:
         userQuery_to_chatBot (str): The user's question
+        release (str): Which release to check.
 
     Returns:
         str: llm generated answer

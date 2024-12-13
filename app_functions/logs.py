@@ -1,6 +1,8 @@
 import log_handling
 
 def generate_array_for_log_tablerows():
+    """Generates a list of objects from the tracked log messages that is used by the logs html page to display in a table.
+    """
     tableRows: list[list[str]] = []
     for log in log_handling.log_messages:
         log = log[1:-1] # get rid of the square brackets surrounding the log message
@@ -19,6 +21,15 @@ def generate_array_for_log_tablerows():
     return tableRows
 
 def get_filtered_logs(tableRows: list[list[str]], filter: str) -> list[list[str]]:
+    """Used to filter the table of log messages in the logs html page.
+
+    Args:
+        tableRows (list[list[str]]): _description_
+        filter (str): possible values - Debug,LLM,Info,User,Warning,Error
+
+    Returns:
+        list[list[str]]: _description_
+    """
     filtered_tableRows = []
     filters = ['DEBUG', 'LLM', 'INFO', 'USER', 'WARNING', 'ERROR']
     if filter == 'Debug': pass

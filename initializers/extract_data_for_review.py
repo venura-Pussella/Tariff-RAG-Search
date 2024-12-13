@@ -1,17 +1,15 @@
-# The convertPDFToExcelForReview() function does exactly what it says (refer its docstring).
-# The rest of the functions are helper functions for convertPDFToExcelForReview().
+# This file has only one public function - convertPDFToExcelForReview
+# It is used to do most of the uploadPDF stage, as mentioned in the developer guide in section 3.1.3
+
+from io import BytesIO
+import logging
+import pickle
 
 import pdfplumber
 import pandas as pd
-import pickle
-from werkzeug.datastructures import FileStorage
-from io import BytesIO
-import logging
-
-import config
 
 
-def removeNewLineCharactersFromDataframe(dataframe):
+def __removeNewLineCharactersFromDataframe(dataframe):
     """Removes new line character ('\n') from the dataframe. Done in place. Returns void.
     """
     numOfRows = dataframe.shape[0]
@@ -21,14 +19,14 @@ def removeNewLineCharactersFromDataframe(dataframe):
             if dataframe.iloc[r,c] == None: continue
             dataframe.iloc[r,c] = dataframe.iloc[r,c].replace('\n',' ')
     
-def isSeriesALineItem(series, numOfColumns) -> bool:
+def __isSeriesALineItem(series, numOfColumns) -> bool:
     """Checks if a dataframe row (i.e. a series), qualifies as a line item (i.e. has values from the unit column onwards)"""
     for col in range(4,numOfColumns):
         value = series.iloc[col]
-        if not isEmpty(value): return True
+        if not __isEmpty(value): return True
     return False
 
-def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
+def __getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
     """Returns a dictionary mapping an easy to use column name for the dataframe, with its corresponsing column number.
     """
     keys = ["HS Hdg", 
@@ -59,14 +57,14 @@ def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
     values = list(range(0,25))
     return dict(zip(keys, values))
 
-def isEmpty(string) -> bool:
+def __isEmpty(string) -> bool:
     """ Returns true if the given string is '' or None
     """
     if string == "" or string == None:
         return True
     return False
 
-def standardizeHSCode(hscode: str) -> str:
+def __standardizeHSCode(hscode: str) -> str:
     """ Changes hscodes of the various known formats into a standardized format '####.##.##N'
 
     Args:
@@ -87,7 +85,7 @@ def standardizeHSCode(hscode: str) -> str:
         raise ValueError("HS Code of unknown format passed in: {}".format(hscode))
     return hscode
 
-def extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
+def __extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
     """Extracts the table from the tariff PDF and the text that comes before the table.
 
     Uses pdf plumber to extract the data from the pdfs
@@ -95,7 +93,7 @@ def extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
     The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
 
     Args:
-        file (FileStorage): the PDF file
+        file (BytesIO): the PDF file
 
     Returns:
         tuple[pd.DataFrame,list[str]]: table as pandas dataframe, text (one item is a page)
@@ -135,7 +133,7 @@ def extractTableAndTextFromPDF(file: BytesIO) -> tuple[pd.DataFrame,list[str]]:
 
     return df, allText
 
-def extractTableAndTextFromPDFNonStrictly(file: BytesIO):
+def __extractTableAndTextFromPDFNonStrictly(file: BytesIO):
     """Extracts the table from the tariff PDF and text on the first page.
 
     Uses pdf plumber to extract the data from the pdfs
@@ -143,7 +141,7 @@ def extractTableAndTextFromPDFNonStrictly(file: BytesIO):
     The table is converted into a pandas dataframe (as-is, not processed to remove empty rows, etc.)
 
     Args:
-        file (FileStorage): the PDF file
+        file (BytesIO): the PDF file
 
     Returns:
         tuple[pd.DataFrame,list[str]]: table as pandas dataframe, text (one item is a page)
@@ -168,13 +166,13 @@ def extractTableAndTextFromPDFNonStrictly(file: BytesIO):
 
     return df, allText
 
-def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: int = None, filename: str = None, strict=True) -> tuple[BytesIO,BytesIO,int]:
+def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: int = None, filename: str = None, strict=True) -> tuple[BytesIO,BytesIO,int]:
     """Data is ripped from the PDF to excel (and a dictionary), so that user will eventually review the excel.
 
     The text and other data (basically data other than the table), are saved to a dictionary as a pickle binary.
     The table which is extracted as a pandas dataframe is extracted in the form of an excel file, for easy reviewing and editing.
     Args:
-        file (FileStorage): the pdf file
+        file (BytesIO): the pdf file
         userEnteredChapterNumber (int, optional): If availalbe, used to verify is this matches the chapter number in the PDF. Defaults to None.
         filename (str, optional): If available, used to handle cases where the chapter number extraction of the PDF must be hardcoded due to issues in the PDF. Defaults to None.
         strict (bool, optional): whether to use strict extraction. If strict is not used, parts of the first bit of the table in the pdf may end up in the pre-table-notes section of the dictionary.. Defaults to True.
@@ -185,14 +183,14 @@ def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: i
     Returns:
         tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
     """   
-    headerNumber = getDataframeHeadernameToColumnNumberMapping()
+    headerNumber = __getDataframeHeadernameToColumnNumberMapping()
 
     if strict:
-        df, allText = extractTableAndTextFromPDF(file)
+        df, allText = __extractTableAndTextFromPDF(file)
     else:
-        df, allText = extractTableAndTextFromPDFNonStrictly(file)
+        df, allText = __extractTableAndTextFromPDFNonStrictly(file)
     df['LineItem?'] = None   
-    removeNewLineCharactersFromDataframe(df)
+    __removeNewLineCharactersFromDataframe(df)
     # isolate chapter number and name from the PDF text
     # ......................................... #
     firstLineEndIndex = allText[0].find('\n')
@@ -245,26 +243,26 @@ def get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber: i
         current_description = current_series.values[headerNumber['Description']]
         if current_description == None: current_description = ''
 
-        if isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
+        if __isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
             df.loc[n, 'LineItem?'] = 'empty'
             continue
-        if isEmpty(current_hshdg) and not isSeriesALineItem(current_series, numOfColumns): # description considered a prefix
+        if __isEmpty(current_hshdg) and not __isSeriesALineItem(current_series, numOfColumns): # description considered a prefix
             df.loc[n, 'LineItem?'] = 'prefix'
             ongoing_prefix = current_description
             continue
-        if (not isEmpty(current_hshdg)) and not isSeriesALineItem(current_series, numOfColumns): # row has a HS Hdg no. but no HS code no.
+        if (not __isEmpty(current_hshdg)) and not __isSeriesALineItem(current_series, numOfColumns): # row has a HS Hdg no. but no HS code no.
             df.loc[n, 'LineItem?'] = 'just HS heading'
             ongoing_prefix = "" # reset on-going prefix since we have moved to a new hs hdg
-            if not isSeriesALineItem(current_series, numOfColumns): # not an item
+            if not __isSeriesALineItem(current_series, numOfColumns): # not an item
                 continue
             else:
                 current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
-        if (not isEmpty(current_hshdg)) and isSeriesALineItem(current_series, numOfColumns) and isEmpty(current_hscode):
+        if (not __isEmpty(current_hshdg)) and __isSeriesALineItem(current_series, numOfColumns) and __isEmpty(current_hscode):
             current_hscode = current_hshdg
-        if isSeriesALineItem(current_series, numOfColumns): # this is a valid item
+        if __isSeriesALineItem(current_series, numOfColumns): # this is a valid item
             # create a json item
             df.loc[n, 'LineItem?'] = 'line item'
-            try: standardizeHSCode(current_hscode)
+            try: __standardizeHSCode(current_hscode)
             except Exception as e: 
                 df.loc[n, 'LineItem?'] = 'hscode error'
                 logging.error("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
@@ -284,19 +282,19 @@ def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = No
     """Converts the pdf to excel (and dictionary pickle). This is done so the user can review the data extraction process.
 
     Args:
-        file (FileStorage): _description_
-        userEnteredChapterNumber (int, optional): _description_. Defaults to None.
+        file (BytesIO): _description_
+        userEnteredChapterNumber (int, optional): Optionally used for validation. Defaults to None.
         filename (str, optional): Used for hardcoding in cases where the chapter number cannot be extracted from the top of the PDF because of pdf structure/identification issues. Defaults to None.
 
     Returns:
         tuple[BytesIO,BytesIO,int]: dictionary pickle, excel, chapter number
     """
     results = None
-    try: results = get_excel_and_dictionary_from_pdf(file, userEnteredChapterNumber, filename)
+    try: results = __get_excel_and_dictionary_from_pdf(file, userEnteredChapterNumber, filename)
     except Exception as e:
         logging.error("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e))
         logging.error("Using non-strict extraction")
-        try: results = get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
+        try: results = __get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
         except Exception as e:
             logging.error("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
     return results

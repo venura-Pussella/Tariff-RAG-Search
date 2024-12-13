@@ -1,10 +1,13 @@
-from data_stores.AzureBlobObjects import AzureBlobObjects as abo
-from azure.core.exceptions import ResourceNotFoundError
-import config
-from data_stores.DataStores import DataStores as ds
 import logging
 
+from azure.core.exceptions import ResourceNotFoundError
+
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+import config
+from data_stores.DataStores import DataStores as ds
+
 def __deleteChapterBlob(chapterNumber: int, file_extension: str, container_name: str, release_date: str):
+    """From the given args, we can construct the filename and know from what container it should be deleted."""
     filename = f"{release_date}/{chapterNumber}.{file_extension}"
     container_client = abo.get_container_client(container_name)
     blob_client = container_client.get_blob_client(filename)

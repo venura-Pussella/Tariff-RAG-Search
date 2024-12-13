@@ -24,6 +24,7 @@ vector_embedding_policy = {
     ]
 }
 
+# Azure Blob container names
 pdf_container_name = "pdf-container"
 generatedExcel_container_name = "generatedexcel-container"
 generatedDict_container_name = "generatedict-container"
@@ -33,6 +34,7 @@ cosmos_ids_container_name = "cosmos-ids-container"
 release_holder_container_name = "release-holder"
 release_holder_filename = "releases.txt"
 
+# Azure Storage Table
 azureStorageTableName = 'chaptertracker12345'
 azureStorageTablePartitionKeyValue = 'a'
 

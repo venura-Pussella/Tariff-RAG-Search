@@ -3,11 +3,12 @@ import logging
 from data_stores.DataStores import DataStores
 
 def findByHSCode(query: str, whitelist_releases: list[str] = None) -> list[dict]:
-     """Searches the json dictionary containing all tariff pdf information for line items whose HSCodes match the search query,
-     and returns a list of line items.
+     """Searches the json dictionary containing all tariff pdf information for line items whose 
+     HSCodes match the search query, and returns a list of line items.
 
      Args:
-         query (str): user query (expects an hs code)
+         query (str): HS code query (can be whole HS code or a part of it)
+         whitelist_releases (list[str], optional): If given, filters the results to only those of the whitelisted release dates. Defaults to None.
 
      Returns:
          list[dict]: list of search results (line items)

@@ -1,18 +1,19 @@
-import config
 import secrets
 import logging
-from data_stores.AzureBlobObjects import AzureBlobObjects as ABO
-from data_stores.AzureTableObjects import AzureTableObjects as ato
-from data_stores.AzureBlobObjects import AzureBlobObjects as abo
-from werkzeug.datastructures import FileStorage
-from initializers import deletingFuncs as delf
-from initializers import extract_data_for_review
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
-from data_stores.AzureTableObjects import MutexError
 import concurrent.futures
 from io import BytesIO
+
+from werkzeug.datastructures import FileStorage
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+
+from data_stores.AzureTableObjects import AzureTableObjects as ato
+from data_stores.AzureBlobObjects import AzureBlobObjects as abo
+from initializers import deletingFuncs as delf
+from initializers import extract_data_for_review
+from data_stores.AzureTableObjects import MutexError
 from initializers.extract_data_to_json_store import extract_data_to_json_store
 from initializers.create_vectorstore import update_vectorstore
+import config
 
 def allowed_file(filename: str, extension: str) -> bool:
     """Checks if filename has allowed extension.
@@ -46,10 +47,10 @@ def generateArrayForTableRows() -> list[list[str]]:
         list[list[str]]: table rows
     """
     tableRows: list[list[str]] = []
-    listOfPDFNames = ABO.getListOfFilenamesInContainer(config.pdf_container_name)
-    listOfGeneratedExcelNames = ABO.getListOfFilenamesInContainer(config.generatedExcel_container_name)
-    listOfReviewedExcelNames = ABO.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
-    listOfJSONs = ABO.getListOfFilenamesInContainer(config.json_container_name)
+    listOfPDFNames = abo.getListOfFilenamesInContainer(config.pdf_container_name)
+    listOfGeneratedExcelNames = abo.getListOfFilenamesInContainer(config.generatedExcel_container_name)
+    listOfReviewedExcelNames = abo.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
+    listOfJSONs = abo.getListOfFilenamesInContainer(config.json_container_name)
     for name in listOfPDFNames:
         release_date = name.rsplit('/')[0]
         chapterNumber = name.rsplit('/')[1].rsplit('.')[0]
@@ -94,6 +95,7 @@ def delete_upto_pdf(chapterNumber: int, release: str):
         concurrent.futures.wait(futures)
     
 def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: int = None, filename: str = None):
+    """Basically does the entire uploadPDF stage mentioned in section 3.1.3 in the developer guide."""
    
     # convert the PDF into the dictionary, excel and identified chapter number
     dictionary_pkl_stream, excel_stream, chapterNumber = extract_data_for_review.convertPDFToExcelForReview(pdffile,user_entered_chapter_number,filename)
@@ -135,6 +137,8 @@ def batch_upload_pdfs(pdffiles: list[BytesIO], release_date: str, filenames: lis
         upload_pdf(pdffile,release_date,filename=filename)
 
 def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_entered_chapter_number: int = None):
+    """Basically does the entire uploadExcel stage mentioned in section 3.1.3 in the developer guide."""
+    
     # if user has entered the chapter number, that is taken as the chapterNumber, otherwise it's taken from the filename
     if user_entered_chapter_number: chapterNumber = user_entered_chapter_number
     else: 
@@ -168,7 +172,13 @@ def batch_upload_excels(excelfiles: list[BytesIO], release_date: str, filenames:
         filename = filenames[i]
         upload_excel(excelfile,filename,release_date)
     
+
 def add_release(release: str):
+    """Used to declare a date-string as a release.
+    The functions add_release, remove_release and get_stored_releases can be used by front-end to offer dropdown menus for user to select release date.
+    Currently not used to enforce anything.
+    This system is used to make radio or dropdown buttons for filters in some html pages.
+    """
     existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
     existing_streamed.seek(0)
     existing_text = existing_streamed.getvalue().decode('utf-8')
@@ -183,6 +193,11 @@ def add_release(release: str):
     abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)
 
 def remove_release(release: str):
+    """Used to remove a release.
+    The functions add_release, remove_release and get_stored_releases can be used by front-end to offer dropdown menus for user to select release date.
+    Currently not used to enforce anything.
+    This system is used to make radio or dropdown buttons for filters in some html pages.
+    """
     existing_releases = get_stored_releases()
     for i in range(0,len(existing_releases)):
         existing_release = existing_releases[i]
@@ -201,6 +216,11 @@ def remove_release(release: str):
     abo.upload_to_blob_from_stream(new_streamed,config.release_holder_container_name,config.release_holder_filename)
 
 def get_stored_releases() -> list[str]:
+    """Used to get declared releases.
+    The functions add_release, remove_release and get_stored_releases can be used by front-end to offer dropdown menus for user to select release date.
+    Currently not used to enforce anything.
+    This system is used to make radio or dropdown buttons for filters in some html pages.
+    """
     existing_streamed = abo.download_blob_file_to_stream(config.release_holder_filename, config.release_holder_container_name)
     existing_streamed.seek(0)
     existing_text = existing_streamed.getvalue().decode('utf-8')

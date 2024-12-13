@@ -1,22 +1,28 @@
-# SCRIPT
-# This script, despite what its name might suggest, does not necessarrily create a vectorstore from scratch.
-# It simply:
-# 1. Takes 2 commandline arguments (for chapter number and mutex key).
-# 2. Retreives json file from Azure storage that corresponds to the chapter number.
-# 3. Turns each line-item in the json file to a Line_Item object.
-# 4. Calls a script to upload the Line_Item objects with vector embeddings to the vectorstore specified in the config file.
+# The name of this file doesn't necessarily reflect what it contains. It only contains one method - read it!
 
-import logging
-import config
-from data_stores.DataStores import DataStores
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
-from initializers.Line_Item import Line_Item
+import logging
 import concurrent.futures
 from datetime import datetime
 
+import config
+from data_stores.DataStores import DataStores
+from initializers.Line_Item import Line_Item
+
+
 def update_vectorstore(chapterNumber: int, mutexKey: str, release_date: str):
-    logging.info(f"Starting addition to vectorstore... chapter {chapterNumber}")
+    """Updates the specified chapter_number-release to the vectorstore.
+    1. Automatically retrieves corresponding json file from Azure storage.
+    2. Turns each line-item in the json file to a Line_Item object.
+    3. Uploads them to the vectorstore specified in the config file, with vector embeddings.
+
+    Args:
+        chapterNumber (int): _description_
+        mutexKey (str): _description_
+        release_date (str): _description_
+    """
+    logging.info(f"Starting addition to vectorstore... chapter {chapterNumber} of release {release_date}")
 
     # load the extracted json data into a dictionary
     # ......................................... #
@@ -31,7 +37,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str, release_date: str):
     # create Line_Item objects
     # ......................................... #
     docs = []
-    logging.info(f"Creating Line Item objects from json chapter(s)... Chapter number:{chapterNumber}... {datetime.now()}")
+    logging.info(f"Creating Line Item objects from json chapter(s)... Chapter number:{chapterNumber}, release {release_date}... {datetime.now()}")
 
     for key,value in json_dicts.items():
         json_dict = value
@@ -40,6 +46,8 @@ def update_vectorstore(chapterNumber: int, mutexKey: str, release_date: str):
         chapterName = json_dict["Chapter Name"]
 
         def create_line_item(item):
+            """Helper function.
+            """
             prefix: str = item["Prefix"]
             hsHeadingName = item["HS Hdg Name"]
             hscode = item["HS Code"]
@@ -75,7 +83,7 @@ def update_vectorstore(chapterNumber: int, mutexKey: str, release_date: str):
                 futures.append(executor.submit(create_line_item, item))
             concurrent.futures.wait(futures)
             
-    logging.info(f"END creating Line Item objects from json chapter(s)...Chapter number:{chapterNumber}... {datetime.now()}")
+    logging.info(f"END creating Line Item objects from json chapter(s)...Chapter number:{chapterNumber}, release {release_date}... {datetime.now()}")
     # ......................................... #
 
 

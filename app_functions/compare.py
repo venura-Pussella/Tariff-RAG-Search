@@ -5,7 +5,19 @@ from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from app_functions import findByHSCode as fhs
 
 
-def compare_releases(chapter_number: int, release1: str, release2: str):
+def compare_releases(chapter_number: int, release1: str, release2: str) -> tuple[list,list,list,list]:
+    """Does git-like version comparison between two documents that is the same chapter but of 2 releases.
+    Git compares changes in lines. This compares changes in HS Codes.
+    IMPORTANT: Assumes HS codes are sorted in the chapter-release JSON.
+
+    Args:
+        chapter_number (int): _description_
+        release1 (str): old release
+        release2 (str): new release
+
+    Returns:
+        tuple[list,list,list,list]: hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes
+    """
 
     # download jsons
     release1_json_bin = abo.download_blob_file_to_stream(f'{release1}/{chapter_number}.json', config.json_container_name)
@@ -85,6 +97,8 @@ def __are_items_equal(item1: dict, item2: dict):
     return True
 
 def get_lineitems_for_display_from_hscodes(hscodes: list[str], release: str):
+    """Converts a list of hs codes into lineitems for displaying in the html dyanamic table.
+    """
     results = []
     for hscode in hscodes:
         results += fhs.findByHSCode(hscode,[release])

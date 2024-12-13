@@ -51,7 +51,14 @@ class CosmosObjects:
 
     @classmethod
     def getCosmosContainer(cls, release: str) -> AzureCosmosContainer.ContainerProxy:
-        """Singleton method to return a Cosmos object"""
+        """Singleton method to return a Cosmos object
+
+        Args:
+            release (str): The release (each release has its own container)
+
+        Returns:
+            AzureCosmosContainer.ContainerProxy: container
+        """
         if release not in cls.__cosmosContainers:
             try:
                 partition_key_path = PartitionKey(path="/categoryId")

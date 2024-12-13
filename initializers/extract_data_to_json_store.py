@@ -1,17 +1,21 @@
-import pandas as pd
+# This file only has one public method - extract_data_to_json_store
+
 import json
 import logging
 import pickle 
+from io import BytesIO
+
+import pandas as pd
+
 from data_stores.DataStores import DataStores
 import config
-import os
 from data_stores.DataStores import DataStores as ds
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
-from io import BytesIO
 
 
-def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
+
+def __getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
     """Returns a dictionary mapping an easy to use column name for the dataframe, with its corresponsing column number.
     """
     keys = ["HS Hdg", 
@@ -42,14 +46,14 @@ def getDataframeHeadernameToColumnNumberMapping() -> dict[str,int]:
     values = list(range(0,25))
     return dict(zip(keys, values))
 
-def isEmpty(string) -> bool:
+def __isEmpty(string) -> bool:
     """ Returns true if the given string is '' or None
     """
     if string == "" or string == None:
         return True
     return False
 
-def standardizeHSCode(hscode: str) -> str:
+def __standardizeHSCode(hscode: str) -> str:
     """ Changes hscodes of the various known formats into a standardized format '####.##.##N'
 
     Args:
@@ -72,13 +76,13 @@ def standardizeHSCode(hscode: str) -> str:
         raise ValueError()
     return hscode
           
-def doesHSCodeMatchChapterNumber(hscode: str, chapterNumber: int) -> bool:
-    standardizedHSCode = standardizeHSCode(hscode)
+def __doesHSCodeMatchChapterNumber(hscode: str, chapterNumber: int) -> bool:
+    standardizedHSCode = __standardizeHSCode(hscode)
     chapterNumberPart = standardizedHSCode[:2] # extract the chapter number part from the standardized hs code
     if int(chapterNumberPart) == chapterNumber: return True
     else: return False
 
-def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumber: int) -> str:
+def __saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumber: int) -> str:
     """ Reads a single excel file from the specified filepath (and the persisted corresponding pickle dictionary), 
     and saves it as a .json in the location defined inside the function. Also saves the SCCode to HSCode mapping dictionary to disk.
     ### Args:
@@ -87,7 +91,7 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
     scCodeToHSCodeMapping = {} # this does nothing for now
     # Create an 'enum' that matches a column name with the matching column number in the dataframe
     # ......................................... #
-    headerNumber = getDataframeHeadernameToColumnNumberMapping()
+    headerNumber = __getDataframeHeadernameToColumnNumberMapping()
     # ......................................... #
 
 
@@ -117,7 +121,7 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
     def isSeriesALineItem(series, numOfColumns) -> bool:
         for col in range(4,numOfColumns):
             value = series.iloc[col]
-            if not isEmpty(value): return True
+            if not __isEmpty(value): return True
         return False
 
     numOfRows = df.shape[0] # rows
@@ -132,12 +136,12 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
         current_description = current_series.values[headerNumber['Description']]
         if current_description == None: current_description = ''
 
-        if isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
+        if __isEmpty(current_description) or (current_hshdg == "HS Hdg"): # row is considered empty
             continue
-        if isEmpty(current_hshdg) and not isSeriesALineItem(current_series, numOfColumns): # description considered a prefix
+        if __isEmpty(current_hshdg) and not isSeriesALineItem(current_series, numOfColumns): # description considered a prefix
             ongoing_prefix = current_description
             continue
-        if (not isEmpty(current_hshdg)) and not isSeriesALineItem(current_series, numOfColumns): # row has a HS Hdg no. but no HS code no.
+        if (not __isEmpty(current_hshdg)) and not isSeriesALineItem(current_series, numOfColumns): # row has a HS Hdg no. but no HS code no.
             ongoing_hshdg = current_hshdg
             ongoing_hshdgname = current_description
             ongoing_prefix = "" # reset on-going prefix since we have moved to a new hs hdg
@@ -145,15 +149,15 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
                 continue
             else:
                 current_hscode = current_hshdg # the hs.hdg is assigned to the hscode
-        if (not isEmpty(current_hshdg)) and isSeriesALineItem(current_series, numOfColumns) and isEmpty(current_hscode):
+        if (not __isEmpty(current_hshdg)) and isSeriesALineItem(current_series, numOfColumns) and __isEmpty(current_hscode):
             current_hscode = current_hshdg
-        if isSeriesALineItem(current_series, numOfColumns) and not isEmpty(current_hscode): # this is a valid item
+        if isSeriesALineItem(current_series, numOfColumns) and not __isEmpty(current_hscode): # this is a valid item
             # create a json item
             values = [ongoing_prefix] + [ongoing_hshdgname] + list(df.loc[n].values)
             item = dict(zip(keysForAnItem, values))
             item.pop('Blank',item['Blank'])
             item['HS Hdg'] = ongoing_hshdg
-            try: standardizedHSCode = standardizeHSCode(current_hscode)
+            try: standardizedHSCode = __standardizeHSCode(current_hscode)
             except Exception as e: 
                 standardizedHSCode = current_hscode
                 logging.error(current_hscode)
@@ -163,7 +167,7 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
                 continue # skip this row
             item['HS Code'] =  standardizedHSCode# this value will be added explicitly in case this is an item that has a hs hdg, but no declared hs code
 
-            if not doesHSCodeMatchChapterNumber(current_hscode, chapterNumber):
+            if not __doesHSCodeMatchChapterNumber(current_hscode, chapterNumber):
                 raise Exception("User entered chapter number does not match at least one of the valid HS codes in the excel file")
 
             standardizedHSCode2 = standardizedHSCode[:-3] + "00N"
@@ -204,10 +208,21 @@ def saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNumb
     # ......................................... #
 
 def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber: int, release_date: str) -> bool:
+    """Extracts data from a reviewed excel, and converts it to json and uploads releveant files to Azure Blob storage.
+
+    Args:
+        excelfile (BytesIO): _description_
+        mutexKey (str): _description_
+        chapterNumber (int): _description_
+        release_date (str): _description_
+
+    Returns:
+        bool: if the process was successful
+    """
     dictFileName = release_date + '/' + str(chapterNumber) + '.pkl'
     dictStream = abo.download_blob_file_to_stream(dictFileName, config.generatedDict_container_name)
     try:
-        json_string = saveExcelAndDictToJSON2(excelfile, dictStream, chapterNumber)
+        json_string = __saveExcelAndDictToJSON2(excelfile, dictStream, chapterNumber)
     except Exception as e:
         logging.error(e)
         return False
@@ -215,7 +230,7 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     json_stream = BytesIO(json_string.encode('utf-8')) 
     json_stream.seek(0); dictStream.seek(0); excelfile.seek(0)
 
-    logging.info("Excel converted to json.")
+    logging.info(f"Excel converted to json. (chapter {chapterNumber} of release {release_date})")
     ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
     abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{release_date}/{chapterNumber}.xlsx') # Excel uploaded to Azure blob
     logging.info('Excel @ ' + f'{release_date}/{chapterNumber}.xlsx' + ' successfully uploaded')

@@ -1,23 +1,31 @@
-import config
+# Contains functions used to interact with the Azure Cosmos Vectorstore.
+
+import concurrent.futures
+import uuid
 import os
-import config
-from other_funcs.tokenTracker import TokenTracker as tok
-from other_funcs import getEmbeddings as emb
 import datetime
 import logging
 import pickle
+
+from azure.core import exceptions
+
+import config
+from other_funcs import getEmbeddings as emb
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
 from data_stores.AzureTableObjects import AzureTableObjects as ato
-from azure.core import exceptions
 from initializers.Line_Item import Line_Item
 from data_stores.CosmosObjects import CosmosObjects as co
-import concurrent.futures
-import uuid
+
 
 def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNumber: int, mutexKey: str, release_date: str): 
     """Feeds to given Line_Item objects to the Cosmos DB.
-    Chapter number and mutex key required to update the record.
-    Does not necessarily create the store from scratch despite what the name might suggest
+    Does not necessarily create the store from scratch despite what the name might suggest (alltho it can if it's the first time of a new release).
+    chapterNumber and release_date used for tracking record and files.
+    Args:
+        documents (list[Line_Item]): _description_
+        chapterNumber (int): _description_
+        mutexKey (str): _description_
+        release_date (str): _description_
     """
     vectorstore = getLangchainVectorstore(release_date) # get vectorstore object
 
@@ -46,8 +54,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     # Add the new documents (line items) to the vector-store
     ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
-    logging.info("Adding chapter " + str(chapterNumber) +" items to cosmos begin: - " + str(ct))
-    logging.info("Total number of line items in chapter " + str(chapterNumber) + " to be added: " + str(len(documents)))
+    logging.log(25,f"Adding chapter {str(chapterNumber)} of release {release_date} to vectorstore. Begin time: {str(ct)}")
+    logging.log(25,"Total number of line items to be added: " + str(len(documents)))
     allIDs = []
 
     container = co.getCosmosContainer(release_date)
@@ -56,6 +64,8 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     
 
     def create_cosmos_item(final_dict_for_item):
+        """Helper function for createVectorstoreUsingAzureCosmosNoSQL parent function.
+        """
         container.create_item(body=final_dict_for_item)
         allIDs.append(final_dict_for_item['id'])
 
@@ -84,10 +94,16 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     ato.release_mutex(chapterNumber, mutexKey, release_date)
     
     ct = datetime.datetime.now()
-    logging.info("Chapter "+ str(chapterNumber) + " |||Adding items to cosmos end: - " + str(ct))
+    logging.info("Chapter "+ str(chapterNumber) + f" of release {release_date}" +" |||Adding items to cosmos end: - " + str(ct))
 
 def getLangchainVectorstore(release: str):
     """Simply returns a langchain reference object to our Cosmos DB
+
+    Args:
+        release (str): (each release has its own vectorstore)
+
+    Returns:
+        _type_: _description_
     """
     embedding = emb.getEmbeddings.getEmbeddings()
 
@@ -137,7 +153,7 @@ def deleteChapterFromCosmos(chapterNumber: int, release_date: str):
         cosmosIDs: list = pickle.loads(existing_cosmos_ids_pickle_stream.readall())
     except exceptions.ResourceNotFoundError:
         cosmosIDs: list = None
-        logging.error("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber))
+        logging.error("Cannot find a cosmos IDs pickle for the provided chapter: " + str(chapterNumber) + f" of release {release_date}")
         return
 
     # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
