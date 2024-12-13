@@ -373,7 +373,10 @@ def comparison():
         chapterNumber = request.form.get("chapterNumber")
         release1 = request.form.get('release1')
         release2 = request.form.get('release2')
-        hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes = comp.compare_releases(int(chapterNumber),release1,release2)
+        try: hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes = comp.compare_releases(int(chapterNumber),release1,release2)
+        except Exception as e:
+            logging.error(f'Error when compare_releases function was called{e}')
+            return render_template('version_comparison.html', changed=changed,new=new,removed=removed)
         changed1 = comp.get_lineitems_for_display_from_hscodes(hscodes_with_change,release1)
         changed2 = comp.get_lineitems_for_display_from_hscodes(hscodes_with_change,release2)
         changed = [item for pair in zip(changed1, changed2) for item in pair]
