@@ -55,4 +55,4 @@ class RecordState:
     pdfUploaded = 'pdfUploaded'
     excelUploaded = 'excelUploaded'
 
-flask_max_accepted_file_size = 5 * 1024 * 1024
+flask_max_accepted_file_size = 100 * 1024 * 1024

@@ -103,7 +103,7 @@ class AzureTableObjects:
         if entity['MutexKey'] != mutexKey: raise MutexError(chapterNumber)
 
         table_client = cls.get_table_client()
-        table_client.delete_entity(partition_key=config.azureStorageTablePartitionKeyValue, row_key=str(chapterNumber))
+        table_client.delete_entity(partition_key=config.azureStorageTablePartitionKeyValue, row_key=f"{release_date}:{str(chapterNumber)}")
 
     @classmethod
     def get_all_entities(cls) -> list[TableEntity]:

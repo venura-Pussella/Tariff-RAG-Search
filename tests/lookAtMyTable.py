@@ -16,3 +16,6 @@ for entity in entities:
     for key in entity.keys():
         print(f"{key}: {entity[key]}")
     print()
+
+# entity = table_client.delete_entity(config.azureStorageTablePartitionKeyValue,'2024-11-18:28')
+# entity = table_client.delete_entity(config.azureStorageTablePartitionKeyValue,'2024-11-18:31')
