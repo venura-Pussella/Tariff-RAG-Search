@@ -197,6 +197,7 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
     try:
         if filename[-12:] == "63 Final.pdf" or filename[-6:] == "63.pdf": # hard-coded cuz isolated issue with this pdf, been unable to get the chapter number
             chapterNumber = 63
+        elif filename[-12:] == "62 Final.pdf" or filename[-6:] == "62.pdf": chapterNumber = 62
         else:
             chapterNumber = int(allText[0][7:firstLineEndIndex])
     except IndexError: chapterNumber = int(allText[0][7:firstLineEndIndex])
@@ -297,6 +298,7 @@ def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = No
         try: results = __get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
         except Exception as e:
             logging.error("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
+            return None,None,None
     return results
 
 
