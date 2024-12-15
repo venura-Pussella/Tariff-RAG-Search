@@ -41,6 +41,23 @@
                 </div>            
             </div>
         </form>
+
+        <form method="post" action="{{url_for('export_release_comparison')}}">
+            <div class="col-md-6 mx-auto text-center">
+                <label for="name" class="form-label fw-bold fs-5">Export Release Comparison</label>
+                
+                <div class="field">
+                    <input type="date" id="release1_" name="release1_" required>
+                </div>
+                <div class="field">
+                    <input type="date" id="release2_" name="release2_" required>
+                </div>
+                           
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center my-2">
+                  <button type="submit" class="btn btn-primary btn-lg px-4 gap-3">Export</button>
+                </div>            
+            </div>
+        </form>
         
         {% if new %}
         <h2>New</h2>

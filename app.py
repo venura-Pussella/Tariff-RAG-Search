@@ -384,5 +384,21 @@ def comparison():
         removed = comp.get_lineitems_for_display_from_hscodes(removed_hscodes,release1)
     return render_template('version_comparison.html', changed=changed,new=new,removed=removed)
 
+@app.route('/export_release_comparison', methods=['POST'])
+def export_release_comparison():
+    logging.info('Request to export comparison received.')
+    release1 = request.form.get('release1_')
+    release2 = request.form.get('release2_')
+    logging.info(f'Release 1: {release1}, Release 2: {release2}')
+    new, removed, changed = comp.export_release_comparison(release1,release2)
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr('new.xlsx', new.getvalue())
+        zip_file.writestr('removed.xlsx', removed.getvalue())
+        zip_file.writestr('changed.xlsx', changed.getvalue())
+    zip_buffer.seek(0)
+    response = send_file(zip_buffer, as_attachment=True, download_name=f'{release1}_to_{release2}_comparison.zip')
+    return response
+
 if __name__ == '__main__':
    app.run()
