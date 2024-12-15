@@ -321,18 +321,24 @@ def download_uncommitted_excels():
     chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded, release)
 
     # download the excel-to-review for each chapter
-    excels: list[tuple[str,BytesIO]] = []
+    error_excels: list[tuple[str,BytesIO]] = []
+    good_excels: list[tuple[str,BytesIO]] = []
     for chapter in chapters:
         filename = release + '/' + str(chapter) + '.xlsx'
         excel = abo.download_blob_file_to_stream(filename, config.generatedExcel_container_name)
         excel.seek(0)
-        excels.append((filename,excel))
+        is_error = fm.does_excel_have_hscodeerrors(excel); 
+        excel.seek(0)
+        if is_error: error_excels.append((filename,excel))
+        else: good_excels.append((filename,excel))
 
     # zip them
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for name, file in excels:
-            zip_file.writestr(name, file.getvalue())
+        for name, file in error_excels:
+            zip_file.writestr(f'has_errors/{name}', file.getvalue())
+        for name, file in good_excels:
+            zip_file.writestr(f'no_errors/{name}', file.getvalue())
     zip_buffer.seek(0)
 
     # return the zip as a response

@@ -5,6 +5,7 @@ from io import BytesIO
 
 from werkzeug.datastructures import FileStorage
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+import openpyxl as oxl
 
 from data_stores.AzureTableObjects import AzureTableObjects as ato
 from data_stores.AzureBlobObjects import AzureBlobObjects as abo
@@ -227,3 +228,14 @@ def get_stored_releases() -> list[str]:
     existing_releases = existing_text.rsplit('\n')
     existing_releases=existing_releases[:-1] # last line is blank
     return existing_releases
+
+def does_excel_have_hscodeerrors(excel: BytesIO) -> bool:
+    """Checks if a given excel (typically the generated excel) has hscode errors that the user must review."""
+    workbook = oxl.load_workbook(excel)
+    sheet = workbook.active
+    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=sheet.max_column, max_col=sheet.max_column): # iterate over the last column
+        for cell in row:
+            content = cell.value
+            if content == None: continue
+            if content.rstrip() == 'hscode error': return True
+    return False
