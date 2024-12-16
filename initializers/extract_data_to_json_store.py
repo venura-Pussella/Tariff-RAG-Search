@@ -101,7 +101,7 @@ def __saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNu
     df = pd.read_excel(excelFile, na_filter=False, dtype=str)
     dictionaryForThisPDF: dict = pickle.load(dictStream)
 
-
+    # drop first and last columns (first column is just pandas row numbers, and last column is my 'LineItem?' column)
     del df[df.columns[0]]
     numOfColumns = df.shape[1]
     del df[df.columns[numOfColumns - 1]]
@@ -112,10 +112,7 @@ def __saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNu
     ongoing_hshdgname = ""
     ongoing_hshdg = ""
     numOfColumns = df.shape[1]
-    if numOfColumns == 25:
-        keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Cess_SG","Excise SPD","SSCL","SCL"]
-    else:
-        keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP","Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA","Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG","Cess_GEN","Excise SPD","SSCL","SCL"]
+    keysForAnItem = __get_keysForAnItem(df)
     items = []
 
     def isSeriesALineItem(series, numOfColumns) -> bool:
@@ -180,8 +177,8 @@ def __saveExcelAndDictToJSON2(excelFile: BytesIO, dictStream: BytesIO, chapterNu
                 item['SC Code'] = hsToSCMapping[standardizedHSCode3]
             else:
                 item['SC Code'] = ''
-            if numOfColumns == 24: # some pdf tables don't have a cess column split into GEN and SG
-                item["Cess_SG"] = ''
+            # if numOfColumns == 24: # some pdf tables don't have a cess column split into GEN and SG
+            #     item["Cess_SG"] = ''
             items.append(item)
 
             if item['SC Code'] == '':
@@ -239,3 +236,30 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     ds.insertNewJSONDictManually(json_string, int(chapterNumber), release_date)
     logging.info(f"Uploaded json for chapternumber {chapterNumber} of release {release_date}")
     return True
+
+
+def __get_keysForAnItem(_df: pd.DataFrame):
+    # Find the first row where the first column value is 'HS Hdg' (sometimes pre-table text may appear on the first few rows)
+    row_index = _df[_df.iloc[:, 0] == 'HS Hdg'].index[0]
+
+    # Assert 'Cess' appears on the 20th column (0-indexing)
+    keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP",
+                     "Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA",
+                     "Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG"]
+    
+    if _df.iloc[row_index,21] == '': 
+        keysForAnItem += ["Cess_GEN", "Cess_SG"]
+        next_col = 22
+    else: 
+        keysForAnItem += ["Cess_GEN"]
+        next_col = 21
+
+    # You can have either just excise, just surcharge, or both - but if there're both, surcharge comes after excise in the column order
+    if 'Excise' in _df.iloc[row_index,next_col] and 'Surcharge' in _df.iloc[row_index,next_col+1]: 
+        keysForAnItem += ["Excise SPD","Surcharge on Customs Duty","SSCL","SCL"]
+    elif 'Excise' in _df.iloc[row_index,next_col]:
+        keysForAnItem += ["Excise SPD","SSCL","SCL"]
+    elif 'Surcharge' in _df.iloc[row_index,next_col]:
+        keysForAnItem += ["Surcharge on Customs Duty","SSCL","SCL"]
+
+    return keysForAnItem

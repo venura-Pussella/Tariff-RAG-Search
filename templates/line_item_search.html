@@ -69,6 +69,7 @@
                     <th colspan="2">PAL</th>
                     <th colspan="2">Cess</th>
                     <th>Excise (SPD)</th>
+                    <th>Surcharge on Customs Duty</th>
                     <th>SSCL</th>
                     <th>SCL</th>
                     <th>PDF</th>
@@ -103,6 +104,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -133,7 +135,8 @@
                     <td>{{ item[0]['PAL_SG'] }}</td>
                     <td>{{ item[0]['Cess_GEN'] }}</td>
                     <td>{{ item[0]['Cess_SG'] }}</td>
-                    <td>{{ item[0]['Excise SPG'] }}</td>
+                    <td>{{ item[0]['Excise SPD'] }}</td>
+                    <td>{{ item['Surcharge on Customs Duty'] }}</td>
                     <td>{{ item[0]['SSCL'] }}</td>
                     <td>{{ item[0]['SCL'] }}</td>
                     <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="fileClicked(&#39;{{ item[0]['Chapter Number']+'.pdf' }}&#39;, 'pdf', &#39;{{ item[0]['Release'] }}&#39;)">{{ item[0]['Chapter Number'] }}.pdf</span></td>
