@@ -42,6 +42,7 @@
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
+                    <th>Release</th>
                     <th>HS Hdg Name</th>
                     <th>HS Code</th>
                     <th>SC Code</th>
@@ -55,11 +56,12 @@
                     <th colspan="2">PAL</th>
                     <th colspan="2">Cess</th>
                     <th>Excise (SPD)</th>
-                    <td>{{ item['Surcharge on Customs Duty'] }}</td>
+                    <th>Surcharge on Customs Duty</th>
                     <th>SSCL</th>
                     <th>SCL</th>
                 </tr>
                  <tr>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -92,6 +94,7 @@
             <tbody>
                 {% for item in results %}
                 <tr>
+                    <td>{{ item['Release'] }}</td>
                     <td>{{ item['HS Hdg Name'] }}</td>
                     <td>{{ item['HS Code'] }}</td>
                     <td>{{ item['SC Code'] }}</td>
