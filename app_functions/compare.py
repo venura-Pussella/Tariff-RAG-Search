@@ -218,7 +218,8 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
         "Cess_SG",
         "Excise SPD",
         "Surcharge on Customs Duty","SSCL","SCL"]
-    df = df[column_order]
+
+    df = df.reindex(columns=column_order)
     excel = BytesIO()
     df.to_excel(excel, index=False, engine='openpyxl')
     excel.seek(0)
@@ -229,8 +230,9 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
         highlight_fill = oxlstyles.PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
         for row in ws.iter_rows(min_row=ws.min_row, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
             for cell in row: cell.fill = highlight_fill
-        wb.save(excel)
-        excel.seek(0)
+        highlighted_excel = BytesIO(); highlighted_excel.seek(0)
+        wb.save(highlighted_excel)
+        highlighted_excel.seek(0)
 
     if cell_highlight_preset == 'REMOVED':
         wb = oxl.load_workbook(excel)
@@ -238,8 +240,9 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
         highlight_fill = oxlstyles.PatternFill(start_color="FFA07A", end_color="FFA07A", fill_type="solid")
         for row in ws.iter_rows(min_row=ws.min_row, max_row=ws.max_row, min_col=ws.min_column, max_col=ws.max_column):
             for cell in row: cell.fill = highlight_fill
-        wb.save(excel)
-        excel.seek(0)
+        highlighted_excel = BytesIO(); highlighted_excel.seek(0)
+        wb.save(highlighted_excel)
+        highlighted_excel.seek(0)
 
     if cell_highlight_preset == 'CHANGED':
         wb = oxl.load_workbook(excel)
@@ -267,7 +270,8 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
                 for col in range(1, ws.max_column + 1):
                     ws.cell(row=row_index + 1, column=col).border = thick_border
 
-        wb.save(excel)
-        excel.seek(0)
+        highlighted_excel = BytesIO(); highlighted_excel.seek(0)
+        wb.save(highlighted_excel)
+        highlighted_excel.seek(0)
 
-    return excel
+    return highlighted_excel
