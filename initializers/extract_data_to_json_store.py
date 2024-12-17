@@ -238,15 +238,28 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     return True
 
 
-def __get_keysForAnItem(_df: pd.DataFrame):
+def __get_keysForAnItem(_df: pd.DataFrame) -> list[str]:
+    """Returns the dictionary keys for a given extracted table depending on its column headers.
+
+    The indirect approach seen in the implementation is used because reading the column headers from the extracted table is unreliable 
+    (sometimes the text is written vertically) causing incorrect text to be extraced, etc.
+
+    Args:
+        _df (pd.DataFrame): extracted table from the PDF
+
+    Returns:
+        _type_: _description_
+    """
+
     # Find the first row where the first column value is 'HS Hdg' (sometimes pre-table text may appear on the first few rows)
     row_index = _df[_df.iloc[:, 0] == 'HS Hdg'].index[0]
 
-    # Assert 'Cess' appears on the 20th column (0-indexing)
+    # Assert 'Cess' appears on the 20th column (0-indexing). No variation in headers till that point.
     keysForAnItem = ["Prefix", "HS Hdg Name","HS Hdg","HS Code","Blank", "Description", "Unit","ICL/SLSI","Preferential Duty_AP",
                      "Preferential Duty_AD","Preferential Duty_BN","Preferential Duty_GT","Preferential Duty_IN","Preferential Duty_PK","Preferential Duty_SA",
                      "Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG"]
     
+    # some tables only have 'cess' while others have 'cess_gen' and 'cess_sg'
     if _df.iloc[row_index,21] == '': 
         keysForAnItem += ["Cess_GEN", "Cess_SG"]
         next_col = 22
