@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from data_stores.DataStores import DataStores
 
@@ -50,6 +51,27 @@ def findByHSCode(query: str, whitelist_releases: list[str] = None) -> list[dict]
                     item["Chapter Number"] = str(chapterNumber) # Adding this because we want a link to the PDF to be displayed with the result
                     results.append(item)
 
-     sorted_results = sorted(results, key=lambda x: (x["HS Code"], x["Release"]))
+     # sorted_results = sorted(results, key=lambda x: (x["HS Code"], x["Release"]))
+     # I couldn't find a way to sort a list in python using built-in methods where the case is to sort by one field ascending
+     # and the other field descending, where neither field is unary.
+     # So had to implement a class
+     class Result:
+          def __init__(self, result):
+               self.result = result
+          def __lt__(self,other):
+               if self.result['HS Code'] < other.result['HS Code']: return True
+               if self.result['HS Code'] > other.result['HS Code']: return False
+               if self.result['HS Code'] == other.result['HS Code']:
+                    if self.result['Release'] > other.result['Release']: return True
+                    else: return False
+     
+     # sortng by HS code ascending, then release descending
+     result_objects = []
+     for result in results:
+          result_objects.append(Result(result))
+     result_objects.sort()
+     sorted_results = []
+     for object in result_objects:
+          sorted_results.append(object.result)
      return sorted_results
 
