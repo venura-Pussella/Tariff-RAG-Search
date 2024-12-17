@@ -187,38 +187,37 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
     Returns:
         BytesIO: excel file
     """
+    if lineitems == None or len(lineitems) == 0:
+        excel = BytesIO()
+        blank_df = pd.DataFrame()
+        blank_df.to_excel(excel, index=False, engine='openpyxl')
+        excel.seek(0)
+        return excel
+
     df = pd.DataFrame(lineitems)
     column_order = [
         "Release",
         "Chapter Number",
         "HS Hdg", 
         "HS Code", 
-        "SC Code",
-        "HS Hdg Name",
+        "SC Code","HS Hdg Name",
         "Prefix",
         "Description", 
         "Unit",
-        "ICL/SLSI",
-        "Preferential Duty_AP",
+        "ICL/SLSI","Preferential Duty_AP",
         "Preferential Duty_AD",
-        "Preferential Duty_BN",
-        "Preferential Duty_GT",
+        "Preferential Duty_BN","Preferential Duty_GT",
         "Preferential Duty_IN",
-        "Preferential Duty_PK",
-        "Preferential Duty_SA",
+        "Preferential Duty_PK","Preferential Duty_SA",
         "Preferential Duty_SF",
-        "Preferential Duty_SD",
-        "Preferential Duty_SG",
+        "Preferential Duty_SD","Preferential Duty_SG",
         "Gen Duty",
         "VAT",
         "PAL_Gen",
-        "PAL_SG",
-        "Cess_GEN",
+        "PAL_SG","Cess_GEN",
         "Cess_SG",
         "Excise SPD",
-        "SSCL",
-        "SCL"
-    ]
+        "Surcharge on Customs Duty","SSCL","SCL"]
     df = df[column_order]
     excel = BytesIO()
     df.to_excel(excel, index=False, engine='openpyxl')
