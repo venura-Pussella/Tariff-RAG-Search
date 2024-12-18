@@ -48,13 +48,14 @@ def generateArrayForTableRows() -> list[list[str]]:
         list[list[str]]: table rows
     """
     tableRows: list[list[str]] = []
-    listOfPDFNames = abo.getListOfFilenamesInContainer(config.pdf_container_name)
+    # listOfPDFNames = abo.getListOfFilenamesInContainer(config.pdf_container_name) # no need bcuz there if a record exists for a chapter, it will definitely have a PDF
     listOfGeneratedExcelNames = abo.getListOfFilenamesInContainer(config.generatedExcel_container_name)
     listOfReviewedExcelNames = abo.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
     listOfJSONs = abo.getListOfFilenamesInContainer(config.json_container_name)
-    for name in listOfPDFNames:
-        release_date = name.rsplit('/')[0]
-        chapterNumber = name.rsplit('/')[1].rsplit('.')[0]
+    entities = ato.get_all_entities()
+    for entity in entities:
+        release_date = entity['RowKey'].rsplit(':')[0]
+        chapterNumber = entity['RowKey'].rsplit(':')[1]
         excelName = chapterNumber + '.xlsx'
         jsonName = chapterNumber + '.json'
         tableRow = [release_date,chapterNumber,f'{chapterNumber}.pdf']
@@ -64,7 +65,6 @@ def generateArrayForTableRows() -> list[list[str]]:
         else: tableRow.append('Nil')
         if f'{release_date}/{jsonName}' in listOfJSONs: tableRow.append(jsonName)
         else: tableRow.append('Nil')
-        entity = ato.get_entity(chapterNumber, release_date)
         status = entity['RecordStatus']
         tableRow += [status]
         tableRows.append(tableRow)

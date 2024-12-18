@@ -15,9 +15,7 @@ class DataStores:
         __json_dicts: dict[int,str]: Maps chapter_number-release_date with the chapter dictionary (a json string).
     """
 
-    __hsCodeToSCCodeMapping: dict[str,str] = {}
     __json_dicts: dict[tuple[str,int],str] = {} # Maps chapter_number-release_date with the chapter dictionary (a json string).
-    __scCodeToHSCodeMapping: dict[str,list[str]] = {}
 
     @classmethod
     def getJson_dicts(cls, chapterNumber_releaseDate_combos: list[tuple[int,str]] = None) -> dict[tuple[str,int],str]:
@@ -85,42 +83,27 @@ class DataStores:
     def getHSCodeToSCCodeMapping(cls) -> dict[str,str]:
         """Temporary implementation. Reads hscode to sc code mapping from the csv file.
         """
-        if DataStores.__hsCodeToSCCodeMapping == None:
 
-            # Read from csv file containing HS Code to SC Code mapping. HS Code is unique.
-            csv_file = 'files/HSCode_to_SCCode_Mapping Sorted.csv'
-            rows = []
+        # Read from csv file containing HS Code to SC Code mapping. HS Code is unique.
+        csv_file = 'files/HSCode_to_SCCode_Mapping Sorted.csv'
+        rows = []
 
-            with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
-                csv_reader = csv.reader(file)
+        with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
+            csv_reader = csv.reader(file)
 
-                for row in csv_reader:
-                    rows.append(row)
+            for row in csv_reader:
+                rows.append(row)
 
-            # HS Code format: ####.##.##N
+        # HS Code format: ####.##.##N
 
-            DataStores.__hsCodeToSCCodeMapping = {}
+        hsCodeToSCCodeMapping = {}
 
-            for n in range(1,len(rows)):
-                row = rows[n]
-                key = row[0]
-                value = row[1]
-                DataStores.__hsCodeToSCCodeMapping[key] = value
-            
-            if not bool(DataStores.__hsCodeToSCCodeMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
+        for n in range(1,len(rows)):
+            row = rows[n]
+            key = row[0]
+            value = row[1]
+            hsCodeToSCCodeMapping[key] = value
+        
+        if not bool(hsCodeToSCCodeMapping): print("WARNING: HS Code to SC Code dictionary is empty!")
 
-        return DataStores.__hsCodeToSCCodeMapping
-        return {}
-
-    @classmethod
-    def getSCCodeToHSCodeMapping(cls) -> dict[str,list[str]]:
-        """SC Code functionality temporarily removed. This just returns an empty dictionary.
-        """
-        # if DataStores.__scCodeToHSCodeMapping == None:
-        #     with open('files/scCodeToHSCodeMapping.pkl', 'rb') as f:
-        #         DataStores.__scCodeToHSCodeMapping = pickle.load(f)
-            
-        #     if not bool(DataStores.__scCodeToHSCodeMapping): print("WARNING: SC Code to HS Code dictionary is empty!")
-
-        # return DataStores.__scCodeToHSCodeMapping
-        return {}
+        return hsCodeToSCCodeMapping

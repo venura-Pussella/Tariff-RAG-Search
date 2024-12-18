@@ -48,7 +48,10 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
         ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
         blob_client.delete_blob()
     except TypeError as e:
-        logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
+        pass
+        # this try catch block is redundant now as we don't allow any stage of a record to be overwritten now (instead we must delete that stage explicitly)
+        # therefore disabled the below logging.error
+        # logging.error("Retrieved existing cosmosIDs list is not an iterable object. Maybe this is the first time this chapter is been uploaded to cosmos. Chapter number: " + str(chapterNumber)+ 'Error: '+ str(e))
 
     
     # Add the new documents (line items) to the vector-store

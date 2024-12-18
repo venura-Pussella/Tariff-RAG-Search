@@ -209,10 +209,14 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
     if userEnteredChapterNumber:
         if chapterNumber != userEnteredChapterNumber:
             raise Exception('User entered chapter number does not match that of the PDF')
-        
-    if __suspect_unknown_column_header_schema(df): 
+    
+    suspect_unknown_column_header_schema = __suspect_unknown_column_header_schema(df)
+    if suspect_unknown_column_header_schema: 
         logging.warning(f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
         logging.log(25,f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
+    if suspect_unknown_column_header_schema == None:
+        logging.error(f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber}')
+        logging.log(25,f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber}')
     
     df['LineItem?'] = None  
    
@@ -375,5 +379,8 @@ def __suspect_unknown_column_header_schema(dataframe: pd.DataFrame) -> bool:
 
     except TypeError: return True # happens if a cell we expect not to be blank is blank 
     # eg: if 'HS' not in top_row_values[0] <- if top_row_values[0] is None, TypeError will be raised
+
+    except Exception: 
+        return None
 
 
