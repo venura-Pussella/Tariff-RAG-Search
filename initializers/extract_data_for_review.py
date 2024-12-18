@@ -188,8 +188,7 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
     if strict:
         df, allText = __extractTableAndTextFromPDF(file)
     else:
-        df, allText = __extractTableAndTextFromPDFNonStrictly(file)
-    df['LineItem?'] = None   
+        df, allText = __extractTableAndTextFromPDFNonStrictly(file) 
     __removeNewLineCharactersFromDataframe(df)
     # isolate chapter number and name from the PDF text
     # ......................................... #
@@ -210,6 +209,12 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
     if userEnteredChapterNumber:
         if chapterNumber != userEnteredChapterNumber:
             raise Exception('User entered chapter number does not match that of the PDF')
+        
+    if __suspect_unknown_column_header_schema(df): 
+        logging.warning(f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
+        logging.log(25,f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
+    
+    df['LineItem?'] = None  
    
     # create a dictionary for creating a json for the whole pdf
     # ......................................... #
@@ -266,9 +271,9 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
             try: __standardizeHSCode(current_hscode)
             except Exception as e: 
                 df.loc[n, 'LineItem?'] = 'hscode error'
-                logging.error("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
-                logging.error(type(e))
-                logging.error(e)
+                # logging.error("Exception occured at Hs hdg: " + current_hshdg + " current description: " + current_description + " prefix: " + ongoing_prefix)
+                # logging.error(type(e))
+                # logging.error(e)
 
             #if description contains "other", reset prefix
             current_description_uppercase = current_description.upper()
@@ -293,13 +298,82 @@ def convertPDFToExcelForReview(file: BytesIO, userEnteredChapterNumber: int = No
     results = None
     try: results = __get_excel_and_dictionary_from_pdf(file, userEnteredChapterNumber, filename)
     except Exception as e:
-        logging.error("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e))
-        logging.error("Using non-strict extraction")
+        logging.warning("Error processing file " + filename + " Error: " + str(type(e)) + ": " + str(e) + '\nWill try using non-strict extraction')
         try: results = __get_excel_and_dictionary_from_pdf(file,userEnteredChapterNumber,filename, strict=False)
         except Exception as e:
             logging.error("Error processing file non-strictly " + filename + " Error: " + str(type(e)) + ": " + str(e))
             return None,None,None
     return results
 
+def __suspect_unknown_column_header_schema(dataframe: pd.DataFrame) -> bool:
+    """The indirect approach seen in the implementation is used because reading the column headers from the extracted table is unreliable 
+    (sometimes the text is written vertically) causing incorrect text to be extraced, etc.
+    So this method may not always pick up an new column header scheme (i.e. can have true negatives), but will never have false positives.
+
+    Args:
+        dataframe (pd.DataFrame): _description_
+
+    Returns:
+        bool: True if we suspect an unknown column header scheme
+    """
+
+    try:
+        # Find the first row where the first column value is 'HS Hdg' (sometimes pre-table text may appear on the first few rows)
+        # Then get the values from the 2 header rows
+        top_row_index = dataframe[dataframe.iloc[:, 0] == 'HS Hdg'].index[0]
+        bottom_row_index = top_row_index + 1
+        top_row_values = dataframe.iloc[top_row_index].tolist()
+        bottom_row_values = dataframe.iloc[bottom_row_index].tolist()
+
+        # due to PDF inconsistencies and things like vertical text, directly reading the values is unreliable (incorrect text maybe extracted)
+        # Therefore we just make an estimate based on common structure
+
+        # top_row_values index 0 and 1 should contain 'HS', 2 should be blank, 3 is 'Description', 4 is 'Unit', 5 is too unreliable to read so skip
+        # corresponding bottom_row_values values should be blank (skip 5 cuz ICL/SLSI may leak down)
+        if 'HS' not in top_row_values[0] or 'HS' not in top_row_values[1] or 'Description' not in top_row_values[3] or 'Unit' not in top_row_values[4]: return True
+        if top_row_values[2] != None:
+            if top_row_values[2].rstrip() != '': return True
+        for i in range(0,5):
+            if bottom_row_values[i] != None:
+                if bottom_row_values[i].rstrip() != '': return True
+
+        # check the preferential duty column headers
+        if 'Preferential' not in top_row_values[6]: return True
+        for i in range(6,16):
+            subheaders = ['AP','AD','BN','GT','IN','PK','SA','SF','SD','SG']
+            if bottom_row_values[i] == None: return True
+            if bottom_row_values[i].rstrip() != subheaders[i-6]: return True
+        for i in range(7,16):
+            if top_row_values[i] != None:
+                if top_row_values[i].rstrip() != '': return True
+
+        # check Gen Duty, VAT, PAL_Gen, PAL_SG column headers
+        if 'Gen' not in top_row_values[16] or 'VAT' not in top_row_values[17] or 'PAL' not in top_row_values[18] or 'Gen' not in bottom_row_values[18] or 'SG' not in bottom_row_values[19]: return True
+        if top_row_values[19] != None:
+            if top_row_values[19].rstrip() != '': return True
+        if bottom_row_values[16] != None:
+            if bottom_row_values[16].rstrip() != '': return True
+        if bottom_row_values[17] != None:
+            if bottom_row_values[17].rstrip() != '': return True
+
+        # some tables only have 'cess' while others have 'cess_gen' and 'cess_sg'
+        if top_row_values[21] == '' or top_row_values[21] == None: next_col = 22
+        else: next_col = 21
+        if 'Cess' not in top_row_values[20]: return True
+
+        # You can have either just excise, just surcharge, or both - but if there're both, surcharge comes after excise in the column order
+        if 'Excise' in top_row_values[next_col] and 'Surcharge' in top_row_values[next_col + 1]: next_col += 2
+        elif 'Excise' in top_row_values[next_col]: next_col += 1
+        elif 'Surcharge' in top_row_values[next_col]: next_col += 1
+        else: return True
+
+        # final 2 columns (SSCL and SCL) are too unreliable to be checked (often printed vertically). But cannot have any more columns more than that.
+        scl_index = next_col + 1
+        if len(top_row_values) > scl_index + 1: return True
+
+        return False
+
+    except TypeError: return True # happens if a cell we expect not to be blank is blank 
+    # eg: if 'HS' not in top_row_values[0] <- if top_row_values[0] is None, TypeError will be raised
 
 

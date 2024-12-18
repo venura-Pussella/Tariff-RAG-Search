@@ -260,7 +260,7 @@ def __get_keysForAnItem(_df: pd.DataFrame) -> list[str]:
                      "Preferential Duty_SF","Preferential Duty_SD","Preferential Duty_SG","Gen Duty","VAT","PAL_Gen","PAL_SG"]
     
     # some tables only have 'cess' while others have 'cess_gen' and 'cess_sg'
-    if _df.iloc[row_index,21] == '': 
+    if _df.iloc[row_index,21] == '' or _df.iloc[row_index,21] == None: 
         keysForAnItem += ["Cess_GEN", "Cess_SG"]
         next_col = 22
     else: 
