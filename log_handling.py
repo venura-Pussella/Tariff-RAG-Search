@@ -1,6 +1,8 @@
 import logging
 import sys
 
+import config
+
 log_messages: list[str] = []
 
 def configure_logging():
@@ -23,6 +25,7 @@ def configure_logging():
         def emit(self, record):
             log_entry = self.format(record)
             log_messages.append(log_entry)
+            if len(log_messages) > config.in_memory_log_message_count: log_messages.pop(0)
             
 
     format_string = "[%(asctime)s: %(name)s: %(module)s: %(levelname)s: %(message)s]"

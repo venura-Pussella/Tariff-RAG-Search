@@ -56,3 +56,4 @@ class RecordState:
     excelUploaded = 'excelUploaded'
 
 flask_max_accepted_file_size = 100 * 1024 * 1024
+in_memory_log_message_count = 100000
