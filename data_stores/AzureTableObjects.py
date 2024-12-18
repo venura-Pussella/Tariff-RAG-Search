@@ -11,16 +11,13 @@ class MutexError(Exception):
 
 
 class AzureTableObjects:
-    """Provides singleton method for retrieving table client (and table-service-client also but why would you want this?).
-    Also provides methods to perform CRUD on entities (i.e. a table row (record)), and to claim and release mutex on a row (record).
+    """Provides singleton method for managing table_service_client and table_clients.
+    Also provides methods to perform CRUD on entities regarding chapter records.
     https://learn.microsoft.com/en-us/python/api/overview/azure/data-tables-readme?view=azure-python
-
-    The Azure table is used to track the RecordState and Status of a record (a record is a chapter_number-release_date combo).
-    It is also used to manage mutex rights.
     """
 
     __table_service_client = None
-    __table_client = None
+    __table_clients = {}
 
 
     @classmethod
@@ -33,17 +30,17 @@ class AzureTableObjects:
     
     @classmethod
     def get_table_client(cls, table_name: str):
-        if cls.__table_client == None:
+        if table_name not in cls.__table_clients.keys():
             table_service_client = cls.get_table_service_client()
-            cls.__table_client = table_service_client.create_table_if_not_exists(table_name=table_name)
-            logging.info('table_client created')
-        return cls.__table_client
-    
+            table_client = table_service_client.create_table_if_not_exists(table_name=table_name)
+            logging.info(f'table_client {table_name} created')
+            cls.__table_clients[table_name] = table_client
+        return cls.__table_clients[table_name]  
 
     
     @classmethod
     def create_new_blank_chapter_record(cls, chapterNumber: int, release_date: str):
-        rowkey = release_date + ':' + str(chapterNumber)
+        rowkey = release_date + ':' + str(chapterNumber) # note the rowkey format
         entity = {
             'PartitionKey': config.azureStorageTablePartitionKeyValue,
             'RowKey': rowkey, # note rowkey cannot be an int, even tho other fields can be of any data type
