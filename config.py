@@ -35,7 +35,7 @@ release_holder_container_name = "release-holder"
 release_holder_filename = "releases.txt"
 
 # Azure Storage Table
-azureStorageTableName = 'chaptertracker12345'
+azureStorage_chapterTracker_TableName = 'chaptertracker12345'
 azureStorageTablePartitionKeyValue = 'a'
 
 class RecordStatus:

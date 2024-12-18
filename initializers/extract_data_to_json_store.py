@@ -228,10 +228,10 @@ def extract_data_to_json_store(excelfile: BytesIO, mutexKey: str, chapterNumber:
     json_stream.seek(0); dictStream.seek(0); excelfile.seek(0)
 
     logging.info(f"Excel converted to json. (chapter {chapterNumber} of release {release_date})")
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingCorrectedExcel)
     abo.upload_to_blob_from_stream(excelfile, config.reviewedExcel_container_name,  f'{release_date}/{chapterNumber}.xlsx') # Excel uploaded to Azure blob
     logging.info('Excel @ ' + f'{release_date}/{chapterNumber}.xlsx' + ' successfully uploaded')
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingJson)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingJson)
     abo.upload_to_blob_from_stream(json_stream, config.json_container_name,  f'{release_date}/{chapterNumber}.json') # Json uploaded to Azure blob
     ds.insertNewJSONDictManually(json_string, int(chapterNumber), release_date)
     logging.info(f"Uploaded json for chapternumber {chapterNumber} of release {release_date}")

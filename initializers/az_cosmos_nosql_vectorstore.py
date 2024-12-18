@@ -41,11 +41,11 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
 
     # if required delete existing chapter uploads, to prevent duplicate entries in cosmos db
     try:
-        ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
+        ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosDocs)
         for cosmosID in cosmosIDs:
             vectorstore.delete_document_by_id(cosmosID)
             logging.info("Deleted cosmos ID: " + str(cosmosID))
-        ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
+        ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.deletingExistingCosmosIDTracker)
         blob_client.delete_blob()
     except TypeError as e:
         pass
@@ -55,7 +55,7 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
 
     
     # Add the new documents (line items) to the vector-store
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.addingdNewDocsToCosmos)
     ct = datetime.datetime.now()
     logging.log(25,f"Adding chapter {str(chapterNumber)} of release {release_date} to vectorstore. Begin time: {str(ct)}")
     logging.log(25,"Total number of line items to be added: " + str(len(documents)))
@@ -91,9 +91,9 @@ def createVectorstoreUsingAzureCosmosNoSQL(documents: list[Line_Item], chapterNu
     # need to store the cosmos document IDs so we can delete them easily later when needed
     allIDs_bytes = pickle.dumps(allIDs)
     
-    ato.edit_entity(chapterNumber, mutexKey,release_date, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)
+    ato.edit_chapter_record(chapterNumber, mutexKey,release_date, newRecordStatus=config.RecordStatus.addingNewCosmosIdTracker)
     blob_client.upload_blob(allIDs_bytes, blob_type="BlockBlob")
-    ato.edit_entity(chapterNumber, mutexKey,release_date, newRecordStatus='', newRecordState=config.RecordState.excelUploaded)
+    ato.edit_chapter_record(chapterNumber, mutexKey,release_date, newRecordStatus='', newRecordState=config.RecordState.excelUploaded)
     ato.release_mutex(chapterNumber, mutexKey, release_date)
     
     ct = datetime.datetime.now()

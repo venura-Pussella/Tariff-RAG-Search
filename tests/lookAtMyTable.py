@@ -8,7 +8,7 @@ from azure.data.tables import TableServiceClient
 connection_string = os.getenv("AZURE_TABLE_CONNECTION_STRING")
 
 table_service_client = TableServiceClient.from_connection_string(connection_string)
-table_client = table_service_client.create_table_if_not_exists(config.azureStorageTableName)
+table_client = table_service_client.create_table_if_not_exists(config.azureStorage_chapterTracker_TableName)
 
 my_filter = f"PartitionKey eq '{config.azureStorageTablePartitionKeyValue}'"
 entities = table_client.query_entities(my_filter)

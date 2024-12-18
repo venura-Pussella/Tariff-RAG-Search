@@ -52,7 +52,7 @@ def generateArrayForTableRows() -> list[list[str]]:
     listOfGeneratedExcelNames = abo.getListOfFilenamesInContainer(config.generatedExcel_container_name)
     listOfReviewedExcelNames = abo.getListOfFilenamesInContainer(config.reviewedExcel_container_name)
     listOfJSONs = abo.getListOfFilenamesInContainer(config.json_container_name)
-    entities = ato.get_all_entities()
+    entities = ato.get_all_chapter_records()
     for entity in entities:
         release_date = entity['RowKey'].rsplit(':')[0]
         chapterNumber = entity['RowKey'].rsplit(':')[1]
@@ -109,7 +109,7 @@ def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: 
             logging.error(f"Error with pdf or entered chapter number. Filename and user_entered_chapter_number not received. Identified chapter number: {str(chapterNumber)}. Release {release_date}")
         return
     
-    try: ato.create_new_blank_entity(chapterNumber, release_date)
+    try: ato.create_new_blank_chapter_record(chapterNumber, release_date)
     except ResourceExistsError: 
         logging.error(f'A record for chapter {chapterNumber} (release {release_date}) already exists. Delete it if you want to upload a new PDF.')
         return
@@ -119,15 +119,15 @@ def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: 
     except MutexError as e:
         logging.error(e.__str__())
         return
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingPDF)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingPDF)
     pdffile.seek(0)
     abo.upload_to_blob_from_stream(pdffile, config.pdf_container_name, f'{release_date}/{chapterNumber}.pdf') # PDF uploaded to azure blob
     logging.log(25,f'{chapterNumber}.pdf' + f' of release {release_date} ' + ' successfully uploaded')
 
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingGeneratedDocuments)
     abo.upload_to_blob_from_stream(dictionary_pkl_stream, config.generatedDict_container_name, f'{release_date}/{chapterNumber}.pkl') # upload generated excel to azure blob
     abo.upload_to_blob_from_stream(excel_stream, config.generatedExcel_container_name, f'{release_date}/{chapterNumber}.xlsx') # upload dictionary pickle to azure blob
-    ato.edit_entity(chapterNumber, mutexKey, release_date, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
     ato.release_mutex(chapterNumber, mutexKey, release_date)
       
     logging.info("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")

@@ -232,7 +232,7 @@ def delete_till_corrected_excel():
     release = request.form.get('release')
     logging.info(f'Request to delete_till_corrected_excel - chapter {chapterNumber} of release {release} received.')
 
-    try: entity = ato.get_entity(chapterNumber, release)
+    try: entity = ato.get_chapter_record(chapterNumber, release)
     except ResourceNotFoundError:
         logging.error(f'The chapter {chapterNumber} of release {release} was not found.')
         flash('The chapter was not found.')
@@ -251,9 +251,9 @@ def delete_till_corrected_excel():
         return redirect(url_for('file_management'))
     
 
-    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteExcel)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteExcel)
     fm.delete_upto_corrected_excel(int(chapterNumber), release)
-    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release, newRecordStatus='', newRecordState=config.RecordState.pdfUploaded)
     ato.release_mutex(chapterNumber, mutexKey, release)
     logging.log(25, f'Deleted upto corrected excel - chapter {str(chapterNumber)}, release {release}')
     flash(f'Deleted upto corrected excel - chapter {str(chapterNumber)} of release {release}')
@@ -275,10 +275,10 @@ def delete_till_pdf():
         logging.error(f'The chapter {chapterNumber} of release {release} was not found.')
         flash('The chapter was not found.')
         return redirect(url_for('file_management'))
-    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeletePDF)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeletePDF)
     fm.delete_upto_pdf(int(chapterNumber), release)
-    ato.edit_entity(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteEntity)
-    ato.delete_entity(chapterNumber, mutexKey, release)
+    ato.edit_chapter_record(chapterNumber, mutexKey, release, newRecordStatus=config.RecordStatus.beginDeleteEntity)
+    ato.delete_chapter_record(chapterNumber, mutexKey, release)
     logging.log(25,f'Deleted upto pdf (i.e. all) - chapter {str(chapterNumber)} of release {release}')
     flash(f'Deleted upto pdf (i.e. all) - chapter {str(chapterNumber)} of release {release}')
     return redirect(url_for('file_management'))
@@ -318,7 +318,7 @@ def download_uncommitted_excels():
     """Downloads generated excel files from records that are still in the uploadPDF stage (see dev guide section 3.1.3)"""
     logging.info('Request to download uncommitted excels received')
     release = request.form.get('release')
-    chapters = ato.search_entities('RecordState', config.RecordState.pdfUploaded, release)
+    chapters = ato.search_chapter_records('RecordState', config.RecordState.pdfUploaded, release)
 
     # download the excel-to-review for each chapter
     error_excels: list[tuple[str,BytesIO]] = []
