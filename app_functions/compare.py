@@ -151,13 +151,14 @@ def export_release_comparison(release1: str, release2: str) -> tuple[BytesIO,Byt
     and generates 3 excel files containing new HS codes, removed HS codes, and changed HS codes.
     Git compares changes in lines. This compares changes in HS Codes.
     IMPORTANT: Assumes HS codes are sorted in the chapter-release JSON.
+    UPDATE: Creates 4th excel file with no changes.
 
     Args:
         release1 (str): _description_
         release2 (str): _description_
 
     Returns:
-        tuple[BytesIO,BytesIO,BytesIO]: new_lineitems_excel, removed_lineitems_excel, changed_excel
+        tuple[BytesIO,BytesIO,BytesIO]: new_lineitems_excel, removed_lineitems_excel, changed_excel, no_change_excel
     """
     hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes = compare_releases_all_possible_chapters(release1, release2)
 
@@ -166,12 +167,16 @@ def export_release_comparison(release1: str, release2: str) -> tuple[BytesIO,Byt
     changed1 = get_lineitems_for_display_from_hscodes(hscodes_with_change,release1)
     changed2 = get_lineitems_for_display_from_hscodes(hscodes_with_change,release2)
     changed = [item for pair in zip(changed1, changed2) for item in pair]
+    no_change1 = get_lineitems_for_display_from_hscodes(hscodes_with_no_change,release1)
+    no_change2 = get_lineitems_for_display_from_hscodes(hscodes_with_no_change,release2)
+    no_change = [item for pair in zip(no_change1, no_change2) for item in pair]
 
     new_lineitems_excel = __convert_lineitems_to_excel(new_hscodes_lineitems, 'NEW')
     removed_lineitems_excel = __convert_lineitems_to_excel(removed_hscodes_lineitems, 'REMOVED')
     changed_excel = __convert_lineitems_to_excel(changed, 'CHANGED')
+    no_change_excel = __convert_lineitems_to_excel(no_change, 'NO_CHANGE')
 
-    return new_lineitems_excel, removed_lineitems_excel, changed_excel
+    return new_lineitems_excel, removed_lineitems_excel, changed_excel, no_change_excel
     
 
 def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) -> BytesIO:
@@ -182,7 +187,7 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
 
     Args:
         lineitems (list): _description_
-        cell_highlight_preset (str): "NEW","REMOVED" or "CHANGED"
+        cell_highlight_preset (str): "NEW","REMOVED" or "CHANGED" or "NO_CHANGE"
 
     Returns:
         BytesIO: excel file
@@ -243,6 +248,9 @@ def __convert_lineitems_to_excel(lineitems: list, cell_highlight_preset: str) ->
         highlighted_excel = BytesIO(); highlighted_excel.seek(0)
         wb.save(highlighted_excel)
         highlighted_excel.seek(0)
+
+    if cell_highlight_preset == 'NO_CHANGE':
+        highlighted_excel = excel
 
     if cell_highlight_preset == 'CHANGED':
         wb = oxl.load_workbook(excel)
