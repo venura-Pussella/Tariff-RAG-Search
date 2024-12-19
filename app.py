@@ -30,6 +30,7 @@ from app_functions import logs as l
 from app_functions import compare as comp
 import config
 from app_functions import lineitems_to_csv as l2c
+from app_functions import full_export
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -472,7 +473,14 @@ def export_search_results():
     response = send_file(file, as_attachment=True, download_name=f'{query_type}_search__{user_query}_{str(datetime.now())}.csv')
     return response
 
-
+@app.route("/export_all_lineitems", methods=["POST"])
+def export_all_lineitems():
+    """Endpoint to export all line items in the json store."""
+    logging.info('Request for export_all_lineitems received')
+    results = full_export.get_all_lineitems()
+    file = l2c.convert_lineitems_to_csv(results)
+    response = send_file(file, as_attachment=True, download_name=f'all_lineitems_{str(datetime.now())}.csv')
+    return response
 
 if __name__ == '__main__':
    app.run()
