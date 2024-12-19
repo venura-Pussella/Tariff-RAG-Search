@@ -1,6 +1,6 @@
 import os
 import logging
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContainerClient
 import config
 from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError
 from io import BytesIO
@@ -12,23 +12,7 @@ class AzureBlobObjects:
     """
 
     __blob_service_client = None
-    __pdf_container_client = None
-    __generatedExcel_container_client = None
-    __generatedDict_container_client = None
-    __reviewedExcel_container_client = None
-    __json_container_client = None
-    __cosmos_ids_container_client = None
-    __release_holder_container_client = None
-
-    containerClientToNameMapping = {
-        config.pdf_container_name: __pdf_container_client,
-        config.generatedExcel_container_name: __generatedExcel_container_client,
-        config.generatedDict_container_name: __generatedDict_container_client,
-        config.reviewedExcel_container_name: __reviewedExcel_container_client,
-        config.json_container_name: __json_container_client,
-        config.cosmos_ids_container_name: __cosmos_ids_container_client,
-        config.release_holder_container_name: __release_holder_container_client
-    }
+    __container_clients: dict[str,ContainerClient] = {}
 
     @classmethod
     def get_blob_service_client(cls):
@@ -39,18 +23,18 @@ class AzureBlobObjects:
     
     @classmethod
     def get_container_client(cls, containerName: str):
-        relevantPrivateContainerClient = cls.containerClientToNameMapping[containerName]
-
         try:
-            if relevantPrivateContainerClient == None:
+            if containerName not in cls.__container_clients.keys():
                 blob_service_client = cls.get_blob_service_client()
-                relevantPrivateContainerClient = blob_service_client.get_container_client(container=containerName)
-                if not relevantPrivateContainerClient.exists():
-                    relevantPrivateContainerClient = blob_service_client.create_container(name=containerName)
+                containerClient = blob_service_client.get_container_client(container=containerName)
+                if not containerClient.exists():
+                    containerClient = blob_service_client.create_container(name=containerName)
+                cls.__container_clients[containerName] = containerClient
         except ServiceRequestError:
             logging.error('Service Request Error. Also check if the server is connected to the internet.')
+            return None
 
-        return relevantPrivateContainerClient
+        return cls.__container_clients[containerName]
     
     @classmethod
     def getListOfFilenamesInContainer(cls, containerName: str) -> list[str]:
