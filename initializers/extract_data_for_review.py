@@ -215,8 +215,8 @@ def __get_excel_and_dictionary_from_pdf(file: BytesIO, userEnteredChapterNumber:
         logging.warning(f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
         logging.log(25,f'An unknown column header schema is detected in chapter {chapterNumber} during PDF processing')
     if suspect_unknown_column_header_schema == None:
-        logging.error(f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber}')
-        logging.log(25,f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber}')
+        logging.error(f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber}. Excel has been generated as normal.')
+        logging.log(25,f'Process of validating column header schema failed. Please check it manually. Chapter {chapterNumber} Excel has been generated as normal.')
     
     df['LineItem?'] = None  
    

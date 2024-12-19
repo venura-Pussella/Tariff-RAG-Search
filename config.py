@@ -35,8 +35,9 @@ release_holder_container_name = "release-holder"
 release_holder_filename = "releases.txt"
 
 # Azure Storage Table
-azureStorage_chapterTracker_TableName = 'chaptertracker12345'
+azureStorage_chapterTracker_TableName = 'chaptertracker'
 azureStorageTablePartitionKeyValue = 'a'
+job_tracker_tableName = 'jobs'
 
 class RecordStatus:
     uploadingPDF = 'uploading PDF'
@@ -57,3 +58,6 @@ class RecordState:
 
 flask_max_accepted_file_size = 100 * 1024 * 1024
 in_memory_log_message_count = 100000
+
+total_jobs_threshold = 200
+ratio_of_completed_jobs_to_delete_when_threshold_is_hit = 0.5

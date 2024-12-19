@@ -18,6 +18,7 @@ def configure_logging():
     # custom logging levels
     logging.addLevelName(25,'USER') # because INFO is too much for the end user
     logging.addLevelName(15,'LLM') # for developers to track LLM
+    logging.addLevelName(14,'JOBS') # to log jobs on completion (job tracker for background tasks)
     
     # make custom logging.Handler inherited class to store log messages in the log_messages list
     class ListHandler(logging.Handler):

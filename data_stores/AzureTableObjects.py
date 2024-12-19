@@ -1,7 +1,9 @@
 import os
+import uuid
 import config
 import logging
-from azure.data.tables import TableServiceClient, TableEntity, UpdateMode
+from datetime import datetime
+from azure.data.tables import TableServiceClient, TableEntity, UpdateMode, TableClient
 
 class MutexError(Exception):
     """Custom exception for specific error handling."""
@@ -17,7 +19,7 @@ class AzureTableObjects:
     """
 
     __table_service_client = None
-    __table_clients = {}
+    __table_clients: dict[str,TableClient] = {}
 
 
     @classmethod
@@ -127,3 +129,85 @@ class AzureTableObjects:
             entity_release_date = rowkey.rsplit(':')[0]
             if entity_release_date==release_date and entity[field] == content: chapters.append(int(rowkey.rsplit(':')[1]))
         return chapters
+    
+    @classmethod
+    def create_new_job(cls, function_name: str, job_description: str) -> str:
+        """Creates new job in the job tracker.
+
+        Args:
+            function_name (str): Name of the function that does the job
+            job_description (str): Add description of job goals
+
+        Returns:
+            str: unique id to identify the job in the tracker
+        """
+        rowkey = str(uuid.uuid4())
+        entity = {
+            'PartitionKey': config.azureStorageTablePartitionKeyValue,
+            'RowKey': rowkey, # note rowkey cannot be an int, even tho other fields can be of any data type
+            'StartTime': str(datetime.now()),
+            'Function': function_name,
+            'Description': job_description,
+            'EndTime': '',
+            'Progress': ''
+        }
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        table_client.create_entity(entity)
+        return rowkey
+    
+    @classmethod
+    def get_job_progress(cls, job_id: str) -> str:
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        entity = table_client.get_entity(config.azureStorageTablePartitionKeyValue, job_id)
+        return entity['Progress']
+    
+    @classmethod
+    def set_job_progress(cls, job_id: str, progress: str) -> str:
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        entity = table_client.get_entity(config.azureStorageTablePartitionKeyValue, job_id)
+        entity['Progress'] = progress
+        table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
+
+    @classmethod
+    def end_job(cls, job_id: str):
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        entity = table_client.get_entity(config.azureStorageTablePartitionKeyValue, job_id)
+        entity['EndTime'] = str(datetime.now())
+        table_client.update_entity(mode= UpdateMode.REPLACE, entity=entity)
+        log_message = ''
+        for key in entity.keys():
+            log_message += f'{key}: {entity[key]}\n'
+        logging.log(14,f'{log_message}')
+
+        # if too many jobs in the azure table, trigger a cleanup
+        if len(cls.get_all_jobs()) > config.total_jobs_threshold:
+            cls.delete_old_completed_jobs()
+
+    @classmethod
+    def get_all_jobs(cls) -> list[TableEntity]:
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        return list(table_client.list_entities())
+    
+    @classmethod
+    def get_all_jobs_classified(cls) -> tuple[list[TableEntity],list[TableEntity]]:
+        jobs = cls.get_all_jobs()
+        active_jobs = []
+        completed_jobs = []
+
+        for job in jobs:
+            if job['EndTime'] == '': active_jobs.append(job)
+            else: completed_jobs.append(job)
+        return active_jobs,completed_jobs
+    
+    @classmethod
+    def delete_old_completed_jobs(cls):
+        _,completed_jobs = cls.get_all_jobs_classified()
+        completed_jobs_sorted = sorted(completed_jobs, key=lambda x: x["EndTime"], reverse=True)
+        count = len(completed_jobs_sorted)
+        start_deleting_index = int(count*(1 - config.ratio_of_completed_jobs_to_delete_when_threshold_is_hit))
+        jobs_to_delete = completed_jobs_sorted[start_deleting_index:]
+        table_client = cls.get_table_client(config.job_tracker_tableName)
+        for job in jobs_to_delete:
+            table_client.delete_entity(config.azureStorageTablePartitionKeyValue,job['RowKey'])
+
+

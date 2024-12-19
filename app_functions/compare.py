@@ -146,7 +146,7 @@ def compare_releases_all_possible_chapters(release1: str, release2: str):
     new_hscodes.sort(); removed_hscodes.sort(); hscodes_with_change.sort(); hscodes_with_no_change.sort()
     return hscodes_with_no_change,hscodes_with_change,new_hscodes,removed_hscodes
 
-def export_release_comparison(release1: str, release2: str) -> tuple[BytesIO,BytesIO,BytesIO]:
+def export_release_comparison(release1: str, release2: str) -> tuple[BytesIO,BytesIO,BytesIO,BytesIO]:
     """Compares all available chapters present in both of the 2 specified releases in a git-like fasion, 
     and generates 3 excel files containing new HS codes, removed HS codes, and changed HS codes.
     Git compares changes in lines. This compares changes in HS Codes.

@@ -74,6 +74,8 @@ def delete_upto_corrected_excel(chapterNumber: int, release: str):
     """Deletes a file record upto and including the corrected excel.
 
     """
+    job_id = ato.create_new_job('delete_upto_corrected_excel', f'chapterNumber: {chapterNumber}, release: {release}')
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(delf.deleteChapterFromCosmos, chapterNumber, release), 
@@ -81,11 +83,16 @@ def delete_upto_corrected_excel(chapterNumber: int, release: str):
             executor.submit(delf.deleteChapterReviewedExcelBlob, chapterNumber, release)
         ]
         concurrent.futures.wait(futures)
+
+    ato.set_job_progress(job_id, 'done')
+    ato.end_job(job_id)
     
 def delete_upto_pdf(chapterNumber: int, release: str):
     """Deletes the entire file record.
 
     """
+    job_id = ato.create_new_job('delete_upto_pdf', f'chapterNumber: {chapterNumber}, release: {release}')
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(delete_upto_corrected_excel, chapterNumber, release),
@@ -95,9 +102,16 @@ def delete_upto_pdf(chapterNumber: int, release: str):
         ]
         concurrent.futures.wait(futures)
     
-def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: int = None, filename: str = None):
-    """Basically does the entire uploadPDF stage mentioned in section 3.1.3 in the developer guide."""
-   
+    ato.set_job_progress(job_id, 'done')
+    ato.end_job(job_id)
+    
+def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: int = None, filename: str = None, is_called_by_batch: bool = False):
+    """Basically does the entire uploadPDF stage mentioned in section 3.1.3 in the developer guide.
+    is_called_by_batch argument is used if the function is calle by batch_upload_pdf - if False, this function will handle job tracking"""
+    
+    if not is_called_by_batch:
+        job_id = ato.create_new_job('upload_pdf', f'release_date: {release_date}, user_entered_chapter_number: {user_entered_chapter_number}, filename: {filename}')
+
     # convert the PDF into the dictionary, excel and identified chapter number
     dictionary_pkl_stream, excel_stream, chapterNumber = extract_data_for_review.convertPDFToExcelForReview(pdffile,user_entered_chapter_number,filename)
     if not dictionary_pkl_stream: # i.e. an exception was raised when trying to extract data from the pdf
@@ -107,17 +121,25 @@ def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: 
             logging.error(f"Error with pdf or entered chapter number. User uploaded file's filename: {filename}. Release {release_date}")
         elif chapterNumber:
             logging.error(f"Error with pdf or entered chapter number. Filename and user_entered_chapter_number not received. Identified chapter number: {str(chapterNumber)}. Release {release_date}")
+        if not is_called_by_batch:
+            ato.set_job_progress(job_id, 'error with pdf')
+            ato.end_job(job_id)
         return
+    
     
     try: ato.create_new_blank_chapter_record(chapterNumber, release_date)
     except ResourceExistsError: 
         logging.error(f'A record for chapter {chapterNumber} (release {release_date}) already exists. Delete it if you want to upload a new PDF.')
+        if not is_called_by_batch:
+            ato.set_job_progress(job_id, 'record already existed')
+            ato.end_job(job_id)
         return
 
     mutexKey = secrets.token_hex()
     try: ato.claim_mutex(chapterNumber, mutexKey, release_date)
     except MutexError as e:
         logging.error(e.__str__())
+        if not is_called_by_batch: ato.end_job(job_id)
         return
     ato.edit_chapter_record(chapterNumber, mutexKey, release_date, newRecordStatus=config.RecordStatus.uploadingPDF)
     pdffile.seek(0)
@@ -131,15 +153,30 @@ def upload_pdf(pdffile: BytesIO, release_date: str,user_entered_chapter_number: 
     ato.release_mutex(chapterNumber, mutexKey, release_date)
       
     logging.info("Data extracted from tariff pdfs and saved as excel (and text data dictionary pickle) for review.")
+    if not is_called_by_batch:
+        ato.set_job_progress(job_id, 'done')
+        ato.end_job(job_id)
 
 def batch_upload_pdfs(pdffiles: list[BytesIO], release_date: str, filenames: list[str] = None):
+    job_description = f'Release Date: {release_date} filenames: {filenames}'
+    job_id = ato.create_new_job('batch_upload_pdfs', job_description)
     for i,pdffile in enumerate(pdffiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
         filename = filenames[i]
-        upload_pdf(pdffile,release_date,filename=filename)
+        upload_pdf(pdffile,release_date,filename=filename, is_called_by_batch=True)
+        current_progress = ato.get_job_progress(job_id)
+        current_progress += filename + ','
+        ato.set_job_progress(job_id, current_progress)
+    current_progress = ato.get_job_progress(job_id)
+    if len(current_progress) > 0: current_progress = current_progress[:-1] # remove final ','
+    ato.set_job_progress(job_id, current_progress)
+    ato.end_job(job_id)
 
-def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_entered_chapter_number: int = None):
+def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_entered_chapter_number: int = None, is_called_by_batch: bool = False):
     """Basically does the entire uploadExcel stage mentioned in section 3.1.3 in the developer guide."""
     
+    if not is_called_by_batch:
+        job_id = ato.create_new_job('upload_excel', f'release_date: {release_date}, user_entered_chapter_number: {user_entered_chapter_number}, filename: {filename}')
+
     # if user has entered the chapter number, that is taken as the chapterNumber, otherwise it's taken from the filename
     if user_entered_chapter_number: chapterNumber = user_entered_chapter_number
     else: 
@@ -147,15 +184,23 @@ def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_ente
         try: chapterNumber = int(chapterNumber)
         except ValueError: 
             logging.error(f'Cannot identify the chapter number the excel {filename} of release {release_date} refers to')
+            if not is_called_by_batch:
+                ato.set_job_progress(job_id,'cannot identify the chapter number the excel belongs to')
+                ato.end_job(job_id)
             return
 
     mutexKey = secrets.token_hex()
     try: ato.claim_mutex(chapterNumber, mutexKey, release_date)
     except MutexError as e:
         logging.error(e.__str__())
+        if not is_called_by_batch:
+            ato.end_job(job_id)
         return
     except ResourceNotFoundError:
         logging.error(f'The chapter was not found. Perhaps you must create the chapter record by uploading a PDF. Excel: {filename}. Release: {release_date}')
+        if not is_called_by_batch:
+            ato.set_job_progress(job_id,'chapter record was not found')
+            ato.end_job(job_id)
         return
 
     isSuccess = extract_data_to_json_store(excelfile, mutexKey, chapterNumber, release_date)
@@ -164,14 +209,30 @@ def upload_excel(excelfile: BytesIO, filename: str, release_date: str, user_ente
     else:
         logging.error(f'Excel was rejected due to an error. Maybe at least one of the HS codes provided did not match the entered chapter number. Excel: {filename}. Release: {release_date}')
         ato.release_mutex(chapterNumber, mutexKey, release_date)
+        if not is_called_by_batch:
+            ato.set_job_progress(job_id,'excel was rejected due to an error')
+            ato.end_job(job_id)
         return
     
     update_vectorstore(chapterNumber, mutexKey, release_date)
 
+    if not is_called_by_batch:
+        ato.set_job_progress(job_id, 'done')
+        ato.end_job(job_id)
+
 def batch_upload_excels(excelfiles: list[BytesIO], release_date: str, filenames: list[str] = None):
+    job_description = f'Release Date: {release_date} filenames: {filenames}'
+    job_id = ato.create_new_job('batch_upload_excels', job_description)
     for i,excelfile in enumerate(excelfiles): # uploads happen in series, so time taken for the total upload process is the same, but memory is saved
         filename = filenames[i]
-        upload_excel(excelfile,filename,release_date)
+        upload_excel(excelfile,filename,release_date, is_called_by_batch=True)
+        current_progress = ato.get_job_progress(job_id)
+        current_progress += filename + ','
+        ato.set_job_progress(job_id, current_progress)
+    current_progress = ato.get_job_progress(job_id)
+    if len(current_progress) > 0: current_progress = current_progress[:-1] # remove final ','
+    ato.set_job_progress(job_id, current_progress)
+    ato.end_job(job_id)
     
 
 def add_release(release: str):
