@@ -407,5 +407,11 @@ def export_release_comparison():
     response = send_file(zip_buffer, as_attachment=True, download_name=f'{release1}_to_{release2}_comparison.zip')
     return response
 
+@app.route('/jobs', methods=['GET'])
+def view_jobs():
+    logging.info('Request to view jobs received.')
+    activeJobsSorted,completedJobsSorted = ato.get_all_jobs_classified()
+    return render_template('jobs.html', activeJobs=activeJobsSorted,completedJobs=completedJobsSorted)
+
 if __name__ == '__main__':
    app.run()

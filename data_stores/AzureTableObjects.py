@@ -190,6 +190,11 @@ class AzureTableObjects:
     
     @classmethod
     def get_all_jobs_classified(cls) -> tuple[list[TableEntity],list[TableEntity]]:
+        """Gets all jobs classified into active and completed job categories (sorted)
+
+        Returns:
+            tuple[list[TableEntity],list[TableEntity]]: active_jobs_sorted - most recent started job first,completed_jobs_sorted - most recent ended job first
+        """
         jobs = cls.get_all_jobs()
         active_jobs = []
         completed_jobs = []
@@ -197,12 +202,14 @@ class AzureTableObjects:
         for job in jobs:
             if job['EndTime'] == '': active_jobs.append(job)
             else: completed_jobs.append(job)
-        return active_jobs,completed_jobs
+
+        active_jobs_sorted = sorted(active_jobs, key=lambda x: x["StartTime"], reverse=True)
+        completed_jobs_sorted = sorted(completed_jobs, key=lambda x: x["EndTime"], reverse=True)
+        return active_jobs_sorted,completed_jobs_sorted
     
     @classmethod
     def delete_old_completed_jobs(cls):
-        _,completed_jobs = cls.get_all_jobs_classified()
-        completed_jobs_sorted = sorted(completed_jobs, key=lambda x: x["EndTime"], reverse=True)
+        _,completed_jobs_sorted = cls.get_all_jobs_classified()
         count = len(completed_jobs_sorted)
         start_deleting_index = int(count*(1 - config.ratio_of_completed_jobs_to_delete_when_threshold_is_hit))
         jobs_to_delete = completed_jobs_sorted[start_deleting_index:]
