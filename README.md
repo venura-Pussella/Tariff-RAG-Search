@@ -13,6 +13,10 @@ AZURE_TABLE_CONNECTION_STRING
 #### Python version
 python 3.11
 
+#### requirements.txt
+requirements_primary.txt contains the basic libraries needed
+requirements.txt includes all the libraries installed by the libraries in requirements_primary.txt, with their versions frozen
+
 #### Command for Azure deployment thru zip file push
 Curl command to push zip file to deployment:
 curl.exe -X POST -H 'Content-Type: application/zip' -u '$tariff-search-browns' -T pdfplumber.zip https://tariff-search-browns.scm.azurewebsites.net/api/zipdeploy
