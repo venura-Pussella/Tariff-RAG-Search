@@ -54,7 +54,7 @@
 
         <h2 class="ui header">Upload Reviewed and Corrected Excel</h2>
         
-        <form class="ui form" action="{{ url_for('excel_upload') }}" method="POST" enctype="multipart/form-data">
+        <form class="ui form" action="{{ url_for('excel_upload') }}" method="POST" enctype="multipart/form-data" id="excelUploadForm">
             <div class="field">
                 <label>Chapter Number</label>
                 <input type="text" name="chapterNumber" placeholder="Enter chapter name" required>
@@ -66,8 +66,16 @@
                 <label>Select File</label>
                 <input type="file" name="file" required>
             </div>
-            <button class="ui button primary" type="submit">Upload</button>
+            <button class="ui button primary" type="button" id="excelUploadButton">Upload</button>
         </form>
+        <script>
+            document.getElementById('excelUploadButton').addEventListener('click', function () {
+                const confirmAction = confirm('Has the excel been reviewed for errors?');
+                if (confirmAction) {
+                    document.getElementById('excelUploadForm').submit();
+                }
+            });
+        </script>
 
         <h3 class="ui dividing header" style="margin-top: 50px;">Document Overview</h3>
 
@@ -158,7 +166,7 @@
 
         <h2 class="ui header">Reviewed Excel Batch Upload</h2>
         
-        <form class="ui form" action="{{ url_for('excel_upload_batch') }}" method="POST" enctype="multipart/form-data">
+        <form class="ui form" action="{{ url_for('excel_upload_batch') }}" method="POST" enctype="multipart/form-data" id="batchExcelUploadForm">
             <div class="field">
                 <label>Select Files</label>
                 <input type="file" name="files" multiple="multiple" required>
@@ -166,8 +174,16 @@
             <div class="field">
                 <input type="date" id="release" name="release">
             </div>
-            <button class="ui button primary" type="submit">Upload</button>
+            <button class="ui button primary" type="button" id="batchExcelUploadButton">Upload</button>
         </form>
+        <script>
+            document.getElementById('batchExcelUploadButton').addEventListener('click', function () {
+                const confirmAction = confirm('Have the excels been reviewed for errors?');
+                if (confirmAction) {
+                    document.getElementById('batchExcelUploadForm').submit();
+                }
+            });
+        </script>
 
         <h2 class="ui header">Batch Download Excel</h2>
         
