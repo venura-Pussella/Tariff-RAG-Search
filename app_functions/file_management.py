@@ -300,3 +300,9 @@ def does_excel_have_hscodeerrors(excel: BytesIO) -> bool:
             if content == None: continue
             if content.rstrip() == 'hscode error': return True
     return False
+
+
+def is_POST_data_empty(args: list):
+    for arg in args:
+        if arg == None or arg == '': return True
+    return False

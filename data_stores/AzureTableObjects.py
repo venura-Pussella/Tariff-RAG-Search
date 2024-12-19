@@ -209,6 +209,7 @@ class AzureTableObjects:
     
     @classmethod
     def delete_old_completed_jobs(cls):
+        """Deleted old completed jobs according to the parameters specified in the config file."""
         _,completed_jobs_sorted = cls.get_all_jobs_classified()
         count = len(completed_jobs_sorted)
         start_deleting_index = int(count*(1 - config.ratio_of_completed_jobs_to_delete_when_threshold_is_hit))

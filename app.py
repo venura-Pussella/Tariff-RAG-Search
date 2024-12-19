@@ -114,6 +114,9 @@ def pdf_upload():
     # Get the data POSTED to the server
     chapterNumber = request.form.get('chapterNumber')
     release = request.form.get('release')
+    if fm.is_POST_data_empty([chapterNumber,release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
     file = request.files['file']
     filename = file.filename
     try: chapterNumber = int(chapterNumber)
@@ -138,6 +141,9 @@ def pdf_upload_batch():
     logging.info('Batch PDF upload request received.')
     files = request.files.getlist("files")
     release = request.form.get('release')
+    if fm.is_POST_data_empty([release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
 
     # Validate and add OK files to an array
     file_streams: list[BytesIO] = []
@@ -164,6 +170,9 @@ def excel_upload():
     file = request.files['file']
     filename = file.filename
     release = request.form.get('release')
+    if fm.is_POST_data_empty([chapterNumber,release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
     try: chapterNumber = int(chapterNumber)
     except ValueError: chapterNumber = None
 
@@ -186,6 +195,9 @@ def excel_upload_batch():
     logging.info('Batch Excel upload request received.')
     files = request.files.getlist("files")
     release = request.form.get('release')
+    if fm.is_POST_data_empty([release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
 
     # Validate and add OK files to an array
     file_streams: list[BytesIO] = []
@@ -230,6 +242,9 @@ def file_clicked():
 def delete_till_corrected_excel():
     chapterNumber = request.form.get('chapterNumber')
     release = request.form.get('release')
+    if fm.is_POST_data_empty([chapterNumber,release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
     logging.info(f'Request to delete_till_corrected_excel - chapter {chapterNumber} of release {release} received.')
 
     try: entity = ato.get_chapter_record(chapterNumber, release)
@@ -263,6 +278,9 @@ def delete_till_corrected_excel():
 def delete_till_pdf():
     chapterNumber = request.form.get('chapterNumber')
     release = request.form.get('release')
+    if fm.is_POST_data_empty([chapterNumber,release]):
+        logging.error('Some required POSTed data was empty or not available')
+        return redirect(url_for('file_management'))
     logging.info(f'Request to delete_till_pdf - chapter {chapterNumber} of release {release} received.')
 
     mutexKey = secrets.token_hex()
