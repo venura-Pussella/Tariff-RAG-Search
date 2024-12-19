@@ -7,9 +7,10 @@ import zipfile
 import concurrent.futures
 from io import BytesIO
 import logging
+from datetime import datetime
 
 from flask import (Flask, redirect, render_template, request,
-                   send_from_directory, url_for, flash, send_file)
+                   send_from_directory, url_for, flash, send_file, jsonify)
 from werkzeug.utils import secure_filename
 from azure.core.exceptions import ResourceNotFoundError
 
@@ -28,6 +29,7 @@ import log_handling
 from app_functions import logs as l
 from app_functions import compare as comp
 import config
+from app_functions import lineitems_to_csv as l2c
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Needed for flask flash messages, which is used to communicate success/error messages with user
@@ -430,6 +432,47 @@ def view_jobs():
     logging.info('Request to view jobs received.')
     activeJobsSorted,completedJobsSorted = ato.get_all_jobs_classified()
     return render_template('jobs.html', activeJobs=activeJobsSorted,completedJobs=completedJobsSorted)
+
+@app.route("/export_search_results", methods=["POST"])
+def export_search_results():
+    """Endpoint for exporting search results as csv. Pass in data as json.
+    
+    Args:
+        user_query (str): __description__
+        query_type (str): choose from available searches ['hscode','sccode','lineitem']
+        options (list[str]): needed if query_type = 'lineitem'. This shoud be an array. eg: ["2024-08-05","2024-11-08"]
+    """
+    logging.info('Request for export_search_results received')
+
+    data = request.get_json()
+    if data is None: return jsonify({'error': 'No JSON data found'}), 400
+
+    user_query = str(data.get('user_query'))
+    query_type = str(data.get('query_type'))
+    selected_releases = data.get('options')
+    logging.info(f'export_search_results endpoint - received user_query: {user_query}, query_type: {query_type}, selected_releases: {str(selected_releases)}')
+    print(type(selected_releases))
+    if query_type not in ['hscode','sccode','lineitem']: return jsonify({'error': 'invalid query_type'}), 400
+    if query_type == 'lineitem' and type(selected_releases) != list: return jsonify({'error': 'selected_releases not an array'}), 400
+    if query_type == 'hscode': results = findByHSCode.findByHSCode(user_query)
+    if query_type == 'sccode': results = findBySCCode.findBySCCode(user_query)
+    if query_type == 'lineitem':
+        user_query = user_query[:500] # cap to 500 characters to avoid accidential/malicious long query which can incur high embedding costs
+        toks.updateTokens(user_query) # update token count tracker
+        resultsAndScores = vectorstoreSearch.vectorStoreSearch(user_query, selected_releases)
+        results = []
+        for each in resultsAndScores:
+            result = each[0]
+            score = each[1]
+            result['Score'] = score
+            results.append(result)
+    
+    # return jsonify(results)
+    file = l2c.convert_lineitems_to_csv(results)
+    response = send_file(file, as_attachment=True, download_name=f'{query_type}_search__{user_query}_{str(datetime.now())}.csv')
+    return response
+
+
 
 if __name__ == '__main__':
    app.run()

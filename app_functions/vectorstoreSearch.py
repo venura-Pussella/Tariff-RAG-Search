@@ -4,7 +4,7 @@ from other_funcs.getEmbeddings import getEmbeddings
 from app_functions import findByHSCode as fhsc
 from data_stores.CosmosObjects import CosmosObjects
 
-def vectorStoreSearch(question: str, releases: list[str]) -> list[dict]:
+def vectorStoreSearch(question: str, releases: list[str]) -> list[tuple[dict,float]]:
     """Searches text fields of a line-item for matches with the user's query.
     Works by embedding the user's question and getting a vector, and comparing it with the vectors in Cosmos DB (vector similarity search).
     The top k results from Cosmos have HS code as a metadata, so now we use this to carry out a regular HS code search.
@@ -14,7 +14,7 @@ def vectorStoreSearch(question: str, releases: list[str]) -> list[dict]:
         releases (list[str]): list of releases whose vectorstores to check
 
     Returns:
-        list[dict]: list of search results (line items)
+        list[tuple[dict,float]]: list of: search_result_dict, score
     """
     # ct = datetime.datetime.now()
     # print("|||VectorStoreSearch Called - " + str(ct))
